@@ -1,0 +1,22 @@
+{
+  "name": "Ephraim",
+  "type": "Land Unit",
+  "subType": "Infantry",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 20,
+  "str": 5,
+  "mag": 0,
+  "skl": 5,
+  "spd": 5,
+  "lck": 5,
+  "def": 5,
+  "res": 5,
+  "aff": "Light",
+  "mov": 5,
+  "con": 5,
+  "aid": 4,
+  "trv": 0,
+  "cond": "None",
+  "bwl": { "b":0,"w":0,"l":0 }
+}

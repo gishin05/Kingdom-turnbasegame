@@ -1,0 +1,7 @@
+﻿{
+  "tiles": {
+    "10": {"type":"OASIS","def":0,"avo":5,"costs":{"Land Unit":-1,"Ocean Unit":1,"Air Unit":1}},
+    "20": {"type":"DUNES","def":0,"avo":10,"costs":{"Land Unit":2,"Ocean Unit":-1,"Air Unit":1}},
+    "30": {"type":"CANYON","def":2,"avo":0,"costs":{"Land Unit":-1,"Ocean Unit":-1,"Air Unit":1}}
+  }
+}

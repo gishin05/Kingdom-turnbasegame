@@ -1,0 +1,184 @@
+﻿{
+  "tiles": {
+    "0": {
+      "type": "FLOOR",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "1": {
+      "type": "CHEST",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "2": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "3": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "4": {
+      "type": "TRUNK",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "5": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "6": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "7": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "8": {
+      "type": "TRUNK",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "9": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "10": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "11": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "12": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "13": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "14": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "15": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "16": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "17": {
+      "type": "PLAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    }
+  }
+}

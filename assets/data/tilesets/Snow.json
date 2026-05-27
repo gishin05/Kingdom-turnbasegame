@@ -1,0 +1,6 @@
+{
+  "tiles": {
+    "12": {"type":"GLACIER","def":1,"avo":5,"costs":{"Land Unit":2,"Ocean Unit":-1,"Air Unit":1}},
+    "24": {"type":"ICE_WALL","def":2,"avo":0,"costs":{"Land Unit":-1,"Ocean Unit":-1,"Air Unit":1}}
+  }
+}

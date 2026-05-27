@@ -1,0 +1,1845 @@
+package game.ui.screens;
+
+import game.Main;
+import game.ui.BaseScreen;
+import game.ui.Theme;
+import game.core.unit.*;
+import game.core.map.Tileset;
+import game.core.util.GamePaths;
+import game.core.util.SpriteColorer;
+import game.core.util.SoundManager;
+import game.core.util.JsonUtil;
+import game.core.battle.BattleManager;
+import game.core.animation.AnimationScript;
+import game.core.animation.AnimationCommand;
+import game.core.engine.*;
+import game.core.save.SaveManager;
+import game.core.save.VersusSaveData;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.*;
+import java.util.List;
+import javax.swing.*;
+
+public class VersusGameplayScreen extends BaseScreen {
+    private static final long serialVersionUID = 1L;
+    private static final int STATS_BOX_WIDTH = 380;
+    private final int TILE_SIZE = 16;
+    private int mapW, mapH;
+    private int[][] mapData;
+    private String[][] mapTSData;
+    private Map<String, Tileset> loadedTilesets = new HashMap<>();
+    private Map<String, File> tilesetFiles = new HashMap<>();
+    private List<MapUnit> units = new ArrayList<>();
+    private MapUnit selectedUnit = null;
+    private Point oldUnitPos = null;
+    private Set<Point> moveRange = new HashSet<>();
+    private Set<Point> attackRange = new HashSet<>();
+    private Map<Point, Point> pathParent = new HashMap<>();
+    private int currentDay = 1, currentPlayerIdx = 0;
+    private List<VersusScreen.PlayerSettings> players;
+    private float zoomScale = 3.0f;
+    private JPanel canvasPanel;
+    private JScrollPane scrollPane;
+    private JLabel dayLabel, goldLabel;
+    private int phaseBannerTimer = 0;
+    private String lastLoadedMapPath;
+
+    private JLayeredPane gameLayer;
+    private JPanel menuOverlay;
+    private boolean isPaused = false;
+    private JButton menuBtn;
+    
+    private Map<String, List<BufferedImage>> mapAnimCache = new HashMap<>();
+    private Map<String, BufferedImage> recolorCache = new HashMap<>();
+    private BufferedImage battlePlatform, battleBg;
+    
+
+
+    private class BattleActor {
+        MapUnit mapUnit;
+        AnimationScript script;
+        Map<String, BufferedImage> allFrames = new HashMap<>();
+        int currentMode = AnimationScript.MODE_STANDING;
+        int currentCommandIdx = 0, durationCounter = 0;
+        String currentFrameName = null;
+        boolean mirror = false;
+        int offsetX = 0, offsetY = 0;
+        boolean isFinished = false;
+        boolean isWaitingForDamage = false;
+        double displayHp, targetHp;
+
+        BattleActor(MapUnit u, boolean isAttacker, int sw, int sh) {
+            this.mapUnit = u;
+            this.displayHp = u.currentHp;
+            this.targetHp = u.currentHp;
+            this.mirror = !isAttacker;
+            loadBattleAssets();
+        }
+
+        private void loadBattleAssets() {
+            String[] cats = {"Champion", "Unit", "units", "battle", "anims"};
+            String[] weapons = {"Lance", "Spear", "lance", "spear", "Sword", "sword", "Axe", "axe", "Bow", "bow", "Magic", "magic", "Attack"};
+            String uName = mapUnit.unitName;
+            
+            File baseDir = null;
+            String[] rootPaths = GamePaths.battleAssetSearchRoots();
+            for (String root : rootPaths) {
+                for (String cat : cats) {
+                    for (String w : weapons) {
+                        File dir = new File(root + cat + "/" + uName + "/" + w);
+                        if (dir.exists()) { baseDir = dir; break; }
+                        dir = new File(root + uName + "/" + w);
+                        if (dir.exists()) { baseDir = dir; break; }
+                    }
+                    if (baseDir != null) break;
+                }
+                if (baseDir != null) break;
+            }
+            
+            // Fallback to "Walk_Down" or generic movement folders only if no real weapon folder was found
+            if (baseDir == null) {
+                for (String root : rootPaths) {
+                    for (String cat : cats) {
+                        File dir = new File(root + cat + "/" + uName + "/Walk_Down");
+                        if (dir.exists()) { baseDir = dir; break; }
+                        dir = new File(root + uName + "/Walk_Down");
+                        if (dir.exists()) { baseDir = dir; break; }
+                    }
+                    if (baseDir != null) break;
+                }
+            }
+            
+            if (baseDir != null) {
+                File scriptFile = findScriptRecursively(baseDir);
+                if (scriptFile != null) this.script = new AnimationScript(scriptFile);
+                loadFramesRecursively(baseDir);
+            }
+        }
+
+        private File findScriptRecursively(File dir) {
+            File[] files = dir.listFiles();
+            if (files == null) return null;
+            for (File f : files) {
+                if (f.getName().equals("script.txt")) return f;
+            }
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    File found = findScriptRecursively(f);
+                    if (found != null) return found;
+                }
+            }
+            return null;
+        }
+
+        private void loadFramesRecursively(File dir) {
+            File[] files = dir.listFiles(); if (files == null) return;
+            for (File f : files) {
+                if (f.isDirectory()) loadFramesRecursively(f);
+                else if (f.getName().endsWith(".png")) {
+                    try { allFrames.put(f.getName(), javax.imageio.ImageIO.read(f)); } catch (Exception e) {}
+                }
+            }
+        }
+
+        void setMode(int mode) {
+            this.currentMode = mode;
+            this.currentCommandIdx = 0;
+            this.durationCounter = 0;
+            this.isFinished = (mode == AnimationScript.MODE_STANDING || mode == 12);
+            this.isWaitingForDamage = false;
+        }
+
+        void update() {
+            if (displayHp > targetHp) displayHp = Math.max(targetHp, displayHp - 0.5);
+            else if (displayHp < targetHp) displayHp = Math.min(targetHp, displayHp + 0.5);
+
+            if (isWaitingForDamage) return;
+            List<AnimationCommand> cmds = (script != null) ? script.getCommands(currentMode) : new ArrayList<>();
+            if (cmds.isEmpty()) { 
+                // Fallback: If script is missing or empty, mark finished but allow frame looping
+                isFinished = true; 
+            }
+            
+            if (currentCommandIdx < cmds.size()) {
+                AnimationCommand cmd = cmds.get(currentCommandIdx);
+                if (cmd.getType() == AnimationCommand.Type.FRAME) {
+                    if (durationCounter == 0) {
+                        currentFrameName = cmd.getFrameName();
+                        if (cmd.getSecondaryCommandCode() != null) handleFE8Command(cmd.getSecondaryCommandCode());
+                    }
+                    durationCounter++;
+                    if (durationCounter >= cmd.getDuration()) { durationCounter = 0; currentCommandIdx++; }
+                } else if (cmd.getType() == AnimationCommand.Type.COMMAND) {
+                    handleFE8Command(cmd.getCommandCode());
+                    currentCommandIdx++;
+                } else if (cmd.getType() == AnimationCommand.Type.END) {
+                    if (currentMode == AnimationScript.MODE_STANDING || currentMode == 12) {
+                        // Loop standing/idle animations indefinitely
+                        currentCommandIdx = 0;
+                        durationCounter = 0;
+                    } else if (currentMode == AnimationScript.MODE_DODGE || currentMode == 8) {
+                        // Dodge complete, return to standing pose and mark finished
+                        setMode(AnimationScript.MODE_STANDING);
+                        isFinished = true;
+                    } else {
+                        isFinished = true;
+                    }
+                }
+            } else { 
+                // Fallback: If script is finished or empty for this mode, just loop frames
+                isFinished = true; 
+                if (!allFrames.isEmpty()) {
+                    List<String> keys = new ArrayList<>(allFrames.keySet());
+                    durationCounter++;
+                    if (durationCounter > 5) {
+                        durationCounter = 0;
+                        int idx = keys.indexOf(currentFrameName);
+                        currentFrameName = keys.get((idx + 1) % keys.size());
+                    }
+                }
+            }
+        }
+
+        private void handleFE8Command(String code) {
+            if (code == null) return;
+            if (code.equals("C01")) {
+                boolean isAttackingMode = (this.currentMode == 1 || this.currentMode == 3 || this.currentMode == 5 || this.currentMode == 6 || this.currentMode == 12);
+                if (isAttackingMode && currentHitIdx < activeBattle.hits.size()) {
+                    BattleManager.BattleHit hit = activeBattle.hits.get(currentHitIdx);
+                    if ((this == attackerActor && hit.isAttacker) || (this == defenderActor && !hit.isAttacker)) {
+                        BattleActor target = (this == attackerActor) ? defenderActor : attackerActor;
+                        
+                        target.takeHit(hit);
+                        currentHitIdx++;
+
+                        // Play battle SFX based on attacker weapon type and outcome
+                        BattleManager.Combatant atkC = (this == attackerActor) ? activeBattle.attacker : activeBattle.defender;
+                        String wpnType = (atkC.weaponType != null) ? atkC.weaponType.name() : null;
+                        boolean isKill = !hit.isMiss && (target.targetHp <= 0);
+                        SoundManager.playBattleHitSfx(wpnType, hit.isCrit, hit.isMiss, hit.damage, isKill);
+
+                        if (!hit.isMiss) this.isWaitingForDamage = true;
+                    }
+                }
+            } else if (code.equals("C06")) {
+                setMode(AnimationScript.MODE_STANDING);
+                isFinished = true;
+            } else {
+                // Dispatch script sound commands (C1B, C22, C23, C38, C25, etc.)
+                BattleManager.Combatant atkC = (this == attackerActor) ? activeBattle.attacker : activeBattle.defender;
+                String wpnType = (atkC != null && atkC.weaponType != null) ? atkC.weaponType.name() : null;
+                SoundManager.playScriptCommandSfx(code, wpnType);
+            }
+        }
+
+        void takeHit(BattleManager.BattleHit hit) {
+            if (hit.isMiss) { 
+                setMode(AnimationScript.MODE_DODGE); 
+            } else {
+                takeHitActual(hit);
+                this.isWaitingForDamage = true;
+            }
+        }
+
+        void takeHitActual(BattleManager.BattleHit hit) {
+            this.targetHp = Math.max(0, (int)this.targetHp - hit.damage);
+            shakeTimer = hit.isCrit ? 15 : 6;
+            flashTimer = hit.isCrit ? 8 : 0;
+
+            // Play death sound if unit is killed
+            boolean isDead = (this.targetHp <= 0);
+
+            new javax.swing.Timer(600, e -> {
+                ((javax.swing.Timer)e.getSource()).stop();
+                if (attackerActor != null) attackerActor.isWaitingForDamage = false;
+                if (defenderActor != null) defenderActor.isWaitingForDamage = false;
+                if (isDead) SoundManager.playHumanFall();
+            }).start();
+        }
+
+        void draw(Graphics2D g) {
+            if (allFrames.isEmpty()) return;
+            String frameName = currentFrameName != null ? currentFrameName : (allFrames.keySet().iterator().hasNext() ? allFrames.keySet().iterator().next() : "");
+            BufferedImage rawImg = allFrames.get(frameName);
+            if (rawImg == null && !frameName.endsWith(".png")) rawImg = allFrames.get(frameName + ".png");
+            if (rawImg == null && !allFrames.isEmpty()) rawImg = allFrames.values().iterator().next();
+            if (rawImg == null) return;
+
+            boolean needsManualFlip = mirror;
+            if (rawImg.getWidth() > 248) {
+                rawImg = rawImg.getSubimage(0, 0, 248, Math.min(160, rawImg.getHeight()));
+            }
+            final BufferedImage finalImg = rawImg;
+            final boolean finalFlip = needsManualFlip;
+
+            final Color teamColor = players.get(mapUnit.ownerIndex).color;
+            // Key must include mirror to distinguish between attacker/defender panels in the cache
+            String cacheKey = mapUnit.unitName + "_" + frameName + "_" + mirror + "_" + teamColor.getRGB();
+            BufferedImage colored = recolorCache.computeIfAbsent(cacheKey, k -> SpriteColorer.recolor(finalImg, teamColor));
+            
+            int fw = colored.getWidth();
+            int fh = colored.getHeight();
+            
+            int baseShift = 0;
+            if (combatDistance >= 2) {
+                baseShift = mirror ? -40 : 40;
+            } else {
+                baseShift = mirror ? -5 : 5;
+            }
+            int dx = baseShift + offsetX;
+            int dy = offsetY;
+            
+            if (finalFlip) {
+                // Manually flip the image if it wasn't pre-mirrored in the spritesheet
+                g.drawImage(colored, dx + fw, dy, -fw, fh, null);
+            } else {
+                g.drawImage(colored, dx, dy, fw, fh, null);
+            }
+            
+            if (offsetX != 0) offsetX = (offsetX > 0) ? -offsetX + 1 : -offsetX - 1;
+        }
+    }
+
+    private BattleManager.BattleResult activeBattle = null;
+    private boolean isBattleActive = false;
+    private BattleActor attackerActor, defenderActor;
+    private int currentHitIdx = 0;
+    private int flashTimer = 0, shakeTimer = 0, battleEndDelay = 0;
+    private int combatDistance = 1;
+
+    // ── Capture Animation State ───────────────────────────────
+    private boolean isCaptureAnimActive = false;
+    private EventInfo captureAnimEvent = null;
+    private MapUnit captureAnimUnit = null;
+    private double captureBarDisplay = 20.0;  // Animated display HP (counts down smoothly)
+    private double captureBarTarget  = 20.0;  // Target HP after this capture action
+    private int captureAnimTimer = 0;          // Delay counter before marking action complete
+
+    private class EventInfo {
+        int x, y, owner; String type;
+        // Capture state
+        int captureHp = 20;              // Event's capture HP (starts at 20, resets to 20)
+        Integer capturingPlayerIdx = null; // Which player index is currently capturing this event
+        EventInfo(int x, int y, String type, int owner) { this.x = x; this.y = y; this.type = type; this.owner = owner; }
+    }
+    private Map<Point, EventInfo> eventMap = new HashMap<>();
+    private Point lastMousePos;
+
+    public VersusGameplayScreen(Main main) {
+        super(main);
+        setLayout(new BorderLayout());
+        initUI();
+        scanTilesets(GamePaths.TILESETS);
+        loadStaticAssets();
+        canvasPanel = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                renderGame((Graphics2D) g);
+            }
+            @Override public Dimension getPreferredSize() {
+                return new Dimension((int)(mapW * TILE_SIZE * zoomScale), (int)(mapH * TILE_SIZE * zoomScale));
+            }
+        };
+        canvasPanel.setBackground(new Color(20, 20, 25));
+        scrollPane = new JScrollPane(canvasPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        gameLayer = new JLayeredPane();
+        add(gameLayer, BorderLayout.CENTER);
+        gameLayer.add(scrollPane, JLayeredPane.DEFAULT_LAYER);
+
+        menuOverlay = buildMenuOverlay();
+        menuOverlay.setVisible(false);
+        gameLayer.add(menuOverlay, JLayeredPane.PALETTE_LAYER);
+
+        addComponentListener(new ComponentAdapter() {
+            @Override public void componentResized(ComponentEvent e) {
+                layoutGameLayer();
+            }
+        });
+        layoutGameLayer();
+        setupListeners();
+        new javax.swing.Timer(16, e -> update()).start();
+    }
+
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        if (isBattleActive) {
+            renderBattleCinematic((Graphics2D) g);
+        } else if (isCaptureAnimActive) {
+            drawCaptureBar((Graphics2D) g);
+        } else if (phaseBannerTimer > 0) {
+            drawPhaseBanner((Graphics2D) g);
+        }
+    }
+
+    private void drawPhaseBanner(Graphics2D g) {
+        VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
+        int sw = getWidth(), sh = getHeight();
+        g.setColor(new Color(p.color.getRed(), p.color.getGreen(), p.color.getBlue(), 180));
+        g.fillRect(0, sh/2 - 40, sw, 80);
+        g.setColor(Color.WHITE); g.setFont(new Font("Serif", Font.BOLD | Font.ITALIC, 32));
+        String text = "DAY " + currentDay + " - " + getPlayerColorName(p.color, p.index) + " PHASE";
+        FontMetrics fm = g.getFontMetrics(); g.drawString(text, (sw - fm.stringWidth(text))/2, sh/2 + 12);
+    }
+
+
+    private void loadStaticAssets() {
+        try {
+            File pf = new File(GamePaths.BATTLE_PLATFORMS, "Grass.png");
+            if (pf.exists()) battlePlatform = javax.imageio.ImageIO.read(pf);
+            File bg = new File(GamePaths.BATTLE_BACKGROUNDS, "Grass.png");
+            if (bg.exists()) battleBg = javax.imageio.ImageIO.read(bg);
+        } catch (Exception e) {}
+    }
+
+    private void initUI() {
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.setBackground(new Color(30, 30, 40));
+        dayLabel = new JLabel("DAY 1"); dayLabel.setFont(Theme.getPixelFont(18f)); dayLabel.setForeground(Color.WHITE);
+        goldLabel = new JLabel("🪙 0"); goldLabel.setFont(Theme.getPixelFont(18f)); goldLabel.setForeground(Color.YELLOW);
+        JButton btnEnd = new JButton("END TURN"); btnEnd.addActionListener(e -> nextTurn());
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        left.setOpaque(false);
+        left.add(dayLabel); left.add(goldLabel); left.add(btnEnd);
+        topBar.add(left, BorderLayout.WEST);
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
+        right.setOpaque(false);
+        menuBtn = new JButton("MENU");
+        menuBtn.addActionListener(e -> toggleMenu());
+        right.add(menuBtn);
+        topBar.add(right, BorderLayout.EAST);
+        add(topBar, BorderLayout.NORTH);
+    }
+
+    private void layoutGameLayer() {
+        if (gameLayer == null) return;
+        int w = gameLayer.getWidth();
+        int h = gameLayer.getHeight();
+        if (w <= 0 || h <= 0) return;
+        scrollPane.setBounds(0, 0, w, h);
+        if (menuOverlay != null) menuOverlay.setBounds(0, 0, w, h);
+    }
+
+    private JPanel buildMenuOverlay() {
+        JPanel overlay = new JPanel(new GridBagLayout());
+        overlay.setOpaque(true);
+        overlay.setBackground(new Color(0, 0, 0, 160));
+
+        JPanel panel = new JPanel();
+        panel.setBackground(new Color(25, 25, 35));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Theme.GOLD_TRANS),
+            BorderFactory.createEmptyBorder(18, 22, 18, 22)
+        ));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        JButton resume = new JButton("RESUME");
+        resume.setAlignmentX(Component.CENTER_ALIGNMENT);
+        resume.addActionListener(e -> setMenuOpen(false));
+
+        JButton settings = new JButton("SETTINGS");
+        settings.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton exit = new JButton("EXIT");
+        exit.setAlignmentX(Component.CENTER_ALIGNMENT);
+        exit.addActionListener(e -> onExitRequested());
+
+        panel.add(resume);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(settings);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(exit);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        overlay.add(panel, gbc);
+
+        overlay.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) { setMenuOpen(false); }
+        });
+        panel.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) { e.consume(); }
+        });
+
+        return overlay;
+    }
+
+    private void toggleMenu() { setMenuOpen(menuOverlay == null || !menuOverlay.isVisible()); }
+
+    private void setMenuOpen(boolean open) {
+        if (menuOverlay == null) return;
+        menuOverlay.setVisible(open);
+        isPaused = open;
+        if (!open) canvasPanel.requestFocusInWindow();
+        repaint();
+    }
+
+    private void onExitRequested() {
+        Object[] options = {"Save", "Don't Save", "Cancel"};
+        int choice = JOptionPane.showOptionDialog(
+            this,
+            "Do you want to save the game before exiting?",
+            "Exit Versus",
+            JOptionPane.YES_NO_CANCEL_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+        if (choice == 0) {
+            try {
+                SaveManager.saveVersus(buildSaveData());
+                JOptionPane.showMessageDialog(this, "Versus game saved.");
+                setMenuOpen(false);
+                main.showScreen(Main.MENU);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Failed to save Versus game.");
+                ex.printStackTrace();
+            }
+        } else if (choice == 1) {
+            setMenuOpen(false);
+            main.showScreen(Main.VERSUS);
+        }
+    }
+
+    private VersusSaveData buildSaveData() {
+        VersusSaveData d = new VersusSaveData();
+        d.mapPath = (this.lastLoadedMapPath != null) ? this.lastLoadedMapPath : "";
+        d.currentDay = this.currentDay;
+        d.currentPlayerIdx = this.currentPlayerIdx;
+
+        if (players != null) {
+            for (int i = 0; i < players.size(); i++) {
+                VersusScreen.PlayerSettings p = players.get(i);
+                VersusSaveData.PlayerData pd = new VersusSaveData.PlayerData();
+                pd.index = p.index;
+                pd.factionIdx = p.factionIdx;
+                pd.gold = p.gold;
+                pd.color = p.color;
+                d.players.add(pd);
+            }
+        }
+
+        for (MapUnit u : units) {
+            if (u == null) continue;
+            VersusSaveData.UnitData ud = new VersusSaveData.UnitData();
+            ud.category = u.category;
+            ud.unitName = u.unitName;
+            ud.ownerIndex = u.ownerIndex;
+            Point pos = (u.position != null) ? u.position : new Point(0, 0);
+            ud.x = pos.x;
+            ud.y = pos.y;
+            ud.currentHp = u.currentHp;
+            ud.maxHp = (u.stats != null ? u.stats.maxHp : u.currentHp);
+            ud.hasActed = u.hasActed;
+            ud.hasMoved = u.hasMoved;
+            ud.isDead = u.isDead;
+            d.units.add(ud);
+        }
+        return d;
+    }
+
+    public void loadSavedGame(VersusSaveData save) {
+        if (save == null) return;
+
+        // Reset current state
+        this.units.clear();
+        this.loadedTilesets.clear();
+        this.mapAnimCache.clear();
+        this.recolorCache.clear();
+        this.eventMap.clear();
+
+        this.currentDay = Math.max(1, save.currentDay);
+        this.currentPlayerIdx = Math.max(0, save.currentPlayerIdx);
+
+        // Rebuild players list
+        List<VersusScreen.PlayerSettings> rebuilt = new ArrayList<>();
+        for (int i = 0; i < save.players.size(); i++) {
+            VersusSaveData.PlayerData pd = save.players.get(i);
+            VersusScreen.PlayerSettings ps = new VersusScreen.PlayerSettings(pd.index, pd.color);
+            ps.factionIdx = pd.factionIdx;
+            ps.gold = pd.gold;
+            rebuilt.add(ps);
+        }
+        this.players = rebuilt;
+
+        // Load map
+        this.lastLoadedMapPath = save.mapPath;
+        if (save.mapPath != null && !save.mapPath.isBlank()) {
+            loadMap(save.mapPath);
+        }
+
+        // Rebuild units
+        for (VersusSaveData.UnitData ud : save.units) {
+            MapUnit u = new MapUnit(ud.category, ud.unitName, MapUnit.Faction.PLAYER, new Point(ud.x, ud.y));
+            u.ownerIndex = ud.ownerIndex;
+            u.position = new Point(ud.x, ud.y);
+            u.renderPos = new java.awt.geom.Point2D.Double(ud.x, ud.y);
+            u.currentHp = ud.currentHp;
+            u.stats.maxHp = ud.maxHp;
+            u.hasActed = ud.hasActed;
+            u.hasMoved = ud.hasMoved;
+            u.isDead = ud.isDead;
+            units.add(u);
+            loadAnims(u);
+        }
+
+        startTurn();
+        canvasPanel.revalidate();
+        canvasPanel.repaint();
+    }
+
+    public void setupGame(String path, List<VersusScreen.PlayerSettings> players) {
+        this.players = players; this.currentDay = 1; this.currentPlayerIdx = 0;
+        this.units.clear(); this.loadedTilesets.clear(); this.mapAnimCache.clear(); this.recolorCache.clear(); this.eventMap.clear();
+        this.lastLoadedMapPath = path;
+        loadMap(path);
+        startTurn();
+        canvasPanel.revalidate();
+    }
+
+    private void loadAnims(MapUnit u) {
+        String[] actions = {"Standing", "Walk_Down", "Walk_Up", "Walk_Side", "Selected"};
+        for (String a : actions) {
+            List<BufferedImage> frames = tryLoadMapUnitFrames(u.category, u.unitName, a);
+            
+            // Fallback to legacy overrides if no frames found for exact unit name
+            if (frames.isEmpty()) {
+                String fallbackName = null;
+                if ("Knight".equalsIgnoreCase(u.unitName)) fallbackName = "Cavalier";
+                else if ("Sentinel".equalsIgnoreCase(u.unitName)) fallbackName = "Swordmaster";
+                else if ("Ephraim".equalsIgnoreCase(u.unitName)) fallbackName = "Ephraim_Lord";
+                
+                if (fallbackName != null) {
+                    frames = tryLoadMapUnitFrames(u.category, fallbackName, a);
+                }
+            }
+            
+            if (!frames.isEmpty()) {
+                mapAnimCache.put(u.unitName + "_" + a, frames);
+            }
+        }
+    }
+
+    private List<BufferedImage> tryLoadMapUnitFrames(String category, String unitName, String action) {
+        List<BufferedImage> frames = new ArrayList<>();
+        
+        // 1. Try new structure: assets/data/units/[category]/[unitName]/MovingAnimation/[action]
+        File dir = new File(GamePaths.UNITS, category + "/" + unitName + "/MovingAnimation/" + action);
+        
+        // 2. Try legacy category-specific weapon structures: lance/Spear/Lance
+        if (!dir.exists()) dir = new File(GamePaths.UNITS, category + "/" + unitName + "/lance/" + action);
+        if (!dir.exists()) dir = new File(GamePaths.UNITS, category + "/" + unitName + "/Spear/" + action);
+        if (!dir.exists()) dir = new File(GamePaths.UNITS, category + "/" + unitName + "/Lance/" + action);
+        
+        // 3. Fallback to legacy flat structures
+        if (!dir.exists()) dir = new File(GamePaths.UNITS, unitName + "/MovingAnimation/" + action);
+        if (!dir.exists()) dir = new File(GamePaths.UNITS, unitName + "/lance/" + action);
+        if (!dir.exists()) dir = new File(GamePaths.UNITS, unitName + "/Spear/" + action);
+        if (!dir.exists()) dir = new File(GamePaths.UNITS, unitName + "/Lance/" + action);
+        
+        if (dir.exists()) {
+            File[] files = dir.listFiles((d, n) -> n.endsWith(".png"));
+            if (files != null) {
+                Arrays.sort(files);
+                for (File f : files) {
+                    try {
+                        frames.add(javax.imageio.ImageIO.read(f));
+                    } catch (Exception e) {}
+                }
+            }
+        }
+        return frames;
+    }
+
+    private void nextTurn() {
+        currentPlayerIdx++;
+        if (currentPlayerIdx >= players.size()) { currentPlayerIdx = 0; currentDay++; }
+        startTurn();
+    }
+
+    private void startTurn() {
+        VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
+        int income = 100;
+        for (EventInfo ev : eventMap.values()) if (ev.owner == currentPlayerIdx) {
+            if ("HQ".equals(ev.type)) income += 200; else if ("ARMORY".equals(ev.type)) income += 100; else if ("HOUSE".equals(ev.type)) income += 50; else if ("FORT".equals(ev.type)) income += 100; else if ("AERIE".equals(ev.type)) income += 100;
+        }
+        p.gold += income;
+        dayLabel.setText("DAY " + currentDay + " - PLAYER " + (currentPlayerIdx + 1));
+        dayLabel.setForeground(p.color);
+        goldLabel.setText("🪙 " + p.gold);
+        phaseBannerTimer = 120;
+        // Reset all units at the start of any turn so they regain their team colors
+        for (MapUnit u : units) { u.hasActed = false; u.hasMoved = false; }
+        recolorCache.clear(); // Ensure sprites are re-processed with team colors
+
+        // ── Capture reset check ──────────────────────────────────
+        // If the unit that was capturing has died or moved off the event tile, reset it
+        for (EventInfo ev : eventMap.values()) {
+            if (ev.capturingPlayerIdx == null) continue;
+            boolean capturerPresent = false;
+            for (MapUnit u : units) {
+                if (!u.isDead && u.ownerIndex == ev.capturingPlayerIdx
+                        && u.position.x == ev.x && u.position.y == ev.y) {
+                    capturerPresent = true;
+                    break;
+                }
+            }
+            if (!capturerPresent) {
+                ev.captureHp = 20;
+                ev.capturingPlayerIdx = null;
+            }
+        }
+
+        canvasPanel.repaint(); repaint();
+    }
+
+    private void scanTilesets(File dir) {
+        File[] files = dir.listFiles(); if (files == null) return;
+        for (File f : files) {
+            if (f.isDirectory()) scanTilesets(f);
+            else if (f.getName().endsWith(".png")) tilesetFiles.put(f.getName().replace(".png", ""), f);
+        }
+    }
+
+    private void loadMap(String path) {
+        try {
+            String json = new String(java.nio.file.Files.readAllBytes(new File(path).toPath()));
+            String tsDefault = JsonUtil.extractJsonVal(json, "tileset");
+            int eventsStart = json.indexOf("\"events\":");
+            if (eventsStart != -1) {
+                int arrayStart = json.indexOf("[", eventsStart);
+                int depth = 0, arrayEnd = -1;
+                for (int i = arrayStart; i < json.length(); i++) {
+                    char ch = json.charAt(i); if (ch == '[') depth++; else if (ch == ']') depth--;
+                    if (depth == 0) { arrayEnd = i; break; }
+                }
+                if (arrayEnd != -1) {
+                    String eventsPart = json.substring(arrayStart + 1, arrayEnd);
+                    String[] eventEntries = eventsPart.split("\\},");
+                    for (String entry : eventEntries) {
+                        entry = entry.trim(); if (entry.isEmpty()) continue;
+                        if (!entry.startsWith("{")) entry = "{" + entry; if (!entry.endsWith("}")) entry = entry + "}";
+                        int ex = JsonUtil.parseInt(JsonUtil.extractJsonVal(entry, "x"), -1);
+                        int ey = JsonUtil.parseInt(JsonUtil.extractJsonVal(entry, "y"), -1);
+                        String et = JsonUtil.extractJsonVal(entry, "type");
+                        if ("BASE".equals(et)) et = "ARMORY";
+                        int eo = JsonUtil.parseInt(JsonUtil.extractJsonVal(entry, "owner"), -1);
+                        if (ex != -1) eventMap.put(new Point(ex, ey), new EventInfo(ex, ey, et, eo));
+                    }
+                }
+            }
+            int dataStart = json.indexOf("\"data\":");
+            if (dataStart == -1) dataStart = json.indexOf("data\":");
+            if (dataStart != -1) {
+                int arrayStart = json.indexOf("[", dataStart);
+                int depth = 0, arrayEnd = -1;
+                for (int i = arrayStart; i < json.length(); i++) {
+                    char ch = json.charAt(i); if (ch == '[') depth++; else if (ch == ']') depth--;
+                    if (depth == 0) { arrayEnd = i; break; }
+                }
+                if (arrayEnd != -1) {
+                    String dataPart = json.substring(arrayStart + 1, arrayEnd).trim();
+                    String[] rows = dataPart.split("\\],\\s*\\[");
+                    mapH = rows.length;
+                    for (int y = 0; y < mapH; y++) {
+                        String row = rows[y].trim();
+                        if (row.startsWith("[")) row = row.substring(1);
+                        if (row.endsWith("]")) row = row.substring(0, row.length() - 1);
+                        if (row.endsWith(",")) row = row.substring(0, row.length() - 1);
+                        List<String> cells = new ArrayList<>();
+                        int cdepth = 0; StringBuilder sb = new StringBuilder();
+                        for (char ch : row.toCharArray()) {
+                            if (ch == '{') cdepth++; else if (ch == '}') cdepth--;
+                            if (ch == ',' && cdepth == 0) { cells.add(sb.toString().trim()); sb.setLength(0); } else sb.append(ch);
+                        }
+                        cells.add(sb.toString().trim());
+                        if (y == 0) { mapW = cells.size(); mapData = new int[mapH][mapW]; mapTSData = new String[mapH][mapW]; }
+                        for (int x = 0; x < Math.min(cells.size(), mapW); x++) {
+                            String c = cells.get(x);
+                            if (c.startsWith("{")) {
+                                mapData[y][x] = JsonUtil.parseInt(JsonUtil.extractJsonVal(c, "id"), 0); mapTSData[y][x] = JsonUtil.extractJsonVal(c, "ts");
+                            } else {
+                                mapTSData[y][x] = tsDefault; mapData[y][x] = JsonUtil.parseInt(c.replaceAll("\"", ""), 0);
+                            }
+                            String ts = mapTSData[y][x];
+                            if (ts != null && !ts.isEmpty() && !loadedTilesets.containsKey(ts) && tilesetFiles.containsKey(ts))
+                                loadedTilesets.put(ts, new Tileset(ts, tilesetFiles.get(ts), 16, 16));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void renderGame(Graphics2D g) {
+        if (mapData == null) return;
+        g.scale(zoomScale, zoomScale);
+        for (int y = 0; y < mapH; y++) {
+            for (int x = 0; x < mapW; x++) {
+                String tsName = mapTSData[y][x]; Tileset ts = loadedTilesets.get(tsName);
+                if (ts != null) g.drawImage(ts.getTile(mapData[y][x]), x*16, y*16, 16, 16, null);
+                else g.fillRect(x*16, y*16, 16, 16);
+            }
+        }
+        for (EventInfo ev : eventMap.values()) drawFlag(g, ev);
+        for (Point p : attackRange) { g.setColor(new Color(255,50,50,120)); g.fillRect(p.x*16, p.y*16, 16, 16); }
+        for (Point p : moveRange) { g.setColor(new Color(0,100,255,120)); g.fillRect(p.x*16, p.y*16, 16, 16); }
+        List<MapUnit> sortedUnits = new ArrayList<>(units);
+        sortedUnits.sort(Comparator.comparingDouble(u -> u.renderPos.y));
+        for (MapUnit u : sortedUnits) {
+            String action = "Standing"; if (u == selectedUnit) action = "Selected";
+            if (!u.movePath.isEmpty()) {
+                Point next = u.movePath.get(0);
+                if (next.x > u.renderPos.x) { action = "Walk_Side"; u.renderMirrorX = true; }
+                else if (next.x < u.renderPos.x) { action = "Walk_Side"; u.renderMirrorX = false; }
+                else if (next.y > u.renderPos.y) { action = "Walk_Down"; }
+                else if (next.y < u.renderPos.y) { action = "Walk_Up"; }
+            }
+            List<BufferedImage> frames = mapAnimCache.get(u.unitName + "_" + action);
+            if (frames == null) frames = mapAnimCache.get(u.unitName + "_Standing");
+            if (frames != null && !frames.isEmpty()) {
+                BufferedImage img = frames.get(u.animFrame % frames.size());
+                Color baseColor = players.get(u.ownerIndex).color;
+                final Color finalColor = u.hasActed ? Color.GRAY : baseColor;
+                String cacheKey = u.unitName + "_" + action + "_" + u.animFrame % frames.size() + "_" + finalColor.getRGB();
+                BufferedImage colored = recolorCache.computeIfAbsent(cacheKey, k -> SpriteColorer.recolor(img, finalColor));
+                // Align 32x32 unit sprite so its "feet" sit on the tile center/bottom.
+                int px = (int) Math.round(u.renderPos.x * 16.0);
+                int py = (int) Math.round(u.renderPos.y * 16.0);
+                int dx = px - 8;
+                int dy = py - 16;
+                boolean mirror = u.renderMirrorX;
+                if (action.equals("Walk_Up") || action.equals("Walk_Down")) {
+                    mirror = false;
+                } else if (action.equals("Standing") || action.equals("Selected")) {
+                    mirror = !u.renderMirrorX;
+                }
+                if (mirror) {
+                    g.drawImage(colored, dx + 32, dy, dx, dy + 32, 0, 0, 32, 32, null);
+                } else {
+                    g.drawImage(colored, dx, dy, 32, 32, null);
+                }
+            }
+        }
+    }
+
+    private String getPlayerColorName(Color c, int playerIndex) {
+        if (c == null) return "PLAYER " + (playerIndex + 1);
+        int r = c.getRed();
+        int g = c.getGreen();
+        int b = c.getBlue();
+        if (r == 0 && g == 162 && b == 232) return "BLUE";
+        if (r == 240 && g == 60 && b == 60) return "RED";
+        if (r == 60 && g == 200 && b == 100) return "GREEN";
+        if (r == 250 && g == 210 && b == 50) return "YELLOW";
+        if (r == 210 && g == 80 && b == 210) return "PURPLE";
+        if (r == 50 && g == 210 && b == 210) return "CYAN";
+        return "PLAYER " + (playerIndex + 1);
+    }
+
+
+    private void renderBattleCinematic(Graphics2D g) {
+        int screenW = getWidth();
+        int screenH = getHeight();
+
+        // Solid dark backdrop to completely focus on the battle
+        g.setColor(new Color(5, 5, 10));
+        g.fillRect(0, 0, screenW, screenH);
+
+        BufferedImage buffer = new BufferedImage(248, 160, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D bg2d = buffer.createGraphics();
+
+        if (battleBg != null) {
+            bg2d.drawImage(battleBg, 0, 0, 248, 160, null);
+        } else {
+            bg2d.setColor(new Color(30, 30, 40));
+            bg2d.fillRect(0, 0, 248, 160);
+        }
+
+        if (battlePlatform != null) {
+            int platShift = (combatDistance >= 2) ? 40 : 5;
+            bg2d.drawImage(battlePlatform, 10 + platShift, 110, 100, 40, null);
+            bg2d.drawImage(battlePlatform, 138 - platShift, 110, 100, 40, null);
+        }
+
+        if (attackerActor != null) attackerActor.draw(bg2d);
+        if (defenderActor != null) defenderActor.draw(bg2d);
+
+        bg2d.dispose();
+
+        // Calculate aspect-ratio scaling to cover the full screen
+        double scaleX = (double) screenW / 248.0;
+        double scaleY = (double) screenH / 160.0;
+        double scale = Math.max(scaleX, scaleY);
+
+        int scaledW = (int) Math.ceil(248 * scale);
+        int scaledH = (int) Math.ceil(160 * scale);
+        int drawX = (screenW - scaledW) / 2;
+        int drawY = (screenH - scaledH) / 2;
+
+        // If the screen is wider than the battle buffer aspect ratio, align to the bottom to avoid cropping platforms
+        if (scaleX > scaleY) {
+            drawY = screenH - scaledH;
+        }
+
+        int sx = 0;
+        int sy = 0;
+        if (shakeTimer > 0) {
+            sx = (int)(Math.random() * 8 * scale - 4 * scale);
+            sy = (int)(Math.random() * 8 * scale - 4 * scale);
+        }
+
+        g.drawImage(buffer, drawX + sx, drawY + sy, scaledW, scaledH, null);
+
+        if (flashTimer > 0) {
+            g.setColor(new Color(255, 255, 255, 180));
+            g.fillRect(drawX, drawY, scaledW, scaledH);
+        }
+
+        // Draw unified glassmorphic bottom bar extending across the bottom of the Battle Screen
+        g.setPaint(new GradientPaint(
+            0, screenH - 140, new Color(12, 12, 22, 225),
+            0, screenH, new Color(6, 6, 12, 245)
+        ));
+        g.fillRect(0, screenH - 140, screenW, 140);
+
+        // Glowing gold top border
+        g.setStroke(new BasicStroke(3));
+        g.setColor(new Color(255, 215, 0, 180)); // Gold outer border color
+        g.drawLine(0, screenH - 140, screenW, screenH - 140);
+
+        // Center vertical divider to clean up sections
+        g.setStroke(new BasicStroke(1.5f));
+        g.setColor(new Color(255, 215, 0, 50));
+        g.drawLine(screenW / 2, screenH - 130, screenW / 2, screenH - 10);
+
+        // Defender stats on the Left, Attacker stats on the Right (extended covering the bottom)
+        if (defenderActor != null) drawAdvancedStats(g, defenderActor, 40, screenH - 128);
+        if (attackerActor != null) drawAdvancedStats(g, attackerActor, screenW - STATS_BOX_WIDTH - 40, screenH - 128);
+    }
+
+    private void drawAdvancedStats(Graphics2D g, BattleActor actor, int x, int y) {
+        if (actor == null || activeBattle == null) return;
+        BattleManager.Combatant c = (actor == attackerActor) ? activeBattle.attacker : activeBattle.defender;
+        BattleManager.Combatant enemy = (actor == attackerActor) ? activeBattle.defender : activeBattle.attacker;
+        
+        // Double nested Player Team Color border for elegant framing
+        g.setStroke(new BasicStroke(1.5f));
+        g.setColor(players.get(c.mapUnit.ownerIndex).color); // Player team inner border
+        g.drawRoundRect(x, y, STATS_BOX_WIDTH, 115, 12, 12);
+        
+        g.setStroke(new BasicStroke(1f));
+        g.setColor(new Color(255, 215, 0, 80)); // Subtle nested gold outline
+        g.drawRoundRect(x + 3, y + 3, STATS_BOX_WIDTH - 6, 109, 9, 9);
+        
+        // Name display on top row
+        g.setColor(Theme.HIGHLIGHT);
+        g.setFont(Theme.getPixelFont(18f));
+        g.drawString(c.name, x + 15, y + 25);
+        
+        // Subtype Icons: Silver Shield (Armored), Brown Horse (Mounted), Pegasus (Flier), Dragon (Armored Flier), Catapult (Siege)
+        int nameW = g.getFontMetrics().stringWidth(c.name);
+        String subType = c.mapUnit.stats.subUnitType;
+        drawSubtypeIcons(g, subType, x + 15 + nameW + 8, y + 9);
+        
+        // Exact HP numbers aligned to the right of the row
+        g.setFont(Theme.getPixelFont(14f));
+        g.setColor(Color.WHITE);
+        String hpStr = (int)Math.round(actor.displayHp) + " / " + c.maxHp;
+        int hpStrW = g.getFontMetrics().stringWidth(hpStr);
+        g.drawString(hpStr, x + STATS_BOX_WIDTH - 15 - hpStrW, y + 25);
+        
+        // Equipped Weapon display under the name
+        String wpnName = (c.mapUnit.getEquipped() != null) ? c.mapUnit.getEquipped().name : "Unarmed";
+        g.setFont(Theme.getPixelFont(11f));
+        g.setColor(Theme.TEXT_SECONDARY);
+        g.drawString(wpnName, x + 15, y + 41);
+        
+        // Modern Segmented Health Bar
+        int barX = x + 15;
+        int barY = y + 49;
+        int barW = STATS_BOX_WIDTH - 30;
+        int barH = 14;
+        
+        // Recessed track background
+        g.setColor(new Color(15, 15, 20));
+        g.fillRoundRect(barX, barY, barW, barH, 6, 6);
+        g.setColor(new Color(60, 60, 70));
+        g.drawRoundRect(barX, barY, barW, barH, 6, 6);
+        
+        double hpPct = Math.max(0.0, Math.min(1.0, actor.displayHp / c.maxHp));
+        int hpW = (int)Math.round((barW - 2) * hpPct);
+        if (hpW > 0) {
+            Color hpColorStart, hpColorEnd;
+            if (hpPct > 0.5) {
+                hpColorStart = new Color(46, 204, 113); // Green start
+                hpColorEnd = new Color(39, 174, 96);   // Green end
+            } else if (hpPct > 0.2) {
+                hpColorStart = new Color(241, 196, 15); // Yellow start
+                hpColorEnd = new Color(214, 137, 16);  // Yellow end
+            } else {
+                hpColorStart = new Color(231, 76, 60);  // Red start
+                hpColorEnd = new Color(192, 57, 43);   // Red end
+            }
+            GradientPaint hpGp = new GradientPaint(
+                barX + 1, barY + 1, hpColorStart,
+                barX + 1, barY + barH - 1, hpColorEnd
+            );
+            g.setPaint(hpGp);
+            g.fillRoundRect(barX + 1, barY + 1, hpW, barH - 2, 4, 4);
+            
+            // Glossy/Glass overlay
+            g.setColor(new Color(255, 255, 255, 50));
+            g.fillRoundRect(barX + 1, barY + 1, hpW, (barH - 2) / 2, 4, 4);
+        }
+        
+        // Effective Combat Metrics Columns (DMG, HIT%, CRT%)
+        // Check if combatant is defender and cannot counter
+        boolean canAttack = true;
+        if (c == activeBattle.defender) {
+            canAttack = (combatDistance >= c.weaponMinRange && combatDistance <= c.weaponMaxRange);
+        }
+        
+        int effDmg = Math.max(0, c.battleAtk - enemy.defense);
+        int effHit = Math.max(0, Math.min(100, c.battleHit - enemy.battleAvoid));
+        int effCrit = Math.max(0, Math.min(100, c.battleCrit - enemy.battleDodge));
+        
+        String dmgVal = canAttack ? String.valueOf(effDmg) : "--";
+        String hitVal = canAttack ? (effHit + "%") : "--";
+        String critVal = canAttack ? (effCrit + "%") : "--";
+        
+        // Calculate dynamic columns positioning
+        int colSpacing = (STATS_BOX_WIDTH - 80) / 2; // Equal spacing for three columns with 40px left and right padding
+        int col1X = x + 40;
+        int col2X = x + 40 + colSpacing;
+        int col3X = x + 40 + colSpacing * 2;
+        
+        // DMG Column
+        g.setFont(Theme.getPixelFont(10f));
+        g.setColor(Theme.TEXT_SECONDARY);
+        g.drawString("DMG", col1X, y + 80);
+        g.setFont(Theme.getPixelFont(18f));
+        g.setColor(Color.WHITE);
+        g.drawString(dmgVal, col1X, y + 102);
+        
+        // HIT% Column
+        g.setFont(Theme.getPixelFont(10f));
+        g.setColor(Theme.TEXT_SECONDARY);
+        g.drawString("HIT", col2X, y + 80);
+        g.setFont(Theme.getPixelFont(18f));
+        g.setColor(new Color(100, 220, 255)); // Light cyan highlight
+        g.drawString(hitVal, col2X, y + 102);
+        
+        // CRT% Column
+        g.setFont(Theme.getPixelFont(10f));
+        g.setColor(Theme.TEXT_SECONDARY);
+        g.drawString("CRT", col3X, y + 80);
+        g.setFont(Theme.getPixelFont(18f));
+        g.setColor(new Color(255, 100, 100)); // Light red highlight
+        g.drawString(critVal, col3X, y + 102);
+    }
+
+    private void drawSubtypeIcons(Graphics2D g, String subtype, int x, int y) {
+        if (subtype == null) return;
+        String st = subtype.toLowerCase().trim();
+        if (st.equals("armored")) {
+            drawIcon(g, "shield", x, y);
+        } else if (st.equals("mounted")) {
+            drawIcon(g, "horse", x, y);
+        } else if (st.equals("mounted armored")) {
+            drawIcon(g, "shield", x, y);
+            drawIcon(g, "horse", x + 18, y);
+        } else if (st.equals("siege")) {
+            drawIcon(g, "catapult", x, y);
+        } else if (st.equals("flier")) {
+            drawIcon(g, "pegasus", x, y);
+        } else if (st.equals("armored flier")) {
+            drawIcon(g, "dragon", x, y);
+        }
+    }
+
+    private void drawIcon(Graphics2D g, String type, int x, int y) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        if ("shield".equalsIgnoreCase(type)) {
+            // Armored: Silver Shield Icon
+            java.awt.geom.Path2D.Double shield = new java.awt.geom.Path2D.Double();
+            shield.moveTo(x + 2, y + 2);
+            shield.lineTo(x + 14, y + 2);
+            shield.lineTo(x + 14, y + 7);
+            shield.curveTo(x + 14, y + 12, x + 10, y + 15, x + 8, y + 16);
+            shield.curveTo(x + 6, y + 15, x + 2, y + 12, x + 2, y + 7);
+            shield.closePath();
+            
+            g2.setPaint(new GradientPaint(x + 2, y + 2, new Color(220, 225, 235), x + 14, y + 16, new Color(140, 150, 165)));
+            g2.fill(shield);
+            g2.setColor(new Color(60, 70, 85));
+            g2.setStroke(new BasicStroke(1.2f));
+            g2.draw(shield);
+            
+            // Highlight line
+            g2.setColor(Color.WHITE);
+            g2.drawLine(x + 4, y + 4, x + 4, y + 7);
+            
+        } else if ("horse".equalsIgnoreCase(type)) {
+            // Mounted: Brown Horse Icon
+            java.awt.geom.Path2D.Double horse = new java.awt.geom.Path2D.Double();
+            horse.moveTo(x + 2, y + 9);
+            horse.lineTo(x + 5, y + 7);
+            horse.lineTo(x + 7, y + 2); // Ear tip
+            horse.lineTo(x + 9, y + 4);
+            horse.lineTo(x + 9, y + 2); // Second ear tip
+            horse.lineTo(x + 11, y + 5);
+            horse.curveTo(x + 13, y + 8, x + 14, y + 11, x + 15, y + 15); // Back/Mane
+            horse.lineTo(x + 8, y + 15); // Bottom neck
+            horse.curveTo(x + 7, y + 12, x + 5, y + 11, x + 2, y + 11); // Front neck
+            horse.closePath();
+            
+            g2.setPaint(new GradientPaint(x + 2, y + 2, new Color(175, 115, 60), x + 15, y + 15, new Color(90, 50, 20)));
+            g2.fill(horse);
+            g2.setColor(new Color(65, 35, 10));
+            g2.setStroke(new BasicStroke(1.2f));
+            g2.draw(horse);
+            
+            // Mane highlight (Cream)
+            g2.setColor(new Color(245, 235, 215));
+            g2.drawLine(x + 10, y + 6, x + 12, y + 9);
+            g2.drawLine(x + 11, y + 8, x + 13, y + 11);
+            
+            // Eye
+            g2.setColor(Color.BLACK);
+            g2.fillOval(x + 5, y + 5, 2, 2);
+            
+        } else if ("catapult".equalsIgnoreCase(type)) {
+            // Siege: Wooden Catapult Icon
+            g2.setColor(new Color(120, 80, 40)); // Oak brown
+            g2.setStroke(new BasicStroke(1.8f));
+            g2.drawLine(x + 2, y + 11, x + 14, y + 11); // Base
+            g2.drawLine(x + 12, y + 11, x + 7, y + 5);  // Support back
+            g2.drawLine(x + 3, y + 11, x + 7, y + 5);   // Support front
+            
+            // Draw throwing arm
+            g2.setColor(new Color(160, 110, 60)); // Lighter wood
+            g2.drawLine(x + 8, y + 10, x + 4, y + 4); // Arm
+            
+            // Draw stone bucket and stone
+            g2.setColor(new Color(120, 80, 40));
+            g2.drawOval(x + 2, y + 2, 4, 4); // Bucket
+            g2.setColor(new Color(160, 160, 160));
+            g2.fillOval(x + 3, y + 3, 2, 2); // Stone
+            
+            // Draw Wheels
+            g2.setColor(new Color(60, 60, 60)); // Dark iron wheels
+            g2.fillOval(x + 3, y + 10, 4, 4);
+            g2.fillOval(x + 10, y + 10, 4, 4);
+            
+        } else if ("pegasus".equalsIgnoreCase(type)) {
+            // Flier: Pegasus Icon (White with Sky Blue Wing)
+            java.awt.geom.Path2D.Double peg = new java.awt.geom.Path2D.Double();
+            peg.moveTo(x + 2, y + 12);
+            peg.lineTo(x + 5, y + 10);
+            peg.lineTo(x + 6, y + 7); // Head/ears
+            peg.lineTo(x + 8, y + 12); // Neck
+            peg.lineTo(x + 12, y + 14); // Body
+            peg.lineTo(x + 5, y + 14);
+            peg.closePath();
+            
+            g2.setColor(Color.WHITE);
+            g2.fill(peg);
+            g2.setColor(new Color(150, 180, 200));
+            g2.setStroke(new BasicStroke(1f));
+            g2.draw(peg);
+            
+            // Draw Sky Blue Wing
+            java.awt.geom.Path2D.Double wing = new java.awt.geom.Path2D.Double();
+            wing.moveTo(x + 7, y + 11);
+            wing.curveTo(x + 9, y + 5, x + 11, y + 2, x + 15, y + 2); // Wing top curve
+            wing.lineTo(x + 13, y + 6);
+            wing.lineTo(x + 14, y + 7);
+            wing.lineTo(x + 11, y + 9);
+            wing.lineTo(x + 12, y + 10);
+            wing.closePath();
+            
+            g2.setPaint(new GradientPaint(x + 7, y + 2, new Color(135, 206, 250), x + 15, y + 11, new Color(30, 144, 255))); // Sky blue gradient
+            g2.fill(wing);
+            g2.setColor(new Color(0, 100, 200));
+            g2.draw(wing);
+            
+        } else if ("dragon".equalsIgnoreCase(type)) {
+            // Armored Flier: Dragon Icon (Crimson Red with Golden eye)
+            java.awt.geom.Path2D.Double drag = new java.awt.geom.Path2D.Double();
+            drag.moveTo(x + 2, y + 12); // Snout tip
+            drag.lineTo(x + 6, y + 10); // Jaw
+            drag.lineTo(x + 8, y + 14); // Neck bottom
+            drag.lineTo(x + 12, y + 14);
+            drag.lineTo(x + 11, y + 9);  // Back head
+            drag.lineTo(x + 15, y + 3);  // Horn tip
+            drag.lineTo(x + 10, y + 6);  // Horn back
+            drag.lineTo(x + 8, y + 4);   // Second horn tip
+            drag.lineTo(x + 7, y + 7);
+            drag.closePath();
+            
+            g2.setPaint(new GradientPaint(x + 2, y + 4, new Color(230, 40, 40), x + 12, y + 14, new Color(110, 10, 10))); // Dragon crimson
+            g2.fill(drag);
+            g2.setColor(new Color(60, 0, 0));
+            g2.setStroke(new BasicStroke(1f));
+            g2.draw(drag);
+            
+            // Glowing orange/yellow eye
+            g2.setColor(Color.ORANGE);
+            g2.fillOval(x + 5, y + 8, 2, 2);
+        }
+        
+        g2.dispose();
+    }
+
+    private void drawFlag(Graphics2D g, EventInfo ev) {
+        Color pc = (ev.owner >= 0 && ev.owner < players.size()) ? players.get(ev.owner).color : new Color(150, 150, 150);
+        int x = ev.x * 16, y = ev.y * 16; long t = System.currentTimeMillis() / 200; double wave = Math.sin(t) * 2;
+        g.setColor(new Color(100, 100, 100)); g.fillRect(x + 3, y + 2, 1, 13);
+        if ("HQ".equals(ev.type)) {
+            int[] px = {x + 4, x + 12, (int)(x + 10 + wave), x + 12, x + 4}; int[] py = {y + 2, y + 2, y + 6, y + 10, y + 10};
+            g.setColor(pc); g.fillPolygon(px, py, 5); g.setColor(new Color(255,255,255,150)); g.drawPolygon(px, py, 5);
+            g.setColor(Color.YELLOW); g.fillRect(x+6, y+4, 3, 2);
+        } else if ("HOUSE".equals(ev.type)) {
+            // Plain flag — no icon
+            int[] px = {x + 4, x + 12, (int)(x + 10 + wave), x + 4}; int[] py = {y + 2, y + 3, y + 6, y + 9};
+            g.setColor(pc); g.fillPolygon(px, py, 4); g.setColor(new Color(255,255,255,150)); g.drawPolygon(px, py, 4);
+        } else {
+            // Simple Flag base design (ARMORY, FORT, AERIE)
+            int[] px = {x + 4, x + 12, (int)(x + 10 + wave), x + 4}; int[] py = {y + 2, y + 3, y + 6, y + 9};
+            g.setColor(pc); g.fillPolygon(px, py, 4); g.setColor(new Color(255,255,255,150)); g.drawPolygon(px, py, 4);
+
+            if ("ARMORY".equals(ev.type)) {
+                // Tiny sword icon on flag
+                g.setColor(Color.WHITE);
+                g.drawLine(x + 8, y + 3, x + 8, y + 8); // blade (vertical)
+                g.drawLine(x + 6, y + 5, x + 10, y + 5); // crossguard (horizontal)
+                g.fillRect(x + 8, y + 8, 1, 1);           // pommel tip
+            } else if ("FORT".equals(ev.type)) {
+                // Tiny ship logo on flag
+                g.setColor(Color.WHITE);
+                g.fillRect(x + 6, y + 5, 4, 2); // Hull
+                g.fillRect(x + 7, y + 3, 1, 2); // Mast
+            } else if ("AERIE".equals(ev.type)) {
+                // Tiny wings logo on flag
+                g.setColor(Color.WHITE);
+                int[] wx = {x + 5, x + 6, x + 7, x + 8, x + 9};
+                int[] wy = {y + 5, y + 4, y + 6, y + 4, y + 5};
+                g.drawPolyline(wx, wy, 5);
+            }
+        }
+    }
+
+    private void setupListeners() {
+        canvasPanel.addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e) {
+                if (phaseBannerTimer > 0) phaseBannerTimer = 0;
+                if (isBattleActive) return;
+                for (MapUnit u : units) if (!u.movePath.isEmpty()) return;
+                lastMousePos = e.getPoint();
+                int tx = (int)(e.getX()/(16*zoomScale)), ty = (int)(e.getY()/(16*zoomScale)); Point p = new Point(tx, ty);
+                if (selectedUnit != null && selectedUnit.hasMoved && !selectedUnit.hasActed) { cancelMove(); return; }
+                if (moveRange.contains(p) && selectedUnit != null && !selectedUnit.hasMoved) { 
+                    oldUnitPos = new Point(selectedUnit.position); reconstructPath(p, selectedUnit);
+                    selectedUnit.hasMoved = true; moveRange.clear(); attackRange.clear();
+                    if (selectedUnit.movePath.isEmpty()) showActionMenu(selectedUnit);
+                } else {
+                    selectedUnit = null; moveRange.clear(); attackRange.clear(); MapUnit clickedUnit = null;
+                    for (MapUnit u : units) if (u.position.equals(p)) { clickedUnit = u; break; }
+                    if (clickedUnit != null && !clickedUnit.hasActed && !clickedUnit.hasMoved && clickedUnit.ownerIndex == currentPlayerIdx) {
+                        selectedUnit = clickedUnit; calculateMoveRange(clickedUnit);
+                    } else if (clickedUnit == null) {
+                        EventInfo ev = eventMap.get(p);
+                        if (ev != null && ev.owner == currentPlayerIdx) {
+                            boolean occupied = false; for (MapUnit u : units) if (u.position.equals(p)) { occupied = true; break; }
+                            if (!occupied) showDeployMenu(ev);
+                        }
+                    }
+                }
+                canvasPanel.repaint();
+            }
+        });
+        canvasPanel.addMouseMotionListener(new MouseAdapter() {
+            @Override public void mouseDragged(MouseEvent e) {
+                if (lastMousePos != null) {
+                    JViewport viewPort = scrollPane.getViewport(); Point vPos = viewPort.getViewPosition();
+                    vPos.translate(lastMousePos.x - e.getX(), lastMousePos.y - e.getY());
+                    canvasPanel.scrollRectToVisible(new Rectangle(vPos, viewPort.getSize())); lastMousePos = e.getPoint();
+                }
+            }
+        });
+    }
+
+    private void cancelMove() {
+        if (selectedUnit != null && oldUnitPos != null) {
+            selectedUnit.position = new Point(oldUnitPos); selectedUnit.renderPos.x = oldUnitPos.x; selectedUnit.renderPos.y = oldUnitPos.y;
+            selectedUnit.hasMoved = false; selectedUnit.movePath.clear(); selectedUnit = null; oldUnitPos = null; canvasPanel.repaint();
+        }
+    }
+
+    private void calculateMoveRange(MapUnit u) {
+        moveRange.clear(); attackRange.clear(); pathParent.clear();
+        if (u == null) return;
+        MovementEngine.MovementResult res = MovementEngine.calculateMovement(
+            u, units, mapData, mapTSData, loadedTilesets, mapW, mapH
+        );
+        moveRange.addAll(res.moveRange);
+        attackRange.addAll(res.attackRange);
+        pathParent.putAll(res.pathParent);
+    }
+
+    private void reconstructPath(Point dest, MapUnit u) {
+        u.movePath = MovementEngine.reconstructPath(dest, u.position, pathParent);
+    }
+
+    private void showActionMenu(MapUnit u) {
+        int menuX = (int)(u.position.x * 16 * zoomScale);
+        int menuY = (int)(u.position.y * 16 * zoomScale);
+        showMainActionMenu(u, menuX, menuY);
+    }
+
+    /**
+     * Returns true if the unit is eligible to capture the event at its current position.
+     * Only Land Units that are NOT of Siege subtype can capture.
+     */
+    private boolean canCapture(MapUnit u) {
+        if (u == null || u.stats == null) return false;
+        // Must be a Land Unit
+        if (!"Land Unit".equalsIgnoreCase(u.stats.unitType)) return false;
+        // Siege subtype is excluded
+        if (u.stats.subUnitType != null && u.stats.subUnitType.trim().equalsIgnoreCase("Siege")) return false;
+        // Must be standing on an event tile not owned by this player
+        EventInfo ev = eventMap.get(u.position);
+        return ev != null && ev.owner != u.ownerIndex;
+    }
+
+    private void showMainActionMenu(MapUnit u, int x, int y) {
+        JPopupMenu menu = new JPopupMenu();
+        
+        // --- 1. Attack Option ---
+        boolean hasAttackOptions = false;
+        for (WeaponItem wi : u.inventory) {
+            if (wi.isWeapon() && !wi.isBroken()) {
+                // Find all target enemies within this weapon's specific range
+                for (MapUnit other : units) {
+                    if (other.ownerIndex != u.ownerIndex && !other.isDead) {
+                        int d = Math.abs(other.position.x - u.position.x) + Math.abs(other.position.y - u.position.y);
+                        if (d >= wi.minRange && d <= wi.maxRange) {
+                            hasAttackOptions = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (hasAttackOptions) break;
+        }
+        
+        if (hasAttackOptions) {
+            JMenuItem attackOpt = new JMenuItem("Attack");
+            attackOpt.addActionListener(e -> {
+                menu.setVisible(false);
+                showWeaponSelectionMenu(u, x, y);
+            });
+            menu.add(attackOpt);
+        }
+
+        // --- 2. Capture Option ---
+        if (canCapture(u)) {
+            EventInfo ev = eventMap.get(u.position);
+            String captureLabel = "Capture (" + ev.captureHp + " HP)";
+            JMenuItem captureOpt = new JMenuItem(captureLabel);
+            captureOpt.addActionListener(e -> {
+                menu.setVisible(false);
+                performCapture(u, ev);
+            });
+            menu.add(captureOpt);
+        }
+        
+        // --- 3. Item Option ---
+        boolean hasItemOptions = false;
+        for (WeaponItem wi : u.inventory) {
+            if (!wi.isBroken()) {
+                hasItemOptions = true;
+                break;
+            }
+        }
+        
+        if (hasItemOptions) {
+            JMenuItem itemOpt = new JMenuItem("Item");
+            itemOpt.addActionListener(e -> {
+                menu.setVisible(false);
+                showItemSelectionMenu(u, x, y);
+            });
+            menu.add(itemOpt);
+        }
+        
+        // --- 4. Wait Option ---
+        JMenuItem waitOpt = new JMenuItem("Wait");
+        waitOpt.addActionListener(e -> {
+            menu.setVisible(false);
+            u.hasActed = true;
+            selectedUnit = null;
+            canvasPanel.repaint();
+        });
+        menu.add(waitOpt);
+        
+        menu.show(canvasPanel, x, y);
+    }
+
+    /**
+     * Executes the Capture action: reduces the event's HP by the unit's current HP,
+     * starts the animated capture progress bar, and handles ownership change if HP <= 0.
+     */
+    private void performCapture(MapUnit u, EventInfo ev) {
+        // Capture damage = unit's current HP (Advance Wars style)
+        int captureDamage = u.currentHp;
+        int newHp = Math.max(0, ev.captureHp - captureDamage);
+
+        // Update capturing player tracking
+        ev.capturingPlayerIdx = u.ownerIndex;
+
+        // Start capture bar animation
+        isCaptureAnimActive = true;
+        captureAnimEvent   = ev;
+        captureAnimUnit    = u;
+        captureBarDisplay  = ev.captureHp;    // Animate from old HP
+        captureBarTarget   = newHp;            // Down to new HP
+        captureAnimTimer   = 0;
+
+        // Apply damage immediately so logic is ready
+        ev.captureHp = newHp;
+        // Mark unit as acted
+        u.hasActed = true;
+        selectedUnit = null;
+    }
+
+    /**
+     * Renders the capture progress bar overlay (no battle animation).
+     * Shows the event name and an HP bar draining from old HP to new HP.
+     */
+    private void drawCaptureBar(Graphics2D g) {
+        if (captureAnimEvent == null || captureAnimUnit == null) return;
+
+        int sw = getWidth(), sh = getHeight();
+        Color playerColor = players.get(captureAnimUnit.ownerIndex).color;
+
+        // ── Background strip ──────────────────────────────────────
+        g.setPaint(new GradientPaint(
+            0, sh - 120, new Color(12, 12, 22, 220),
+            0, sh,       new Color(6,  6,  12, 245)
+        ));
+        g.fillRect(0, sh - 120, sw, 120);
+
+        // Gold top border
+        g.setStroke(new BasicStroke(2.5f));
+        g.setColor(new Color(255, 215, 0, 180));
+        g.drawLine(0, sh - 120, sw, sh - 120);
+
+        // ── Event label ───────────────────────────────────────────
+        String evLabel = captureAnimEvent.type + " — CAPTURING";
+        g.setFont(Theme.getPixelFont(18f));
+        g.setColor(playerColor);
+        FontMetrics fm = g.getFontMetrics();
+        g.drawString(evLabel, (sw - fm.stringWidth(evLabel)) / 2, sh - 86);
+
+        // ── HP numbers ────────────────────────────────────────────
+        g.setFont(Theme.getPixelFont(14f));
+        g.setColor(Color.WHITE);
+        String hpStr = (int)Math.ceil(captureBarDisplay) + " / 20 HP";
+        FontMetrics fm2 = g.getFontMetrics();
+        g.drawString(hpStr, (sw - fm2.stringWidth(hpStr)) / 2, sh - 66);
+
+        // ── Capture bar ───────────────────────────────────────────
+        int barW = Math.min(500, sw - 100);
+        int barH = 18;
+        int barX = (sw - barW) / 2;
+        int barY = sh - 55;
+
+        // Track background
+        g.setColor(new Color(15, 15, 20));
+        g.fillRoundRect(barX, barY, barW, barH, 8, 8);
+        g.setColor(new Color(60, 60, 70));
+        g.drawRoundRect(barX, barY, barW, barH, 8, 8);
+
+        // Filled segment (red draining)
+        double pct = Math.max(0.0, Math.min(1.0, captureBarDisplay / 20.0));
+        int fillW = (int)Math.round((barW - 2) * pct);
+        if (fillW > 0) {
+            Color barStart, barEnd;
+            if (pct > 0.5)       { barStart = new Color(231, 76, 60); barEnd = new Color(192, 57, 43); }
+            else if (pct > 0.25) { barStart = new Color(241, 196, 15); barEnd = new Color(214, 137, 16); }
+            else                 { barStart = new Color(46, 204, 113); barEnd = new Color(39, 174, 96); }
+
+            g.setPaint(new GradientPaint(barX+1, barY+1, barStart, barX+1, barY+barH-1, barEnd));
+            g.fillRoundRect(barX + 1, barY + 1, fillW, barH - 2, 6, 6);
+            // Gloss overlay
+            g.setColor(new Color(255, 255, 255, 50));
+            g.fillRoundRect(barX + 1, barY + 1, fillW, (barH - 2) / 2, 6, 6);
+        }
+
+        // Player-color outline
+        g.setStroke(new BasicStroke(1.5f));
+        g.setColor(playerColor);
+        g.drawRoundRect(barX, barY, barW, barH, 8, 8);
+
+        // ── Tip text ─────────────────────────────────────────────
+        if (captureBarDisplay <= captureBarTarget + 0.1) {
+            String tip = captureAnimEvent.captureHp <= 0
+                ? "Event Captured! Ownership transferred."
+                : "Capture in progress — stay on the tile next turn!";
+            g.setFont(Theme.getPixelFont(11f));
+            g.setColor(new Color(180, 180, 200));
+            FontMetrics fm3 = g.getFontMetrics();
+            g.drawString(tip, (sw - fm3.stringWidth(tip)) / 2, sh - 18);
+        }
+    }
+
+    /**
+     * Advances the capture bar animation. Called each frame while isCaptureAnimActive.
+     */
+    private void updateCaptureAnim() {
+        if (!isCaptureAnimActive) return;
+
+        // Smoothly animate the display bar toward target
+        if (captureBarDisplay > captureBarTarget) {
+            captureBarDisplay = Math.max(captureBarTarget, captureBarDisplay - 0.4);
+        }
+
+        // Once bar reaches target, wait briefly then finalise
+        if (captureBarDisplay <= captureBarTarget + 0.05) {
+            captureAnimTimer++;
+            if (captureAnimTimer > 80) {
+                // Finalise: check if ownership changes
+                if (captureAnimEvent != null && captureAnimEvent.captureHp <= 0) {
+                    captureAnimEvent.owner = captureAnimUnit.ownerIndex;
+                    captureAnimEvent.captureHp = 20;        // Reset for next potential capture
+                    captureAnimEvent.capturingPlayerIdx = null;
+                }
+                isCaptureAnimActive = false;
+                captureAnimEvent    = null;
+                captureAnimUnit     = null;
+                captureAnimTimer    = 0;
+                canvasPanel.repaint();
+            }
+        }
+    }
+
+    private void showWeaponSelectionMenu(MapUnit u, int x, int y) {
+        JPopupMenu menu = new JPopupMenu();
+        
+        for (WeaponItem wi : u.inventory) {
+            if (wi.isWeapon() && !wi.isBroken()) {
+                List<MapUnit> targets = new ArrayList<>();
+                for (MapUnit other : units) {
+                    if (other.ownerIndex != u.ownerIndex && !other.isDead) {
+                        int d = Math.abs(other.position.x - u.position.x) + Math.abs(other.position.y - u.position.y);
+                        if (d >= wi.minRange && d <= wi.maxRange) {
+                            targets.add(other);
+                        }
+                    }
+                }
+                
+                if (!targets.isEmpty()) {
+                    JMenuItem wpnOpt = new JMenuItem(wi.name + " (" + wi.currentUses + "/" + wi.maxUses + ")");
+                    wpnOpt.addActionListener(e -> {
+                        menu.setVisible(false);
+                        showTargetSelectionMenu(u, wi, targets, x, y);
+                    });
+                    menu.add(wpnOpt);
+                }
+            }
+        }
+        
+        // Back option
+        JMenuItem backOpt = new JMenuItem("< Back");
+        backOpt.addActionListener(e -> {
+            menu.setVisible(false);
+            showMainActionMenu(u, x, y);
+        });
+        menu.add(backOpt);
+        
+        menu.show(canvasPanel, x, y);
+    }
+
+    private void showTargetSelectionMenu(MapUnit u, WeaponItem wi, List<MapUnit> targets, int x, int y) {
+        JPopupMenu menu = new JPopupMenu();
+        
+        for (MapUnit target : targets) {
+            JMenuItem targetOpt = new JMenuItem(target.unitName + " (HP: " + target.currentHp + "/" + target.stats.maxHp + ")");
+            targetOpt.addActionListener(e -> {
+                menu.setVisible(false);
+                // Equip this weapon
+                int idx = u.inventory.indexOf(wi);
+                if (idx != -1) {
+                    u.equippedSlot = idx;
+                }
+                u.weaponFolder = wi.animWeaponFolder;
+                
+                // Start combat cinematic
+                startCombat(u, target);
+            });
+            menu.add(targetOpt);
+        }
+        
+        // Back option
+        JMenuItem backOpt = new JMenuItem("< Back");
+        backOpt.addActionListener(e -> {
+            menu.setVisible(false);
+            showWeaponSelectionMenu(u, x, y);
+        });
+        menu.add(backOpt);
+        
+        menu.show(canvasPanel, x, y);
+    }
+
+    private void showItemSelectionMenu(MapUnit u, int x, int y) {
+        JPopupMenu menu = new JPopupMenu();
+        
+        for (WeaponItem wi : u.inventory) {
+            if (!wi.isBroken()) {
+                JMenuItem itemOpt = new JMenuItem(wi.name + " (" + wi.currentUses + "/" + wi.maxUses + ")");
+                itemOpt.addActionListener(e -> {
+                    menu.setVisible(false);
+                    showItemActionMenu(u, wi, x, y);
+                });
+                menu.add(itemOpt);
+            }
+        }
+        
+        // Back option
+        JMenuItem backOpt = new JMenuItem("< Back");
+        backOpt.addActionListener(e -> {
+            menu.setVisible(false);
+            showMainActionMenu(u, x, y);
+        });
+        menu.add(backOpt);
+        
+        menu.show(canvasPanel, x, y);
+    }
+
+    private void showItemActionMenu(MapUnit u, WeaponItem wi, int x, int y) {
+        JPopupMenu menu = new JPopupMenu();
+        
+        if (wi.isWeapon()) {
+            JMenuItem equipOpt = new JMenuItem("Equip");
+            equipOpt.addActionListener(e -> {
+                menu.setVisible(false);
+                int idx = u.inventory.indexOf(wi);
+                if (idx != -1) {
+                    u.equippedSlot = idx;
+                }
+                u.weaponFolder = wi.animWeaponFolder;
+                JOptionPane.showMessageDialog(this, wi.name + " equipped!");
+                canvasPanel.repaint();
+            });
+            menu.add(equipOpt);
+        } else {
+            JMenuItem useOpt = new JMenuItem("Use (Heal 20 HP)");
+            useOpt.addActionListener(e -> {
+                menu.setVisible(false);
+                u.heal(20);
+                wi.useOnce();
+                JOptionPane.showMessageDialog(this, wi.name + " used! Healed 20 HP.");
+                u.hasActed = true; // Consumes action
+                selectedUnit = null;
+                canvasPanel.repaint();
+            });
+            menu.add(useOpt);
+        }
+        
+        // Back option
+        JMenuItem backOpt = new JMenuItem("< Back");
+        backOpt.addActionListener(e -> {
+            menu.setVisible(false);
+            showItemSelectionMenu(u, x, y);
+        });
+        menu.add(backOpt);
+        
+        menu.show(canvasPanel, x, y);
+    }
+
+    private int getBattleMode(boolean isCrit, int distance) {
+        if (distance >= 2) {
+            return isCrit ? 6 : 5; // 6 = Crit Ranged, 5 = Basic Ranged
+        } else {
+            return isCrit ? 3 : 1; // 3 = Crit Melee, 1 = Basic Melee
+        }
+    }
+
+    private void startCombat(MapUnit a, MapUnit d) {
+        BattleManager bm = new BattleManager();
+        activeBattle = bm.generateBattle(a, d);
+        isBattleActive = true; currentHitIdx = 0; battleEndDelay = 0;
+        recolorCache.clear(); // Clear cache to prevent old background/mirror artifacts
+        attackerActor = new BattleActor(a, true, getWidth(), getHeight()); defenderActor = new BattleActor(d, false, getWidth(), getHeight());
+        BattleManager.BattleHit first = activeBattle.hits.get(0);
+        combatDistance = Math.abs(a.position.x - d.position.x) + Math.abs(a.position.y - d.position.y);
+        attackerActor.setMode(getBattleMode(first.isCrit, combatDistance));
+        defenderActor.setMode(AnimationScript.MODE_STANDING);
+    }
+
+    private void showDeployMenu(EventInfo ev) {
+        // Refresh the UnitRegistry to capture any newly created unit directories
+        game.core.unit.UnitRegistry.reload();
+        
+        JPopupMenu menu = new JPopupMenu();
+        String targetCategory;
+        if ("ARMORY".equals(ev.type)) {
+            targetCategory = "Unit";
+        } else if ("HQ".equals(ev.type)) {
+            targetCategory = "Champion";
+        } else if ("FORT".equals(ev.type)) {
+            targetCategory = "Ocean Unit";
+        } else if ("AERIE".equals(ev.type)) {
+            targetCategory = "Air Unit";
+        } else {
+            return;
+        }
+
+        File battleDir = new File(GamePaths.BATTLE, targetCategory);
+        File unitsDir = new File(GamePaths.UNITS, targetCategory);
+
+        if (battleDir.exists() && battleDir.isDirectory() && unitsDir.exists() && unitsDir.isDirectory()) {
+            File[] battleSubs = battleDir.listFiles(File::isDirectory);
+            if (battleSubs != null) {
+                Arrays.sort(battleSubs, Comparator.comparing(File::getName));
+                for (File bs : battleSubs) {
+                    String name = bs.getName();
+                    File us = new File(unitsDir, name);
+                    if (us.exists() && us.isDirectory()) {
+                        int price = DeploymentEngine.calculatePrice(targetCategory, name);
+                        JMenuItem buyItem = new JMenuItem("Deploy " + name + " ($" + price + ")");
+                        buyItem.addActionListener(e -> deployUnit(targetCategory, name, price, ev));
+                        menu.add(buyItem);
+                    }
+                }
+            }
+        }
+
+        // Fallbacks if no units found
+        if (menu.getComponentCount() == 0) {
+            if ("ARMORY".equals(ev.type)) {
+                JMenuItem buyKnight = new JMenuItem("Deploy Knight ($500)");
+                buyKnight.addActionListener(e -> deployUnit("Unit", "Knight", 500, ev));
+                menu.add(buyKnight);
+            } else if ("HQ".equals(ev.type)) {
+                JMenuItem buyEphraim = new JMenuItem("Deploy Ephraim ($1000)");
+                buyEphraim.addActionListener(e -> deployUnit("Champion", "Ephraim", 1000, ev));
+                menu.add(buyEphraim);
+            } else if ("FORT".equals(ev.type)) {
+                JMenuItem buyShip = new JMenuItem("Deploy Battleship ($800)");
+                buyShip.addActionListener(e -> deployUnit("Ocean Unit", "Battleship", 800, ev));
+                menu.add(buyShip);
+            } else if ("AERIE".equals(ev.type)) {
+                JMenuItem buyPegasus = new JMenuItem("Deploy Pegasus ($600)");
+                buyPegasus.addActionListener(e -> deployUnit("Air Unit", "Pegasus", 600, ev));
+                menu.add(buyPegasus);
+            }
+        }
+
+        menu.show(canvasPanel, (int)(ev.x*16*zoomScale), (int)(ev.y*16*zoomScale));
+    }
+
+    private void deployUnit(String cat, String name, int cost, EventInfo ev) {
+        VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
+        if (p.gold < cost) { JOptionPane.showMessageDialog(this, "Not enough gold!"); return; }
+        p.gold -= cost; goldLabel.setText("🪙 " + p.gold);
+        MapUnit u = new MapUnit(cat, name, MapUnit.Faction.PLAYER, new Point(ev.x, ev.y)); u.ownerIndex = currentPlayerIdx;
+        WeaponItem ironLance = WeaponItem.byName("Iron Lance"); ironLance.maxUses = 20; ironLance.currentUses = 20; u.addItem(ironLance);
+        WeaponItem javelin = WeaponItem.byName("Javelin"); javelin.maxUses = 10; javelin.currentUses = 10; u.addItem(javelin);
+        units.add(u); loadAnims(u); canvasPanel.repaint();
+    }
+
+    @Override public void update() {
+        if (isPaused) return;
+        if (isBattleActive) { updateBattle(); canvasPanel.repaint(); repaint(); return; }
+        if (isCaptureAnimActive) { updateCaptureAnim(); repaint(); return; }
+        if (phaseBannerTimer > 0) {
+            phaseBannerTimer--;
+            repaint();
+        }
+        for (int i = 0; i < units.size(); i++) {
+            MapUnit u = units.get(i); u.animTimer++; if (u.animTimer > 10) { u.animFrame++; u.animTimer = 0; }
+            if (!u.movePath.isEmpty()) {
+                Point target = u.movePath.get(0); double speed = 0.25; double dx = target.x - u.renderPos.x, dy = target.y - u.renderPos.y;
+                if (Math.abs(dx) > speed) u.renderPos.x += Math.signum(dx) * speed; else u.renderPos.x = target.x;
+                if (Math.abs(dy) > speed) u.renderPos.y += Math.signum(dy) * speed; else u.renderPos.y = target.y;
+                if (u.renderPos.x == target.x && u.renderPos.y == target.y) {
+                    u.movePath.remove(0);
+                    if (isArmoredSubtype(u)) SoundManager.playStepHeavy();
+                    else if (isMountedSubtype(u)) SoundManager.playStepHorse();
+                    else if (isInfantrySubtype(u)) SoundManager.playStepInfantry();
+                    else SoundManager.playFootstep();
+                    if (u.movePath.isEmpty()) { u.position = new Point(target); showActionMenu(u); }
+                }
+            }
+        }
+        canvasPanel.repaint();
+    }
+
+    private boolean isArmoredSubtype(MapUnit u) {
+        if (u == null || u.stats == null || u.stats.subUnitType == null) return false;
+        String st = u.stats.subUnitType.trim().toLowerCase();
+        return st.contains("armored");
+    }
+
+    private boolean isInfantrySubtype(MapUnit u) {
+        if (u == null || u.stats == null || u.stats.subUnitType == null) return false;
+        String st = u.stats.subUnitType.trim().toLowerCase();
+        return st.equals("infantry");
+    }
+
+    private boolean isMountedSubtype(MapUnit u) {
+        if (u == null || u.stats == null || u.stats.subUnitType == null) return false;
+        String st = u.stats.subUnitType.trim().toLowerCase();
+        return st.contains("mounted") && !st.contains("armored");
+    }
+
+    private void updateBattle() {
+        if (!isBattleActive || attackerActor == null || defenderActor == null) return;
+        if (flashTimer > 0) flashTimer--; if (shakeTimer > 0) shakeTimer--;
+        attackerActor.update(); defenderActor.update();
+        if (attackerActor.isFinished && defenderActor.isFinished) {
+            if (currentHitIdx < activeBattle.hits.size()) {
+                BattleManager.BattleHit next = activeBattle.hits.get(currentHitIdx);
+                if (next.isAttacker) attackerActor.setMode(getBattleMode(next.isCrit, combatDistance));
+                else defenderActor.setMode(getBattleMode(next.isCrit, combatDistance));
+            } else {
+                battleEndDelay++;
+                if (battleEndDelay > 60) {
+                    isBattleActive = false;
+                    BattleManager.Combatant a = activeBattle.attacker; BattleManager.Combatant d = activeBattle.defender;
+                    if (a.mapUnit != null) {
+                        a.mapUnit.currentHp = a.hp;
+                        a.mapUnit.hasActed = true;
+                        if (a.hp <= 0) {
+                            a.mapUnit.isDead = true;
+                            SoundManager.playFadeDieAway1();
+                            units.remove(a.mapUnit);
+                        }
+                    }
+                    if (d.mapUnit != null) {
+                        d.mapUnit.currentHp = d.hp;
+                        if (d.hp <= 0) {
+                            d.mapUnit.isDead = true;
+                            SoundManager.playFadeDieAway1();
+                            units.remove(d.mapUnit);
+                        }
+                    }
+                    selectedUnit = null; activeBattle = null; attackerActor = null; defenderActor = null;
+                }
+            }
+        }
+    }
+}
