@@ -19,6 +19,8 @@ public class SoundManager {
     private static Clip sfxCancel;
     private static Clip sfxWindow;
     private static MediaPlayer bgmPlayer;
+    private static float sfxVolume = 1.0f;
+    private static double masterBgmVolume = 1.0;
 
     // Battle SFX — Weapon Hits
     private static Clip sfxHitMelee;
@@ -243,6 +245,13 @@ public class SoundManager {
         if (clip == null) return;
         new Thread(() -> {
             synchronized (clip) {
+                // Apply SFX volume via gain control
+                try {
+                    FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                    float dB = (sfxVolume <= 0f) ? gain.getMinimum() : (float) (20.0 * Math.log10(sfxVolume));
+                    dB = Math.max(gain.getMinimum(), Math.min(dB, gain.getMaximum()));
+                    gain.setValue(dB);
+                } catch (Exception ignored) {}
                 clip.setFramePosition(0);
                 clip.start();
             }
@@ -273,6 +282,29 @@ public class SoundManager {
                 bgmPlayer.setVolume(vol);
             }
         });
+    }
+
+    public static double getBgmVolume() {
+        if (bgmPlayer != null) {
+            return bgmPlayer.getVolume();
+        }
+        return masterBgmVolume;
+    }
+
+    public static double getMasterBgmVolume() {
+        return masterBgmVolume;
+    }
+
+    public static void setMasterBgmVolume(double vol) {
+        masterBgmVolume = Math.max(0.0, Math.min(1.0, vol));
+    }
+
+    public static float getSfxVolume() {
+        return sfxVolume;
+    }
+
+    public static void setSfxVolume(float vol) {
+        sfxVolume = Math.max(0f, Math.min(1f, vol));
     }
 
     // --- BATTLE SFX METHODS ---

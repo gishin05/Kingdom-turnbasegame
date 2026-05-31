@@ -27,6 +27,7 @@ public class Main extends JFrame {
 
 	public static final String VERSUS = "VERSUS";
 	public static final String VERSUS_GAMEPLAY = "VERSUS_GAMEPLAY";
+	public static final String SETTINGS = "SETTINGS";
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -66,7 +67,19 @@ public class Main extends JFrame {
 
 		contentPane.add(new VersusScreen(this), VERSUS);
 		contentPane.add(new VersusGameplayScreen(this), VERSUS_GAMEPLAY);
+		contentPane.add(new SettingsScreen(this), SETTINGS);
 
+		// Load settings
+		game.core.save.SettingsSaveData settings = game.core.save.SaveManager.loadSettings();
+		game.core.util.SoundManager.setBgmVolume(settings.bgmVolume);
+		game.core.util.SoundManager.setSfxVolume(settings.sfxVolume);
+		
+		// Apply saved resolution
+		if (settings.resolutionIndex >= 0 && settings.resolutionIndex < SettingsScreen.RESOLUTIONS.length) {
+			String[] res = SettingsScreen.RESOLUTIONS[settings.resolutionIndex];
+			applyResolution(settings.resolutionIndex, res[0], res[1], res[2]);
+		}
+		
 		// Show initial screen
 		showScreen(STARTUP);
 		
@@ -74,17 +87,37 @@ public class Main extends JFrame {
 		game.core.util.SoundManager.attachToContainer(this);
 	}
 
+	public void applyResolution(int idx, String name, String wStr, String hStr) {
+		if (name.equals("Fullscreen")) {
+			dispose();
+			setUndecorated(true);
+			setExtendedState(JFrame.MAXIMIZED_BOTH);
+			setVisible(true);
+		} else {
+			int w = Integer.parseInt(wStr);
+			int h = Integer.parseInt(hStr);
+			if (isUndecorated()) {
+				dispose();
+				setUndecorated(false);
+				setVisible(true);
+			}
+			setExtendedState(JFrame.NORMAL);
+			setSize(w, h);
+			setLocationRelativeTo(null);
+		}
+	}
+
 	public void showScreen(String name) {
 		try {
 			cardLayout.show(contentPane, name);
 			
 			// Adjust background music based on active screen
-			if (name.equals(TITLE) || name.equals(MENU) || name.equals(SAVE_SELECTION) || name.equals(VERSUS)) {
+			if (name.equals(TITLE) || name.equals(MENU) || name.equals(SAVE_SELECTION) || name.equals(VERSUS) || name.equals(SETTINGS)) {
 				game.core.util.SoundManager.playBgm();
-				game.core.util.SoundManager.setBgmVolume(1.0);
+				game.core.util.SoundManager.setBgmVolume(game.core.util.SoundManager.getMasterBgmVolume());
 			} else if (name.equals(DESIGN_ROOM) || name.equals(MAP_DESIGN)) {
 				game.core.util.SoundManager.playBgm();
-				game.core.util.SoundManager.setBgmVolume(0.3); // 30% volume in editor screens
+				game.core.util.SoundManager.setBgmVolume(game.core.util.SoundManager.getMasterBgmVolume() * 0.3); // 30% volume in editor screens
 			} else {
 				game.core.util.SoundManager.pauseBgm();
 			}

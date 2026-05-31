@@ -8,6 +8,7 @@ import game.core.util.GamePaths;
 public class SaveManager {
     private static final int MAX_SLOTS = 3;
     private static final String VERSUS_SAVE_FILE = "versus.dat";
+    private static final String SETTINGS_FILE = "settings.ini";
 
     static {
         GamePaths.ensureRuntimeDirs();
@@ -58,5 +59,14 @@ public class SaveManager {
     public static VersusSaveData loadVersus() throws IOException {
         File f = new File(GamePaths.SAVES, VERSUS_SAVE_FILE);
         return VersusSaveData.readFrom(f);
+    }
+
+    // --- Settings ---
+    public static void saveSettings(SettingsSaveData data) {
+        data.writeTo(new File(GamePaths.SAVES, SETTINGS_FILE));
+    }
+
+    public static SettingsSaveData loadSettings() {
+        return SettingsSaveData.readFrom(new File(GamePaths.SAVES, SETTINGS_FILE));
     }
 }

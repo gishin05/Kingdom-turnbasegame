@@ -22,7 +22,6 @@ public class DesignRoomScreen extends BaseScreen {
     private JPanel[] menuItems;
     
     private java.awt.Image mapDesignImg;
-    private java.awt.Image charDesignImg;
 
     public DesignRoomScreen(Main main) {
         super(main);

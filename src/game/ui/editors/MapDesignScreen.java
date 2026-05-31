@@ -75,7 +75,10 @@ public class MapDesignScreen extends JPanel implements Refreshable {
                     }
                 }
             }
-            this.events = new HashMap<>(e);
+            this.events = new HashMap<>();
+            for (Map.Entry<Point, EventInfo> entry : e.entrySet()) {
+                this.events.put(new Point(entry.getKey()), new EventInfo(entry.getValue().type, entry.getValue().owner));
+            }
         }
     }
     private Stack<MapState> undoStack = new Stack<>();
@@ -689,11 +692,18 @@ public class MapDesignScreen extends JPanel implements Refreshable {
 
                 if (currentTool == Tool.EVENT) {
                     if (SwingUtilities.isLeftMouseButton(e)) {
-                        pushUndo();
-                        eventMap.put(new Point(tx, ty), new EventInfo(selectedEventType, selectedEventOwner));
+                        Point p = new Point(tx, ty);
+                        EventInfo existing = eventMap.get(p);
+                        if (existing == null || existing.type != selectedEventType || existing.owner != selectedEventOwner) {
+                            pushUndo();
+                            eventMap.put(p, new EventInfo(selectedEventType, selectedEventOwner));
+                        }
                     } else if (SwingUtilities.isRightMouseButton(e)) {
-                        pushUndo();
-                        eventMap.remove(new Point(tx, ty));
+                        Point p = new Point(tx, ty);
+                        if (eventMap.containsKey(p)) {
+                            pushUndo();
+                            eventMap.remove(p);
+                        }
                     }
                     canvasPanel.repaint();
                     return;

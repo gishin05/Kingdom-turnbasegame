@@ -19,7 +19,7 @@ public class MenuScreen extends BaseScreen {
     private static final long serialVersionUID = 1L;
 
     private static final String[] MENU_TITLES = {
-        "CAMPAIGN", "WAR ROOM", "VERSUS", "DESIGN ROOM", "EXIT"
+        "VERSUS", "DESIGN ROOM", "SETTINGS", "EXIT"
     };
 
     private int hoveredIndex = -1;
@@ -184,7 +184,7 @@ public class MenuScreen extends BaseScreen {
                 item.repaint();
             }
             @Override public void mouseExited(MouseEvent e) {
-                if (index == 2 && versusPopup != null && versusPopup.isVisible()) {
+                if (index == 0 && versusPopup != null && versusPopup.isVisible()) {
                     // Keep Versus highlighted while its extension popup is open.
                     return;
                 }
@@ -201,11 +201,10 @@ public class MenuScreen extends BaseScreen {
 
     private void handleMenuAction(int index) {
         switch (index) {
-            case 0: main.showScreen(Main.SAVE_SELECTION); break;
-            case 1: break;
-            case 2: showVersusPopup(); break;
-            case 3: main.showScreen(Main.DESIGN_ROOM); break;
-            case 4: System.exit(0); break;
+            case 0: showVersusPopup(); break;
+            case 1: main.showScreen(Main.DESIGN_ROOM); break;
+            case 2: main.showScreen(Main.SETTINGS); break;
+            case 3: System.exit(0); break;
         }
     }
 
@@ -268,25 +267,25 @@ public class MenuScreen extends BaseScreen {
 
     private void showVersusPopup() {
         if (versusPopup == null) buildVersusPopup();
-        if (menuItems == null || menuItems.length <= 2 || menuItems[2] == null) return;
-        JPanel versusItem = menuItems[2];
+        if (menuItems == null || menuItems.length <= 0 || menuItems[0] == null) return;
+        JPanel versusItem = menuItems[0];
         forceVersusHover();
         versusPopup.show(versusItem, versusItem.getWidth(), 0);
     }
 
     private void forceVersusHover() {
-        hoveredIndex = 2;
-        if (menuLabels != null && menuLabels.length > 2 && menuLabels[2] != null) menuLabels[2].setForeground(Theme.HIGHLIGHT);
-        if (menuArrows != null && menuArrows.length > 2 && menuArrows[2] != null) menuArrows[2].setVisible(true);
-        if (menuItems != null && menuItems.length > 2 && menuItems[2] != null) menuItems[2].repaint();
+        hoveredIndex = 0;
+        if (menuLabels != null && menuLabels.length > 0 && menuLabels[0] != null) menuLabels[0].setForeground(Theme.HIGHLIGHT);
+        if (menuArrows != null && menuArrows.length > 0 && menuArrows[0] != null) menuArrows[0].setVisible(true);
+        if (menuItems != null && menuItems.length > 0 && menuItems[0] != null) menuItems[0].repaint();
     }
 
     private void clearVersusForcedHover() {
-        if (hoveredIndex != 2) return;
+        if (hoveredIndex != 0) return;
         hoveredIndex = -1;
-        if (menuLabels != null && menuLabels.length > 2 && menuLabels[2] != null) menuLabels[2].setForeground(new Color(190, 190, 210));
-        if (menuArrows != null && menuArrows.length > 2 && menuArrows[2] != null) menuArrows[2].setVisible(false);
-        if (menuItems != null && menuItems.length > 2 && menuItems[2] != null) menuItems[2].repaint();
+        if (menuLabels != null && menuLabels.length > 0 && menuLabels[0] != null) menuLabels[0].setForeground(new Color(190, 190, 210));
+        if (menuArrows != null && menuArrows.length > 0 && menuArrows[0] != null) menuArrows[0].setVisible(false);
+        if (menuItems != null && menuItems.length > 0 && menuItems[0] != null) menuItems[0].repaint();
     }
 
     private JPanel createPopupMenuItemPanel(String title, Runnable onClick) {
