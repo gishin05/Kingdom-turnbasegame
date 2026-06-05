@@ -314,14 +314,14 @@ public class VersusGameplayScreen extends BaseScreen {
     private boolean isCaptureAnimActive = false;
     private EventInfo captureAnimEvent = null;
     private MapUnit captureAnimUnit = null;
-    private double captureBarDisplay = 20.0;  // Animated display HP (counts down smoothly)
-    private double captureBarTarget  = 20.0;  // Target HP after this capture action
+    private double captureBarDisplay = 40.0;  // Animated display HP (counts down smoothly)
+    private double captureBarTarget  = 40.0;  // Target HP after this capture action
     private int captureAnimTimer = 0;          // Delay counter before marking action complete
 
     private class EventInfo {
         int x, y, owner; String type;
         // Capture state
-        int captureHp = 20;              // Event's capture HP (starts at 20, resets to 20)
+        int captureHp = 40;              // Event's capture HP (starts at 40, resets to 40)
         Integer capturingPlayerIdx = null; // Which player index is currently capturing this event
         EventInfo(int x, int y, String type, int owner) { this.x = x; this.y = y; this.type = type; this.owner = owner; }
     }
@@ -371,8 +371,6 @@ public class VersusGameplayScreen extends BaseScreen {
         super.paint(g);
         if (isBattleActive) {
             renderBattleCinematic((Graphics2D) g);
-        } else if (isCaptureAnimActive) {
-            drawCaptureBar((Graphics2D) g);
         } else if (phaseBannerTimer > 0) {
             drawPhaseBanner((Graphics2D) g);
         }
@@ -428,39 +426,52 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private JPanel buildMenuOverlay() {
-        JPanel overlay = new JPanel(new GridBagLayout());
-        overlay.setOpaque(true);
-        overlay.setBackground(new Color(0, 0, 0, 160));
+        JPanel overlay = new JPanel(new BorderLayout());
+        overlay.setOpaque(false);
 
-        JPanel panel = new JPanel();
-        panel.setBackground(new Color(25, 25, 35));
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                g.setColor(new Color(15, 15, 25, 200));
+                g.fillRect(0, 0, getWidth(), getHeight());
+                super.paintComponent(g);
+            }
+        };
+        panel.setOpaque(false);
+        panel.setPreferredSize(new Dimension(350, 0));
         panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Theme.GOLD_TRANS),
-            BorderFactory.createEmptyBorder(18, 22, 18, 22)
+            BorderFactory.createMatteBorder(0, 0, 0, 2, Theme.GOLD_TRANS),
+            BorderFactory.createEmptyBorder(100, 40, 100, 40)
         ));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
+        Font largeFont = Theme.getPixelFont(28f);
+        Dimension btnSize = new Dimension(270, 60);
+
         JButton resume = new JButton("RESUME");
-        resume.setAlignmentX(Component.CENTER_ALIGNMENT);
+        resume.setFont(largeFont);
+        resume.setMaximumSize(btnSize);
+        resume.setAlignmentX(Component.LEFT_ALIGNMENT);
         resume.addActionListener(e -> setMenuOpen(false));
 
         JButton settings = new JButton("SETTINGS");
-        settings.setAlignmentX(Component.CENTER_ALIGNMENT);
+        settings.setFont(largeFont);
+        settings.setMaximumSize(btnSize);
+        settings.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JButton exit = new JButton("EXIT");
-        exit.setAlignmentX(Component.CENTER_ALIGNMENT);
+        exit.setFont(largeFont);
+        exit.setMaximumSize(btnSize);
+        exit.setAlignmentX(Component.LEFT_ALIGNMENT);
         exit.addActionListener(e -> onExitRequested());
 
         panel.add(resume);
-        panel.add(Box.createVerticalStrut(10));
+        panel.add(Box.createVerticalStrut(25));
         panel.add(settings);
-        panel.add(Box.createVerticalStrut(10));
+        panel.add(Box.createVerticalStrut(25));
         panel.add(exit);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        overlay.add(panel, gbc);
+        overlay.add(panel, BorderLayout.WEST);
 
         overlay.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) { setMenuOpen(false); }
@@ -694,7 +705,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
             }
             if (!capturerPresent) {
-                ev.captureHp = 20;
+                ev.captureHp = 40;
                 ev.capturingPlayerIdx = null;
             }
         }
@@ -829,6 +840,10 @@ public class VersusGameplayScreen extends BaseScreen {
                     g.drawImage(colored, dx, dy, 32, 32, null);
                 }
             }
+        }
+        // ── Draw capture bar above the capturing unit on the map ──
+        if (isCaptureAnimActive && captureAnimUnit != null) {
+            drawCaptureBarAboveUnit(g, captureAnimUnit);
         }
     }
 
@@ -1357,7 +1372,7 @@ public class VersusGameplayScreen extends BaseScreen {
         // --- 2. Capture Option ---
         if (canCapture(u)) {
             EventInfo ev = eventMap.get(u.position);
-            String captureLabel = "Capture (" + ev.captureHp + " HP)";
+            String captureLabel = "Capture";
             JMenuItem captureOpt = new JMenuItem(captureLabel);
             captureOpt.addActionListener(e -> {
                 menu.setVisible(false);
@@ -1402,8 +1417,9 @@ public class VersusGameplayScreen extends BaseScreen {
      * starts the animated capture progress bar, and handles ownership change if HP <= 0.
      */
     private void performCapture(MapUnit u, EventInfo ev) {
-        // Capture damage = unit's current HP (Advance Wars style)
-        int captureDamage = u.currentHp;
+        // Capture damage = unit's HP normalized to a 1–10 scale (Advance Wars style)
+        // A full-HP unit deals 10 damage per turn → 4 turns to capture a 40 HP event
+        int captureDamage = (int) Math.ceil((double) u.currentHp / u.stats.maxHp * 10.0);
         int newHp = Math.max(0, ev.captureHp - captureDamage);
 
         // Update capturing player tracking
@@ -1425,84 +1441,105 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     /**
-     * Renders the capture progress bar overlay (no battle animation).
-     * Shows the event name and an HP bar draining from old HP to new HP.
+     * Renders the capture progress bar directly above the capturing unit on the map.
+     * Drawn in tile-space coordinates so it scrolls and zooms with the map.
+     * Designed for pixel-art clarity at typical zoom levels (2x–4x).
      */
-    private void drawCaptureBar(Graphics2D g) {
-        if (captureAnimEvent == null || captureAnimUnit == null) return;
+    private void drawCaptureBarAboveUnit(Graphics2D g, MapUnit u) {
+        if (captureAnimEvent == null || u == null) return;
 
-        int sw = getWidth(), sh = getHeight();
-        Color playerColor = players.get(captureAnimUnit.ownerIndex).color;
+        Graphics2D g2 = (Graphics2D) g.create();
+        // Use nearest-neighbor for crisp pixel-art rendering
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
-        // ── Background strip ──────────────────────────────────────
-        g.setPaint(new GradientPaint(
-            0, sh - 120, new Color(12, 12, 22, 220),
-            0, sh,       new Color(6,  6,  12, 245)
-        ));
-        g.fillRect(0, sh - 120, sw, 120);
+        Color playerColor = players.get(u.ownerIndex).color;
 
-        // Gold top border
-        g.setStroke(new BasicStroke(2.5f));
-        g.setColor(new Color(255, 215, 0, 180));
-        g.drawLine(0, sh - 120, sw, sh - 120);
+        // Unit tile-space pixel position
+        int unitPx = (int) Math.round(u.renderPos.x * 16.0);
+        int unitPy = (int) Math.round(u.renderPos.y * 16.0);
 
-        // ── Event label ───────────────────────────────────────────
-        String evLabel = captureAnimEvent.type + " — CAPTURING";
-        g.setFont(Theme.getPixelFont(18f));
-        g.setColor(playerColor);
-        FontMetrics fm = g.getFontMetrics();
-        g.drawString(evLabel, (sw - fm.stringWidth(evLabel)) / 2, sh - 86);
+        // ── Layout constants (all in tile-space pixels) ──────────
+        int barW = 32;   // full sprite width
+        int barH = 4;    // visible bar thickness
+        int barX = unitPx - 8;
+        int barY = unitPy - 20;
 
-        // ── HP numbers ────────────────────────────────────────────
-        g.setFont(Theme.getPixelFont(14f));
-        g.setColor(Color.WHITE);
-        String hpStr = (int)Math.ceil(captureBarDisplay) + " / 20 HP";
-        FontMetrics fm2 = g.getFontMetrics();
-        g.drawString(hpStr, (sw - fm2.stringWidth(hpStr)) / 2, sh - 66);
+        // ── Background panel ─────────────────────────────────────
+        int pad = 2;
+        int panelX = barX - pad;
+        int panelY = barY - 9;
+        int panelW = barW + pad * 2;
+        int panelH = barH + 13;
 
-        // ── Capture bar ───────────────────────────────────────────
-        int barW = Math.min(500, sw - 100);
-        int barH = 18;
-        int barX = (sw - barW) / 2;
-        int barY = sh - 55;
+        // Dark translucent backdrop
+        g2.setColor(new Color(8, 8, 16, 210));
+        g2.fillRect(panelX, panelY, panelW, panelH);
 
-        // Track background
-        g.setColor(new Color(15, 15, 20));
-        g.fillRoundRect(barX, barY, barW, barH, 8, 8);
-        g.setColor(new Color(60, 60, 70));
-        g.drawRoundRect(barX, barY, barW, barH, 8, 8);
+        // 1px player-color border
+        g2.setStroke(new BasicStroke(1f));
+        g2.setColor(new Color(playerColor.getRed(), playerColor.getGreen(), playerColor.getBlue(), 140));
+        g2.drawRect(panelX, panelY, panelW - 1, panelH - 1);
 
-        // Filled segment (red draining)
-        double pct = Math.max(0.0, Math.min(1.0, captureBarDisplay / 20.0));
-        int fillW = (int)Math.round((barW - 2) * pct);
+        // Bright top-edge highlight (1px)
+        g2.setColor(new Color(playerColor.getRed(), playerColor.getGreen(), playerColor.getBlue(), 80));
+        g2.drawLine(panelX + 1, panelY + 1, panelX + panelW - 2, panelY + 1);
+
+        // ── HP counter text (e.g. "32/40") ───────────────────────
+        // Use a plain small pixel font – at 5px it renders crisply at 3x zoom (≈15px on screen)
+        g2.setFont(new Font("Monospaced", Font.BOLD, 5));
+        int hpVal = (int) Math.ceil(captureBarDisplay);
+        String hpText = hpVal + "/40";
+        FontMetrics fm = g2.getFontMetrics();
+        int textW = fm.stringWidth(hpText);
+        int textX = barX + (barW - textW) / 2;
+        int textY = barY - 2;
+
+        // Drop shadow for readability
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(hpText, textX + 1, textY + 1);
+        // Main text in player color
+        g2.setColor(Color.WHITE);
+        g2.drawString(hpText, textX, textY);
+
+        // ── Bar track (recessed groove) ──────────────────────────
+        g2.setColor(new Color(12, 12, 18));
+        g2.fillRect(barX, barY, barW, barH);
+        // Inner shadow (top edge of groove)
+        g2.setColor(new Color(0, 0, 0, 120));
+        g2.drawLine(barX, barY, barX + barW - 1, barY);
+
+        // ── Filled segment ───────────────────────────────────────
+        double pct = Math.max(0.0, Math.min(1.0, captureBarDisplay / 40.0));
+        int fillW = (int) Math.round(barW * pct);
         if (fillW > 0) {
-            Color barStart, barEnd;
-            if (pct > 0.5)       { barStart = new Color(231, 76, 60); barEnd = new Color(192, 57, 43); }
-            else if (pct > 0.25) { barStart = new Color(241, 196, 15); barEnd = new Color(214, 137, 16); }
-            else                 { barStart = new Color(46, 204, 113); barEnd = new Color(39, 174, 96); }
+            // Color shifts: red (high HP = hard to capture) → yellow → green (almost captured)
+            Color barTop, barBot;
+            if (pct > 0.5) {
+                barTop = new Color(220, 60, 50);
+                barBot = new Color(170, 40, 35);
+            } else if (pct > 0.25) {
+                barTop = new Color(230, 190, 20);
+                barBot = new Color(190, 140, 15);
+            } else {
+                barTop = new Color(50, 200, 100);
+                barBot = new Color(35, 160, 75);
+            }
 
-            g.setPaint(new GradientPaint(barX+1, barY+1, barStart, barX+1, barY+barH-1, barEnd));
-            g.fillRoundRect(barX + 1, barY + 1, fillW, barH - 2, 6, 6);
-            // Gloss overlay
-            g.setColor(new Color(255, 255, 255, 50));
-            g.fillRoundRect(barX + 1, barY + 1, fillW, (barH - 2) / 2, 6, 6);
+            // Draw bar fill with vertical gradient
+            g2.setPaint(new GradientPaint(barX, barY, barTop, barX, barY + barH, barBot));
+            g2.fillRect(barX, barY, fillW, barH);
+
+            // Pixel-art highlight line (1px bright strip on top of fill)
+            g2.setColor(new Color(255, 255, 255, 90));
+            g2.drawLine(barX, barY + 1, barX + fillW - 1, barY + 1);
         }
 
-        // Player-color outline
-        g.setStroke(new BasicStroke(1.5f));
-        g.setColor(playerColor);
-        g.drawRoundRect(barX, barY, barW, barH, 8, 8);
+        // ── Thin border around bar ───────────────────────────────
+        g2.setColor(new Color(50, 50, 60));
+        g2.drawRect(barX, barY, barW - 1, barH - 1);
 
-        // ── Tip text ─────────────────────────────────────────────
-        if (captureBarDisplay <= captureBarTarget + 0.1) {
-            String tip = captureAnimEvent.captureHp <= 0
-                ? "Event Captured! Ownership transferred."
-                : "Capture in progress — stay on the tile next turn!";
-            g.setFont(Theme.getPixelFont(11f));
-            g.setColor(new Color(180, 180, 200));
-            FontMetrics fm3 = g.getFontMetrics();
-            g.drawString(tip, (sw - fm3.stringWidth(tip)) / 2, sh - 18);
-        }
+        g2.dispose();
     }
 
     /**
@@ -1523,7 +1560,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 // Finalise: check if ownership changes
                 if (captureAnimEvent != null && captureAnimEvent.captureHp <= 0) {
                     captureAnimEvent.owner = captureAnimUnit.ownerIndex;
-                    captureAnimEvent.captureHp = 20;        // Reset for next potential capture
+                    captureAnimEvent.captureHp = 40;        // Reset for next potential capture
                     captureAnimEvent.capturingPlayerIdx = null;
                 }
                 isCaptureAnimActive = false;
@@ -1764,7 +1801,7 @@ public class VersusGameplayScreen extends BaseScreen {
     @Override public void update() {
         if (isPaused) return;
         if (isBattleActive) { updateBattle(); canvasPanel.repaint(); repaint(); return; }
-        if (isCaptureAnimActive) { updateCaptureAnim(); repaint(); return; }
+        if (isCaptureAnimActive) { updateCaptureAnim(); canvasPanel.repaint(); repaint(); return; }
         if (phaseBannerTimer > 0) {
             phaseBannerTimer--;
             repaint();
