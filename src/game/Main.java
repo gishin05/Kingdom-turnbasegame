@@ -17,6 +17,7 @@ public class Main extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private CardLayout cardLayout;
+	private SettingsScreen settingsScreen;
 
 	public static final String STARTUP = "STARTUP";
 	public static final String TITLE = "TITLE";
@@ -67,10 +68,12 @@ public class Main extends JFrame {
 
 		contentPane.add(new VersusScreen(this), VERSUS);
 		contentPane.add(new VersusGameplayScreen(this), VERSUS_GAMEPLAY);
-		contentPane.add(new SettingsScreen(this), SETTINGS);
+		settingsScreen = new SettingsScreen(this);
+		contentPane.add(settingsScreen, SETTINGS);
 
 		// Load settings
 		game.core.save.SettingsSaveData settings = game.core.save.SaveManager.loadSettings();
+		game.core.util.SoundManager.setMasterBgmVolume(settings.bgmVolume);
 		game.core.util.SoundManager.setBgmVolume(settings.bgmVolume);
 		game.core.util.SoundManager.setSfxVolume(settings.sfxVolume);
 		
@@ -142,5 +145,9 @@ public class Main extends JFrame {
 	public interface Refreshable {
 		void refresh();
 		void pause();
+	}
+
+	public SettingsScreen getSettingsScreen() {
+		return settingsScreen;
 	}
 }

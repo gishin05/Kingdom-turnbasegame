@@ -44,6 +44,10 @@ public class SoundManager {
     private static Clip sfxHpTick;
     private static Clip sfxLevelUp;
 
+    // Weather SFX
+    private static Clip sfxRain;
+    private static Clip sfxThunder;
+
     // Map SFX — Footsteps
     private static Clip sfxStepGrass;
     private static Clip sfxStepStone;
@@ -61,6 +65,9 @@ public class SoundManager {
         sfxDecide = loadOrSynthesize("decide.wav", generateDecideWave());
         sfxCancel = loadOrSynthesize("cancel.wav", generateCancelWave());
         sfxWindow = loadOrSynthesize("window.wav", generateWindowWave());
+        
+        sfxRain = loadOrSynthesize("rain.wav", generateRainWave());
+        sfxThunder = loadOrSynthesize("thunder.wav", generateThunderWave());
     }
 
     private static void initBgm() {
@@ -72,7 +79,7 @@ public class SoundManager {
                         Media media = new Media(bgmFile.toURI().toString());
                         bgmPlayer = new MediaPlayer(media);
                         bgmPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-                        bgmPlayer.setVolume(1.0);
+                        bgmPlayer.setVolume(masterBgmVolume);
                         bgmPlayer.play();
                     } catch (Exception e) {
                         System.err.println("Error initializing JavaFX MediaPlayer: " + e.getMessage());
@@ -212,6 +219,36 @@ public class SoundManager {
         return buf;
     }
 
+    private static byte[] generateRainWave() {
+        int rate = 8000;
+        int len = rate * 2; 
+        byte[] buf = new byte[len];
+        java.util.Random rnd = new java.util.Random(123);
+        double last = 0;
+        for (int i = 0; i < len; i++) {
+            double noise = (rnd.nextDouble() * 2 - 1) * 0.5;
+            double filtered = (last + noise) * 0.5;
+            last = filtered;
+            buf[i] = (byte)(filtered * 20); // soft volume
+        }
+        return buf;
+    }
+
+    private static byte[] generateThunderWave() {
+        int rate = 8000;
+        int len = (int)(rate * 1.5);
+        byte[] buf = new byte[len];
+        java.util.Random rnd = new java.util.Random();
+        for (int i = 0; i < len; i++) {
+            double t = (double) i / rate;
+            double noise = (rnd.nextDouble() * 2 - 1);
+            double amp = Math.exp(-t * 2); 
+            amp *= (1.0 + Math.sin(2 * Math.PI * 15 * t)) * 0.5; 
+            buf[i] = (byte)(noise * 127 * amp);
+        }
+        return buf;
+    }
+
     // --- PLAYBACK METHODS ---
 
     public static void playCursor() {
@@ -221,6 +258,27 @@ public class SoundManager {
     public static void playDecide() { play(sfxDecide); }
     public static void playCancel() { play(sfxCancel); }
     public static void playWindow() { play(sfxWindow); }
+    public static void playThunder() { play(sfxThunder); }
+
+    public static void setRainLoop(boolean active) {
+        if (sfxRain == null) return;
+        if (active) {
+            if (!sfxRain.isRunning() && !sfxRain.isActive()) {
+                try {
+                    FloatControl gain = (FloatControl) sfxRain.getControl(FloatControl.Type.MASTER_GAIN);
+                    float dB = (sfxVolume <= 0f) ? gain.getMinimum() : (float) (20.0 * Math.log10(sfxVolume));
+                    dB = Math.max(gain.getMinimum(), Math.min(dB, gain.getMaximum()));
+                    gain.setValue(dB);
+                } catch (Exception ignored) {}
+                sfxRain.setFramePosition(0);
+                sfxRain.loop(Clip.LOOP_CONTINUOUSLY);
+            }
+        } else {
+            if (sfxRain.isActive() || sfxRain.isRunning()) {
+                sfxRain.stop();
+            }
+        }
+    }
 
     public static void playButtonSound() {
         File file = new File(GamePaths.BUNDLED_ROOT, "audio/ClickButton.wav");

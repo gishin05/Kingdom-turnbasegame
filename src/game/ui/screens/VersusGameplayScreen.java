@@ -56,6 +56,40 @@ public class VersusGameplayScreen extends BaseScreen {
     private Map<String, BufferedImage> recolorCache = new HashMap<>();
     private BufferedImage battlePlatform, battleBg;
     
+    public boolean fogOfWarEnabled = false;
+    public boolean[][] visibleTiles;
+    
+    public enum Weather { NONE, RAIN, SNOW, THUNDERSTORM }
+    public Weather currentWeather = Weather.NONE;
+    public int weatherDaysRemaining = 0;
+    
+    private BufferedImage rainOverlay;
+    private BufferedImage snowOverlay;
+    
+    private void initWeatherOverlays() {
+        if (rainOverlay != null) return;
+        
+        rainOverlay = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D rg = rainOverlay.createGraphics();
+        rg.setColor(new Color(150, 200, 255, 120));
+        java.util.Random rnd = new java.util.Random(12345);
+        for(int i=0; i<80; i++) {
+            int x = rnd.nextInt(256);
+            int y = rnd.nextInt(256);
+            rg.drawLine(x, y, x - 4, y + 12);
+        }
+        rg.dispose();
+        
+        snowOverlay = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D sg = snowOverlay.createGraphics();
+        sg.setColor(new Color(255, 255, 255, 200));
+        for(int i=0; i<80; i++) {
+            int x = rnd.nextInt(256);
+            int y = rnd.nextInt(256);
+            sg.fillOval(x, y, 3, 3);
+        }
+        sg.dispose();
+    }
 
 
     private class BattleActor {
@@ -458,6 +492,11 @@ public class VersusGameplayScreen extends BaseScreen {
         settings.setFont(largeFont);
         settings.setMaximumSize(btnSize);
         settings.setAlignmentX(Component.LEFT_ALIGNMENT);
+        settings.addActionListener(e -> {
+            game.core.util.SoundManager.playButtonSound();
+            main.getSettingsScreen().setBackScreen(Main.VERSUS_GAMEPLAY);
+            main.showScreen(Main.SETTINGS);
+        });
 
         JButton exit = new JButton("EXIT");
         exit.setFont(largeFont);
@@ -617,6 +656,53 @@ public class VersusGameplayScreen extends BaseScreen {
         canvasPanel.revalidate();
     }
 
+    public void updateFogOfWar() {
+        if (!fogOfWarEnabled) return;
+        if (mapW == 0 || mapH == 0) return;
+        if (visibleTiles == null || visibleTiles.length != mapH || visibleTiles[0].length != mapW) {
+            visibleTiles = new boolean[mapH][mapW];
+        }
+        for (int y = 0; y < mapH; y++) {
+            for (int x = 0; x < mapW; x++) {
+                visibleTiles[y][x] = false;
+            }
+        }
+        
+        for (MapUnit u : units) {
+            if (u.ownerIndex == currentPlayerIdx && !u.isDead) {
+                int r = 3;
+                for (int y = -r; y <= r; y++) {
+                    for (int x = -r; x <= r; x++) {
+                        if (Math.abs(x) + Math.abs(y) <= r) {
+                            int nx = u.position.x + x;
+                            int ny = u.position.y + y;
+                            if (nx >= 0 && nx < mapW && ny >= 0 && ny < mapH) {
+                                visibleTiles[ny][nx] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        for (EventInfo ev : eventMap.values()) {
+            if (ev.owner == currentPlayerIdx) {
+                int r = 2;
+                for (int y = -r; y <= r; y++) {
+                    for (int x = -r; x <= r; x++) {
+                        if (Math.abs(x) + Math.abs(y) <= r) {
+                            int nx = ev.x + x;
+                            int ny = ev.y + y;
+                            if (nx >= 0 && nx < mapW && ny >= 0 && ny < mapH) {
+                                visibleTiles[ny][nx] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private void loadAnims(MapUnit u) {
         String[] actions = {"Standing", "Walk_Down", "Walk_Up", "Walk_Side", "Selected"};
         for (String a : actions) {
@@ -687,6 +773,38 @@ public class VersusGameplayScreen extends BaseScreen {
         dayLabel.setText("DAY " + currentDay + " - PLAYER " + (currentPlayerIdx + 1));
         dayLabel.setForeground(p.color);
         goldLabel.setText("🪙 " + p.gold);
+        
+        // ── Weather Logic ──
+        if (currentPlayerIdx == 0) {
+            weatherDaysRemaining--;
+            if (weatherDaysRemaining <= 0) {
+                weatherDaysRemaining = 3;
+                double roll = Math.random();
+                if (roll < 0.55) currentWeather = Weather.NONE;
+                else if (roll < 0.70) currentWeather = Weather.RAIN;
+                else if (roll < 0.85) currentWeather = Weather.SNOW;
+                else currentWeather = Weather.THUNDERSTORM;
+                
+                game.core.util.SoundManager.setRainLoop(currentWeather == Weather.RAIN || currentWeather == Weather.THUNDERSTORM);
+            }
+        }
+        
+        if (currentWeather == Weather.THUNDERSTORM) {
+            boolean struck = false;
+            for (MapUnit u : units) {
+                if (!u.isDead && u.ownerIndex == currentPlayerIdx) {
+                    if (Math.random() < 0.20) { // 20% chance to be struck by lightning
+                        u.takeDamage(10);
+                        flashTimer = 15; // Trigger lightning flash effect
+                        struck = true;
+                    }
+                }
+            }
+            if (struck) {
+                game.core.util.SoundManager.playThunder();
+            }
+        }
+        
         phaseBannerTimer = 120;
         // Reset all units at the start of any turn so they regain their team colors
         for (MapUnit u : units) { u.hasActed = false; u.hasMoved = false; }
@@ -793,6 +911,7 @@ public class VersusGameplayScreen extends BaseScreen {
 
     private void renderGame(Graphics2D g) {
         if (mapData == null) return;
+        updateFogOfWar();
         g.scale(zoomScale, zoomScale);
         for (int y = 0; y < mapH; y++) {
             for (int x = 0; x < mapW; x++) {
@@ -807,6 +926,13 @@ public class VersusGameplayScreen extends BaseScreen {
         List<MapUnit> sortedUnits = new ArrayList<>(units);
         sortedUnits.sort(Comparator.comparingDouble(u -> u.renderPos.y));
         for (MapUnit u : sortedUnits) {
+            if (fogOfWarEnabled && visibleTiles != null) {
+                if (u.position.y >= 0 && u.position.y < mapH && u.position.x >= 0 && u.position.x < mapW) {
+                    if (!visibleTiles[u.position.y][u.position.x] && u.ownerIndex != currentPlayerIdx) {
+                        continue;
+                    }
+                }
+            }
             String action = "Standing"; if (u == selectedUnit) action = "Selected";
             if (!u.movePath.isEmpty()) {
                 Point next = u.movePath.get(0);
@@ -841,6 +967,67 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
             }
         }
+        
+        // ── Draw Fog of War Overlay ──
+        if (fogOfWarEnabled && visibleTiles != null) {
+            g.setColor(new Color(0, 0, 0, 160));
+            for (int y = 0; y < mapH; y++) {
+                for (int x = 0; x < mapW; x++) {
+                    if (!visibleTiles[y][x]) {
+                        g.fillRect(x * 16, y * 16, 16, 16);
+                    }
+                }
+            }
+        }
+        
+        // ── Draw Weather Layer ──
+        if (currentWeather != Weather.NONE) {
+            initWeatherOverlays();
+            long t = System.currentTimeMillis();
+            int mw = mapW * 16;
+            int mh = mapH * 16;
+            
+            if (currentWeather == Weather.RAIN || currentWeather == Weather.THUNDERSTORM) {
+                if (currentWeather == Weather.THUNDERSTORM) {
+                    g.setColor(new Color(0, 0, 30, 80));
+                    g.fillRect(0, 0, mw, mh);
+                }
+                
+                int speed = 15;
+                int offsetX = (int) (-(t / speed) % 256);
+                int offsetY = (int) ((t / (speed / 3)) % 256);
+                if (offsetX > 0) offsetX -= 256;
+                if (offsetY > 0) offsetY -= 256;
+                
+                for (int y = offsetY - 256; y < mh; y += 256) {
+                    for (int x = offsetX - 256; x < mw; x += 256) {
+                        g.drawImage(rainOverlay, x, y, null);
+                        if (currentWeather == Weather.THUNDERSTORM) {
+                            // Draw a second faster/denser layer for thunderstorm
+                            g.drawImage(rainOverlay, x + 128, y - 128, null);
+                        }
+                    }
+                }
+                
+                if (currentWeather == Weather.THUNDERSTORM && Math.random() < 0.02) {
+                    g.setColor(new Color(255, 255, 255, 120));
+                    g.fillRect(0, 0, mw, mh);
+                }
+            } else if (currentWeather == Weather.SNOW) {
+                int offsetY = (int) ((t / 40) % 256);
+                if (offsetY > 0) offsetY -= 256;
+                int sway = (int) (Math.sin(t / 1000.0) * 16);
+                int offsetX = (sway % 256);
+                if (offsetX > 0) offsetX -= 256;
+
+                for (int y = offsetY - 256; y < mh; y += 256) {
+                    for (int x = offsetX - 256; x < mw + 256; x += 256) {
+                        g.drawImage(snowOverlay, x, y, null);
+                    }
+                }
+            }
+        }
+
         // ── Draw capture bar above the capturing unit on the map ──
         if (isCaptureAnimActive && captureAnimUnit != null) {
             drawCaptureBarAboveUnit(g, captureAnimUnit);
@@ -886,8 +1073,21 @@ public class VersusGameplayScreen extends BaseScreen {
             bg2d.drawImage(battlePlatform, 138 - platShift, 110, 100, 40, null);
         }
 
-        if (attackerActor != null) attackerActor.draw(bg2d);
-        if (defenderActor != null) defenderActor.draw(bg2d);
+        boolean attackerOnTop = true;
+        if (defenderActor != null && defenderActor.currentMode != 9 && defenderActor.currentMode != 11 && defenderActor.currentMode != 7) {
+            attackerOnTop = false;
+        }
+        if (attackerActor != null && attackerActor.currentMode != 9 && attackerActor.currentMode != 11 && attackerActor.currentMode != 7) {
+            attackerOnTop = true;
+        }
+
+        if (attackerOnTop) {
+            if (defenderActor != null) defenderActor.draw(bg2d);
+            if (attackerActor != null) attackerActor.draw(bg2d);
+        } else {
+            if (attackerActor != null) attackerActor.draw(bg2d);
+            if (defenderActor != null) defenderActor.draw(bg2d);
+        }
 
         bg2d.dispose();
 
@@ -1306,8 +1506,22 @@ public class VersusGameplayScreen extends BaseScreen {
     private void calculateMoveRange(MapUnit u) {
         moveRange.clear(); attackRange.clear(); pathParent.clear();
         if (u == null) return;
+        
+        int effectiveMove = u.stats.move;
+        if (currentWeather == Weather.RAIN) {
+            String uType = (u.stats.unitType == null) ? "" : u.stats.unitType.toUpperCase();
+            if (!uType.contains("OCEAN") && !uType.contains("WATER") && !uType.contains("SEA")) {
+                effectiveMove -= 2;
+            }
+        } else if (currentWeather == Weather.SNOW) {
+            effectiveMove -= 3;
+        } else if (currentWeather == Weather.THUNDERSTORM) {
+            effectiveMove -= 3;
+        }
+        effectiveMove = Math.max(0, effectiveMove);
+        
         MovementEngine.MovementResult res = MovementEngine.calculateMovement(
-            u, units, mapData, mapTSData, loadedTilesets, mapW, mapH
+            u, units, mapData, mapTSData, loadedTilesets, mapW, mapH, effectiveMove
         );
         moveRange.addAll(res.moveRange);
         attackRange.addAll(res.attackRange);
@@ -1822,7 +2036,11 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
             }
         }
-        canvasPanel.repaint();
+        if (currentWeather != Weather.NONE) {
+            canvasPanel.repaint();
+        } else {
+            canvasPanel.repaint();
+        }
     }
 
     private boolean isArmoredSubtype(MapUnit u) {

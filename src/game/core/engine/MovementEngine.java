@@ -27,7 +27,8 @@ public class MovementEngine {
         String[][] mapTSData, 
         Map<String, Tileset> loadedTilesets, 
         int mapW, 
-        int mapH
+        int mapH,
+        int effectiveMove
     ) {
         MovementResult result = new MovementResult();
         if (u == null) return result;
@@ -42,7 +43,7 @@ public class MovementEngine {
             Node current = queue.poll();
             
             if (current.cost > moveCosts.getOrDefault(current.pos, Integer.MAX_VALUE)) continue;
-            if (current.cost > u.stats.move) continue;
+            if (current.cost > effectiveMove) continue;
             
             result.moveRange.add(current.pos);
 
@@ -70,7 +71,7 @@ public class MovementEngine {
                 if (cost == -1) continue;
 
                 int newCost = current.cost + cost;
-                if (newCost <= u.stats.move && (!moveCosts.containsKey(next) || newCost < moveCosts.get(next))) {
+                if (newCost <= effectiveMove && (!moveCosts.containsKey(next) || newCost < moveCosts.get(next))) {
                     moveCosts.put(next, newCost);
                     result.pathParent.put(next, current.pos);
                     queue.add(new Node(next, newCost));

@@ -22,6 +22,7 @@ public class SettingsScreen extends BaseScreen {
     private JLabel bgmValueLabel;
     private JLabel sfxValueLabel;
     private JComboBox<String> resolutionBox;
+    private String backScreen = Main.MENU;
 
     private float selectionGlow = 0f;
     private boolean glowUp = true;
@@ -39,7 +40,14 @@ public class SettingsScreen extends BaseScreen {
     public SettingsScreen(Main main) {
         super(main);
         setBackground(new Color(10, 10, 18));
+        initUI();
+    }
 
+    public void setBackScreen(String backScreen) {
+        this.backScreen = backScreen;
+    }
+
+    private void initUI() {
         JLayeredPane layeredPane = new JLayeredPane();
         add(layeredPane, BorderLayout.CENTER);
 
@@ -77,7 +85,7 @@ public class SettingsScreen extends BaseScreen {
         JButton backBtn = createStyledButton("← BACK");
         backBtn.addActionListener(e -> {
             SoundManager.playButtonSound();
-            main.showScreen(Main.MENU);
+            main.showScreen(backScreen);
         });
         header.add(backBtn, BorderLayout.WEST);
 
@@ -198,7 +206,7 @@ public class SettingsScreen extends BaseScreen {
             data.sfxVolume = sfxSlider.getValue() / 100.0f;
             data.resolutionIndex = resolutionBox.getSelectedIndex();
             game.core.save.SaveManager.saveSettings(data);
-            main.showScreen(Main.MENU);
+            main.showScreen(backScreen);
         });
         btnRow.add(saveBtn);
 

@@ -3,9 +3,12 @@ package game.ui.screens;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -24,6 +27,8 @@ public class VersusScreen extends BaseScreen {
     private String[] modes = {"Classic", "Timed", "Survival"};
     private int modeIdx = 0;
     
+    private int fogIdx = 0;
+    
     private int numPlayers = 2;
     private List<PlayerSettings> playerSettings = new ArrayList<>();
     
@@ -35,6 +40,10 @@ public class VersusScreen extends BaseScreen {
     private static final String[] colorNames = {"Blue", "Red", "Green", "Yellow", "Purple", "Orange"};
     
     private JPanel loadingOverlay;
+    
+    private Map<String, File> tilesetFiles = new HashMap<>();
+    private Map<String, game.core.map.Tileset> loadedTilesets = new HashMap<>();
+    private Map<String, BufferedImage> mapPreviews = new HashMap<>();
     
     public VersusScreen(Main main) {
         super(main);
@@ -71,6 +80,7 @@ public class VersusScreen extends BaseScreen {
         loadingOverlay.setVisible(false);
         layeredPane.add(loadingOverlay, JLayeredPane.DRAG_LAYER);
         
+        scanTilesets(game.core.util.GamePaths.TILESETS);
         initPlayerSettings();
         scanMaps();
         
@@ -111,14 +121,40 @@ public class VersusScreen extends BaseScreen {
                 
                 if (!filteredMaps.isEmpty()) {
                     MapInfo m = filteredMaps.get(mapIdx);
+                    
+                    BufferedImage preview = getMapPreview(m);
+                    if (preview != null) {
+                        int pw = preview.getWidth();
+                        int ph = preview.getHeight();
+                        int bw = getWidth() - 10;
+                        int bh = getHeight() - 10;
+                        
+                        double scale = Math.min((double)bw / pw, (double)bh / ph);
+                        int sw = (int)(pw * scale);
+                        int sh = (int)(ph * scale);
+                        
+                        int dx = 5 + (bw - sw) / 2;
+                        int dy = 5 + (bh - sh) / 2;
+                        
+                        g.drawImage(preview, dx, dy, sw, sh, null);
+                        
+                        // Dark overlay on top so text is readable
+                        g.setColor(new Color(0, 0, 0, 150));
+                        g.fillRect(5, 5, getWidth()-10, getHeight()-10);
+                    }
+                    
+                    g.setColor(Theme.GOLD_TRANS);
+                    g.drawRect(5, 5, getWidth()-10, getHeight()-10);
+                    
                     g.setColor(Color.WHITE);
                     g.setFont(Theme.getMenuFont());
                     g.drawString(m.name, 20, 40);
                     g.setFont(Theme.getSmallFont());
                     g.setColor(Color.GRAY);
                     g.drawString("Max Players: " + m.players, 20, 65);
-                    g.drawString("PREVIEW AREA", getWidth()/2 - 40, getHeight()/2);
                 } else {
+                    g.setColor(Theme.GOLD_TRANS);
+                    g.drawRect(5, 5, getWidth()-10, getHeight()-10);
                     g.setColor(Color.RED);
                     g.drawString("NO MAPS FOUND FOR " + numPlayers + " PLAYERS", 20, 40);
                 }
@@ -141,6 +177,10 @@ public class VersusScreen extends BaseScreen {
             filterMaps();
             updatePlayerSettingsCount();
         }));
+        leftPanel.add(Box.createVerticalStrut(10));
+        
+        String[] fogOptions = {"OFF", "ON"};
+        leftPanel.add(createSettingSelector("FOG OF WAR", fogOptions, fogIdx, val -> fogIdx = val));
         
         content.add(leftPanel);
         
@@ -206,6 +246,120 @@ public class VersusScreen extends BaseScreen {
             }
         }
         filterMaps();
+    }
+    
+    private void scanTilesets(File dir) {
+        File[] files = dir.listFiles(); if (files == null) return;
+        for (File f : files) {
+            if (f.isDirectory()) scanTilesets(f);
+            else if (f.getName().endsWith(".png")) tilesetFiles.put(f.getName().replace(".png", ""), f);
+        }
+    }
+    
+    private BufferedImage getMapPreview(MapInfo m) {
+        if (mapPreviews.containsKey(m.name)) return mapPreviews.get(m.name);
+        
+        File path = game.core.util.GamePaths.mapVersusFileForMap(m.name);
+        if (!path.exists()) return null;
+        
+        try {
+            String json = new String(java.nio.file.Files.readAllBytes(path.toPath()));
+            String tsDefault = JsonUtil.extractJsonVal(json, "tileset");
+            int dataStart = json.indexOf("\"data\":");
+            if (dataStart == -1) dataStart = json.indexOf("data\":");
+            if (dataStart != -1) {
+                int arrayStart = json.indexOf("[", dataStart);
+                int depth = 0, arrayEnd = -1;
+                for (int i = arrayStart; i < json.length(); i++) {
+                    char ch = json.charAt(i); if (ch == '[') depth++; else if (ch == ']') depth--;
+                    if (depth == 0) { arrayEnd = i; break; }
+                }
+                if (arrayEnd != -1) {
+                    String dataPart = json.substring(arrayStart + 1, arrayEnd).trim();
+                    String[] rows = dataPart.split("\\],\\s*\\[");
+                    int mapH = rows.length;
+                    int mapW = 0;
+                    int[][] mapData = null;
+                    String[][] mapTSData = null;
+                    
+                    for (int y = 0; y < mapH; y++) {
+                        String row = rows[y].trim();
+                        if (row.startsWith("[")) row = row.substring(1);
+                        if (row.endsWith("]")) row = row.substring(0, row.length() - 1);
+                        if (row.endsWith(",")) row = row.substring(0, row.length() - 1);
+                        List<String> cells = new ArrayList<>();
+                        int cdepth = 0; StringBuilder sb = new StringBuilder();
+                        for (char ch : row.toCharArray()) {
+                            if (ch == '{') cdepth++; else if (ch == '}') cdepth--;
+                            if (ch == ',' && cdepth == 0) { cells.add(sb.toString().trim()); sb.setLength(0); } else sb.append(ch);
+                        }
+                        cells.add(sb.toString().trim());
+                        if (y == 0) { mapW = cells.size(); mapData = new int[mapH][mapW]; mapTSData = new String[mapH][mapW]; }
+                        for (int x = 0; x < Math.min(cells.size(), mapW); x++) {
+                            String c = cells.get(x);
+                            if (c.startsWith("{")) {
+                                mapData[y][x] = JsonUtil.parseInt(JsonUtil.extractJsonVal(c, "id"), 0); mapTSData[y][x] = JsonUtil.extractJsonVal(c, "ts");
+                            } else {
+                                mapTSData[y][x] = tsDefault; mapData[y][x] = JsonUtil.parseInt(c.replaceAll("\"", ""), 0);
+                            }
+                            String ts = mapTSData[y][x];
+                            if (ts != null && !ts.isEmpty() && !loadedTilesets.containsKey(ts) && tilesetFiles.containsKey(ts))
+                                loadedTilesets.put(ts, new game.core.map.Tileset(ts, tilesetFiles.get(ts), 16, 16));
+                        }
+                    }
+                    
+                    if (mapW > 0 && mapH > 0) {
+                        BufferedImage preview = new BufferedImage(mapW * 16, mapH * 16, BufferedImage.TYPE_INT_ARGB);
+                        Graphics2D g = preview.createGraphics();
+                        for (int y = 0; y < mapH; y++) {
+                            for (int x = 0; x < mapW; x++) {
+                                String tsName = mapTSData[y][x];
+                                game.core.map.Tileset ts = loadedTilesets.get(tsName);
+                                if (ts != null) {
+                                    BufferedImage tile = ts.getTile(mapData[y][x]);
+                                    if (tile != null) g.drawImage(tile, x*16, y*16, 16, 16, null);
+                                }
+                            }
+                        }
+                        
+                        int eventsStart = json.indexOf("\"events\":");
+                        if (eventsStart != -1) {
+                            int eArrayStart = json.indexOf("[", eventsStart);
+                            int eDepth = 0, eArrayEnd = -1;
+                            for (int i = eArrayStart; i < json.length(); i++) {
+                                char ch = json.charAt(i); if (ch == '[') eDepth++; else if (ch == ']') eDepth--;
+                                if (eDepth == 0) { eArrayEnd = i; break; }
+                            }
+                            if (eArrayEnd != -1) {
+                                String eventsPart = json.substring(eArrayStart + 1, eArrayEnd);
+                                String[] eventEntries = eventsPart.split("\\},");
+                                for (String entry : eventEntries) {
+                                    entry = entry.trim(); if (entry.isEmpty()) continue;
+                                    if (!entry.startsWith("{")) entry = "{" + entry; if (!entry.endsWith("}")) entry = entry + "}";
+                                    int ex = JsonUtil.parseInt(JsonUtil.extractJsonVal(entry, "x"), -1);
+                                    int ey = JsonUtil.parseInt(JsonUtil.extractJsonVal(entry, "y"), -1);
+                                    int eo = JsonUtil.parseInt(JsonUtil.extractJsonVal(entry, "owner"), -1);
+                                    if (ex != -1) {
+                                        Color c = new Color(150, 150, 150);
+                                        if (eo >= 0 && eo < DEFAULT_COLORS.length) c = DEFAULT_COLORS[eo];
+                                        g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 200));
+                                        g.fillRect(ex*16 + 2, ey*16 + 2, 12, 12);
+                                        g.setColor(Color.WHITE);
+                                        g.drawRect(ex*16 + 2, ey*16 + 2, 12, 12);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        g.dispose();
+                        mapPreviews.put(m.name, preview);
+                        return preview;
+                    }
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        
+        return null;
     }
     
     private void filterMaps() {
@@ -437,6 +591,7 @@ public class VersusScreen extends BaseScreen {
             
             SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                 @Override protected Void doInBackground() throws Exception {
+                    gp.fogOfWarEnabled = (fogIdx == 1);
                     gp.setupGame(game.core.util.GamePaths.mapVersusFileForMap(m.name).getPath(), activePlayers);
                     return null;
                 }
