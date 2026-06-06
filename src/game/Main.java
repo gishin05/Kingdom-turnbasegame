@@ -30,6 +30,12 @@ public class Main extends JFrame {
 	public static final String VERSUS_GAMEPLAY = "VERSUS_GAMEPLAY";
 	public static final String SETTINGS = "SETTINGS";
 
+	/**
+	 * Application entry point. Ensures the UI is created on the Event Dispatch Thread (EDT)
+	 * for thread safety in Swing.
+	 * 
+	 * @param args Command-line arguments
+	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -49,9 +55,10 @@ public class Main extends JFrame {
 		setSize(1920, 1080);
 		setLocationRelativeTo(null); // Center on screen
 
-		// Initialize JavaFX toolkit and prevent it from auto-shutting down
-		new JFXPanel(); // bootstraps JavaFX runtime
-		Platform.setImplicitExit(false);
+		// Initialize the JavaFX toolkit. This is required because certain features 
+		// (like Media/Audio playback) rely on JavaFX components.
+		new JFXPanel(); // Bootstraps the JavaFX runtime environment
+		Platform.setImplicitExit(false); // Prevents JavaFX from shutting down when no windows are open
 		
 		cardLayout = new CardLayout();
 		contentPane = new JPanel(cardLayout);
@@ -71,13 +78,13 @@ public class Main extends JFrame {
 		settingsScreen = new SettingsScreen(this);
 		contentPane.add(settingsScreen, SETTINGS);
 
-		// Load settings
+		// Retrieve and apply user settings from disk
 		game.core.save.SettingsSaveData settings = game.core.save.SaveManager.loadSettings();
 		game.core.util.SoundManager.setMasterBgmVolume(settings.bgmVolume);
 		game.core.util.SoundManager.setBgmVolume(settings.bgmVolume);
 		game.core.util.SoundManager.setSfxVolume(settings.sfxVolume);
 		
-		// Apply saved resolution
+		// Adjust window dimensions based on user's saved resolution preference
 		if (settings.resolutionIndex >= 0 && settings.resolutionIndex < SettingsScreen.RESOLUTIONS.length) {
 			String[] res = SettingsScreen.RESOLUTIONS[settings.resolutionIndex];
 			applyResolution(settings.resolutionIndex, res[0], res[1], res[2]);
@@ -86,10 +93,19 @@ public class Main extends JFrame {
 		// Show initial screen
 		showScreen(STARTUP);
 		
-		// Attach UI sounds recursively to all Swing interactive components!
+		// Recursively register mouse listeners to all Swing components
+		// to play sound effects on hover and click interactions.
 		game.core.util.SoundManager.attachToContainer(this);
 	}
 
+	/**
+	 * Applies the specified screen resolution. Supports both windowed sizes and full screen mode.
+	 * 
+	 * @param idx  The index of the resolution in the options array
+	 * @param name The descriptive name of the resolution (e.g., "Fullscreen")
+	 * @param wStr The width as a string
+	 * @param hStr The height as a string
+	 */
 	public void applyResolution(int idx, String name, String wStr, String hStr) {
 		if (name.equals("Fullscreen")) {
 			dispose();
@@ -110,22 +126,31 @@ public class Main extends JFrame {
 		}
 	}
 
+	/**
+	 * Switches the currently visible screen using the CardLayout system and manages 
+	 * the background music based on the active screen's context.
+	 * 
+	 * @param name The identifier of the screen to display
+	 */
 	public void showScreen(String name) {
 		try {
 			cardLayout.show(contentPane, name);
 			
-			// Adjust background music based on active screen
+			// Dynamically adjust background music volume and playback state
+			// based on the context of the newly activated screen.
 			if (name.equals(TITLE) || name.equals(MENU) || name.equals(SAVE_SELECTION) || name.equals(VERSUS) || name.equals(SETTINGS)) {
 				game.core.util.SoundManager.playBgm();
-				game.core.util.SoundManager.setBgmVolume(game.core.util.SoundManager.getMasterBgmVolume());
+				game.core.util.SoundManager.setBgmVolume(game.core.util.SoundManager.getMasterBgmVolume()); // Full volume
 			} else if (name.equals(DESIGN_ROOM) || name.equals(MAP_DESIGN)) {
 				game.core.util.SoundManager.playBgm();
-				game.core.util.SoundManager.setBgmVolume(game.core.util.SoundManager.getMasterBgmVolume() * 0.3); // 30% volume in editor screens
+				game.core.util.SoundManager.setBgmVolume(game.core.util.SoundManager.getMasterBgmVolume() * 0.3); // Lowered volume in editor screens for focus
 			} else {
-				game.core.util.SoundManager.pauseBgm();
+				game.core.util.SoundManager.pauseBgm(); // Mute BGM for other screens (e.g., active gameplay)
 			}
 
-			// Pause all inactive screens and refresh the active one
+			// Trigger lifecycle methods on all screen components:
+			// - Refresh the newly active screen to ensure its data is up to date
+			// - Pause all hidden screens to halt background processes (like rendering loops)
 			for (java.awt.Component comp : contentPane.getComponents()) {
 				if (comp instanceof Refreshable) {
 					Refreshable r = (Refreshable) comp;
@@ -142,8 +167,15 @@ public class Main extends JFrame {
 		}
 	}
 
+	/**
+	 * Interface implemented by screen panels to hook into the view lifecycle.
+	 * Allows screens to manage their resources when shown or hidden.
+	 */
 	public interface Refreshable {
+		/** Called immediately when the screen becomes visible. */
 		void refresh();
+		
+		/** Called immediately when the screen is hidden. */
 		void pause();
 	}
 

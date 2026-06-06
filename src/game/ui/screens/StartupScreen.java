@@ -12,6 +12,11 @@ import game.ui.BaseScreen;
 import game.ui.Theme;
 import game.core.util.AssetManager;
 
+/**
+ * The initial loading screen displayed when the game launches.
+ * Responsible for preloading essential assets in a background thread
+ * while displaying a status message to the user.
+ */
 public class StartupScreen extends BaseScreen {
 
     private static final long serialVersionUID = 1L;
@@ -46,7 +51,8 @@ public class StartupScreen extends BaseScreen {
     public void refresh() {
         super.refresh();
         
-        // Start preloading in a background thread
+        // Start resource preloading in a separate background thread 
+        // to prevent freezing the Event Dispatch Thread (UI).
         new Thread(() -> {
             try {
                 Thread.sleep(1000); // Dramatic pause

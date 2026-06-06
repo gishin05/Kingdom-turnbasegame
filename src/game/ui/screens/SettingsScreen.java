@@ -251,7 +251,12 @@ public class SettingsScreen extends BaseScreen {
     }
 
     // ── UI FACTORY METHODS ──
+    // These methods generate consistent UI components used throughout the settings panel,
+    // ensuring the design language remains cohesive without duplicating code.
 
+    /**
+     * Creates a standardized section header with a title and a fading gold underline.
+     */
     private JPanel createSectionHeader(String text) {
         JPanel section = new JPanel(new BorderLayout());
         section.setOpaque(false);
@@ -316,6 +321,10 @@ public class SettingsScreen extends BaseScreen {
         return lbl;
     }
 
+    /**
+     * Generates a secondary styled button specifically tuned for the settings screen.
+     * Features a dark background with a gold border and hover color transitions.
+     */
     private JButton createStyledButton(String text) {
         JButton b = new JButton(text);
         b.setFont(Theme.getPixelFont(14f));

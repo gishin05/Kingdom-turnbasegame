@@ -29,13 +29,26 @@ public abstract class BaseScreen extends JPanel implements Refreshable, GameLoop
     protected MediaPlayer mediaPlayer;
     protected GameLoop gameLoop;
 
+    /**
+     * Constructs the BaseScreen, setting up the primary layout and initializing 
+     * the game loop that drives logic updates and rendering for this screen.
+     * 
+     * @param main The root application window (Main JFrame)
+     */
     public BaseScreen(Main main) {
         this.main = main;
         setLayout(new BorderLayout());
-        setBackground(Color.BLACK);
+        setBackground(Color.BLACK); // Default to black to prevent flashing between screens
         this.gameLoop = new GameLoop(this);
     }
 
+    /**
+     * Initializes an animated video background using JavaFX's media player.
+     * Maps the given resource path to an internal bundled file if necessary, 
+     * and handles embedding the JavaFX scene into the Swing hierarchy.
+     * 
+     * @param resourcePath The internal path to the video file (e.g., .mp4)
+     */
     protected void initVideoBackground(String resourcePath) {
         jfxPanel = new JFXPanel();
         jfxPanel.setBackground(Color.BLACK);
@@ -75,6 +88,10 @@ public abstract class BaseScreen extends JPanel implements Refreshable, GameLoop
         });
     }
 
+    /**
+     * Called when this screen becomes the active visible view.
+     * Resumes background video playback and starts the game loop.
+     */
     @Override
     public void refresh() {
         if (mediaPlayer != null) {
@@ -93,6 +110,10 @@ public abstract class BaseScreen extends JPanel implements Refreshable, GameLoop
         repaint();
     }
 
+    /**
+     * Called when this screen is hidden or replaced by another screen.
+     * Pauses the video background and halts the game loop to conserve system resources.
+     */
     @Override
     public void pause() {
         if (mediaPlayer != null) {

@@ -23,6 +23,11 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 
+/**
+ * The primary gameplay screen for local multiplayer (Versus) matches.
+ * Handles rendering the battle map, processing unit movement and attacks,
+ * managing the turn cycle, and displaying combat cinematics.
+ */
 public class VersusGameplayScreen extends BaseScreen {
     private static final long serialVersionUID = 1L;
     private static final int STATS_BOX_WIDTH = 380;
@@ -124,6 +129,12 @@ public class VersusGameplayScreen extends BaseScreen {
             String[] cats = {"Champion", "Unit", "units", "battle", "anims"};
             String[] weapons = {"Lance", "Spear", "lance", "spear", "Sword", "sword", "Axe", "axe", "Bow", "bow", "Magic", "magic", "Attack"};
             String uName = mapUnit.unitName;
+            
+            // Apply name overrides/fallbacks to match folder names
+            if ("Knight".equalsIgnoreCase(uName)) uName = "Cavalier";
+            else if ("Sentinel".equalsIgnoreCase(uName)) uName = "Swordmaster";
+            else if ("Ephraim".equalsIgnoreCase(uName)) uName = "Ephraim_Lord";
+            else if ("Pegasus".equalsIgnoreCase(uName)) uName = "Pegasus Knight";
             
             File baseDir = null;
             String[] rootPaths = GamePaths.battleAssetSearchRoots();
@@ -724,6 +735,8 @@ public class VersusGameplayScreen extends BaseScreen {
                 
                 if (fallbackName != null) {
                     frames = tryLoadMapUnitFrames(u.category, fallbackName, a);
+                } else if ("Pegasus".equalsIgnoreCase(u.unitName)) {
+                    frames = tryLoadMapUnitFrames("Unit", "Pegasus Knight", a);
                 }
             }
             
@@ -2105,6 +2118,7 @@ public class VersusGameplayScreen extends BaseScreen {
                     unitOrderDirty = true; // Unit Y position changed
                     if (isArmoredSubtype(u)) SoundManager.playStepHeavy();
                     else if (isMountedSubtype(u)) SoundManager.playStepHorse();
+                    else if (isFlierSubtype(u)) SoundManager.playStepFlier();
                     else if (isInfantrySubtype(u)) SoundManager.playStepInfantry();
                     else SoundManager.playFootstep();
                     if (u.movePath.isEmpty()) { u.position = new Point(target); fogDirty = true; showActionMenu(u); }
@@ -2134,6 +2148,14 @@ public class VersusGameplayScreen extends BaseScreen {
         if (u == null || u.stats == null || u.stats.subUnitType == null) return false;
         String st = u.stats.subUnitType.trim().toLowerCase();
         return st.contains("mounted") && !st.contains("armored");
+    }
+
+    private boolean isFlierSubtype(MapUnit u) {
+        if (u == null) return false;
+        if ("Air Unit".equalsIgnoreCase(u.category)) return true;
+        if (u.stats == null || u.stats.subUnitType == null) return false;
+        String st = u.stats.subUnitType.trim().toLowerCase();
+        return st.contains("pegasus") || st.contains("flier") || st.contains("dragon");
     }
 
     private void updateBattle() {

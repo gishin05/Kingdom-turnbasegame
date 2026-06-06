@@ -16,6 +16,11 @@ import game.core.map.TileEntry;
 import game.core.map.Tileset;
 import game.core.util.JsonUtil;
 
+/**
+ * A comprehensive level editor interface allowing users to create, modify,
+ * and save custom battle maps. Features tile painting, event placement (HQs, forts),
+ * and dynamic flood-fill capabilities.
+ */
 public class MapDesignScreen extends JPanel implements Refreshable {
     private static final long serialVersionUID = 1L;
     public static final int TILE_SRC = 16;

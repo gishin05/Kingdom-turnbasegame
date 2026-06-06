@@ -10,6 +10,10 @@ import game.ui.BaseScreen;
 import game.ui.Theme;
 import game.ui.components.StyledButton;
 
+/**
+ * Screen that handles selecting, creating, and overwriting save slots.
+ * Displays three available save slots and tracks whether they are occupied or empty.
+ */
 public class SaveSelectionScreen extends BaseScreen {
 
     private static final long serialVersionUID = 1L;

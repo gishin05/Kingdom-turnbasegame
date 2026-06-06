@@ -53,6 +53,7 @@ public class SoundManager {
     private static Clip sfxStepStone;
     private static Clip sfxStepInfantry;
     private static Clip sfxStepHorse;
+    private static Clip sfxStepFlier;
 
     static {
         initSounds();
@@ -121,6 +122,7 @@ public class SoundManager {
         sfxStepStone   = loadAudioFile("step_stone.aif");
         sfxStepInfantry = loadAudioFile("Infantry_Move.aif");
         sfxStepHorse   = loadAudioFile("horse1_Move.aif");
+        sfxStepFlier   = loadAudioFile("Flier_Move.aif");
     }
 
     private static Clip loadAudioFile(String filename) {
@@ -387,6 +389,15 @@ public class SoundManager {
     public static void playStepStone()   { play(sfxStepStone); }
     public static void playStepInfantry(){ play(sfxStepInfantry); }
     public static void playStepHorse()   { play(sfxStepHorse); }
+    
+    private static long lastFlierStepTime = 0;
+    public static void playStepFlier() { 
+        long now = System.currentTimeMillis();
+        if (now - lastFlierStepTime >= 300) {
+            play(sfxStepFlier);
+            lastFlierStepTime = now;
+        }
+    }
 
     /**
      * Plays the correct hit SFX based on weapon type and combat outcome.
@@ -431,6 +442,7 @@ public class SoundManager {
                     default:      playSwordSwing(); break;
                 }
                 break;
+            case "C1F": playStepFlier(); break;        // Flier Wing Flap / Move
             case "C38": playSpearSpin(); break;        // Spear spin / lance whoosh
             case "C25":                                // Ranged weapon launch
                 switch (wpn) {

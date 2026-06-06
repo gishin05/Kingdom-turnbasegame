@@ -9,6 +9,11 @@ import game.Main;
 import game.ui.BaseScreen;
 import game.ui.Theme;
 
+/**
+ * Hub screen for accessing the various creative editors in the game.
+ * Currently serves as a portal to the MapDesignScreen, utilizing an animated 
+ * card-based layout to showcase available editors.
+ */
 public class DesignRoomScreen extends BaseScreen {
 
     private static final long serialVersionUID = 1L;

@@ -17,6 +17,13 @@ public class StyledButton extends JButton {
     private float hoverAlpha = 0f;
     private Timer hoverTimer;
 
+    /**
+     * Creates a new styled button with custom text and font.
+     * Initializes the button to have a transparent base and sets up hover animations.
+     * 
+     * @param text The text to display on the button
+     * @param font The font used for the button's text
+     */
     public StyledButton(String text, Font font) {
         super(text);
         setFont(font);
@@ -38,6 +45,13 @@ public class StyledButton extends JButton {
         });
     }
 
+    /**
+     * Manages the hover animation state by gradually adjusting the alpha value.
+     * Creates a smooth fade-in/fade-out effect.
+     * 
+     * @param forward If true, the button is being hovered over (fade in). 
+     *                If false, the mouse exited the button (fade out).
+     */
     private void startHoverAnimation(boolean forward) {
         if (hoverTimer != null) hoverTimer.stop();
         hoverTimer = new Timer(20, e -> {
@@ -62,28 +76,27 @@ public class StyledButton extends JButton {
         int w = getWidth();
         int h = getHeight();
 
-        // Background shadow/glow
+        // Render an outer glow effect that becomes visible during mouse hover
         if (hoverAlpha > 0) {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, hoverAlpha * 0.3f));
             g2.setColor(new Color(255, 200, 50));
             g2.fillRoundRect(2, 2, w - 4, h - 4, 15, 15);
         }
 
-        // Button Base (Transparent as requested)
-        // No background drawing here
+        // Note: Button Base is intentionally left transparent.
         
-        // Border and Ornaments (Always visible now, or keep hover highlight?)
-        // The user said "only border", so I'll make the border always visible.
+        // Render the border and corner ornaments.
+        // The border is always visible but becomes more opaque upon mouse hover.
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f + hoverAlpha * 0.4f));
         g2.setColor(hoverAlpha > 0 ? new Color(255, 215, 0) : Color.WHITE);
         int thickness = 2;
         int cornerSize = 12;
         
-        // Full Border
+        // Draw the main rectangular border
         g2.setStroke(new java.awt.BasicStroke(thickness));
         g2.drawRoundRect(thickness/2, thickness/2, w - thickness, h - thickness, 5, 5);
 
-        // Corner brackets (as design elements)
+        // Draw decorative brackets on all four corners for a stylized look
         g2.fillRect(0, 0, cornerSize, thickness * 2);
         g2.fillRect(0, 0, thickness * 2, cornerSize);
         g2.fillRect(w - cornerSize, 0, cornerSize, thickness * 2);
@@ -93,14 +106,14 @@ public class StyledButton extends JButton {
         g2.fillRect(w - cornerSize, h - thickness * 2, cornerSize, thickness * 2);
         g2.fillRect(w - thickness * 2, h - cornerSize, thickness * 2, cornerSize);
 
-        // Text shadow (subtle for retro look)
+        // Render a subtle, non-antialiased drop shadow for the text to give a retro aesthetic
         g2.setColor(new Color(0, 0, 0, 200));
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF); // Sharp text
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF); // Ensures crisp, pixelated text
         g2.drawString(getText(), (w - g2.getFontMetrics().stringWidth(getText())) / 2 + 2, (h + g2.getFontMetrics().getAscent()) / 2 - 2 + 2);
 
         g2.dispose();
 
-        // Text color transition
+        // Update the primary text color: bright cyan when hovered, plain white otherwise
         setForeground(hoverAlpha > 0 ? new Color(200, 255, 255) : Color.WHITE);
         super.paintComponent(g);
     }

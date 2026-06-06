@@ -18,11 +18,18 @@ import game.core.util.GamePaths;
 import game.ui.BaseScreen;
 import game.ui.Theme;
 
+/**
+ * The initial landing screen of the game.
+ * Uses a multi-layered approach:
+ * - A background looping video (handled by BaseScreen)
+ * - An animated blinking text overlay
+ * - A centrally aligned game logo
+ */
 public class TitleScreen extends BaseScreen {
 
     private static final long serialVersionUID = 1L;
     private Image logoImage;
-    private boolean showPressStart = true;
+    private boolean showPressStart = true; // State for the blinking cursor/text effect
 
     public TitleScreen(Main main) {
         super(main);
@@ -35,13 +42,15 @@ public class TitleScreen extends BaseScreen {
 
         initVideoBackground(GamePaths.bundledResource("graphics/backgrounds/Stable_bg.mp4"));
 
+        // Use JLayeredPane to stack UI elements over the video background
         JLayeredPane layeredPane = new JLayeredPane();
         add(layeredPane, BorderLayout.CENTER);
 
-        // Layer 0: Video background (from BaseScreen)
+        // Z-Index 0: Base Video background 
         layeredPane.add(jfxPanel, JLayeredPane.DEFAULT_LAYER);
 
-        // Layer 1: UI Overlay (Logo and Text)
+        // Z-Index 1: Transparent UI Overlay panel holding the Logo and "Press Start" text.
+        // Uses null layout to allow precise absolute positioning during window resizes.
         JPanel uiPanel = new JPanel(null) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -78,7 +87,7 @@ public class TitleScreen extends BaseScreen {
         });
         blinkTimer.start();
 
-        // Click to start logic
+        // Global screen click listener: anywhere the user clicks transitions to the Main Menu
         uiPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {

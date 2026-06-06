@@ -5,9 +5,14 @@ import java.awt.Font;
 
 import game.core.util.AssetManager;
 import game.core.util.GamePaths;
+/**
+ * Centralized design system and theme configuration for the game UI.
+ * Defines all standard colors, fonts, and typographic scales to ensure 
+ * visual consistency across different screens.
+ */
 public class Theme {
     
-    // --- Colors ---
+    // --- Brand & UI Colors ---
     public static final Color GOLD = new Color(255, 215, 0);
     public static final Color GOLD_TRANS = new Color(255, 215, 0, 180);
     public static final Color DARK_BG = new Color(10, 10, 18);
@@ -21,6 +26,10 @@ public class Theme {
     private static final String MAIN_FONT_PATH = GamePaths.bundledFile("fonts/pixel_font.ttf").getPath();
     private static final String ACCENT_FONT_PATH = GamePaths.bundledFile("fonts/pixel_font.ttf").getPath();
     
+    /**
+     * Retrieves the primary pixel font dynamically sized.
+     * @param size The font size in points
+     */
     public static Font getPixelFont(float size) {
         return AssetManager.getFont(MAIN_FONT_PATH, size);
     }
@@ -29,7 +38,8 @@ public class Theme {
         return AssetManager.getFont(ACCENT_FONT_PATH, size);
     }
     
+    // Standardized typography scale
     public static Font getTitleFont() { return getAccentFont(48f); }
-    public static Font getMenuFont() { return getPixelFont(26f); }
+    public static Font getMenuFont()  { return getPixelFont(26f); }
     public static Font getSmallFont() { return getPixelFont(13f); }
 }

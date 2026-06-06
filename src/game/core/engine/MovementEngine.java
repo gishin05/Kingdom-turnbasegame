@@ -8,6 +8,10 @@ import java.util.*;
 
 public class MovementEngine {
 
+    /**
+     * Encapsulates the result of a movement calculation, providing the reachable tiles,
+     * attackable tiles from those reachable positions, and the optimal pathing map.
+     */
     public static class MovementResult {
         public final Set<Point> moveRange = new HashSet<>();
         public final Set<Point> attackRange = new HashSet<>();
@@ -20,6 +24,21 @@ public class MovementEngine {
         Node(Point p, int c) { this.pos = p; this.cost = c; }
     }
 
+    /**
+     * Performs a breadth-first/Dijkstra search to determine all reachable tiles for a specific unit
+     * given its movement constraints and the map's terrain costs. It also identifies tiles that 
+     * can be attacked from the reachable positions.
+     * 
+     * @param u              The unit whose movement range is being calculated
+     * @param units          List of all active units on the map (used for collision/blocking logic)
+     * @param mapData        2D array of tile IDs representing the map grid
+     * @param mapTSData      2D array of tileset names mapped to the grid
+     * @param loadedTilesets Available loaded tilesets holding terrain traversal costs
+     * @param mapW           Width of the map in tiles
+     * @param mapH           Height of the map in tiles
+     * @param effectiveMove  The maximum movement range (cost points) the unit can expend
+     * @return A complete MovementResult containing valid move destinations, attack targets, and path reconstruction data
+     */
     public static MovementResult calculateMovement(
         MapUnit u, 
         List<MapUnit> units, 
@@ -87,6 +106,10 @@ public class MovementEngine {
         return result;
     }
 
+    /**
+     * Determines whether two units are considered enemies.
+     * Uses ownership index if available, otherwise falls back to faction matching.
+     */
     private static boolean isEnemy(MapUnit u, MapUnit other) {
         if (u.ownerIndex >= 0 && other.ownerIndex >= 0) {
             return u.ownerIndex != other.ownerIndex;
@@ -94,6 +117,20 @@ public class MovementEngine {
         return u.faction != other.faction;
     }
 
+    /**
+     * Calculates the movement point cost required for a specific unit type to traverse a single tile.
+     * Resolves the tileset, extracts the terrain properties, and matches the unit's mobility classification.
+     * 
+     * @param x              The x-coordinate of the tile
+     * @param y              The y-coordinate of the tile
+     * @param unitType       The mobility classification of the unit (e.g., "Land Unit", "Air Unit")
+     * @param mapData        2D array of tile IDs
+     * @param mapTSData      2D array of tileset string identifiers
+     * @param loadedTilesets Map of parsed tileset properties
+     * @param mapW           Map width
+     * @param mapH           Map height
+     * @return The movement cost. Returns -1 if the tile is strictly impassable.
+     */
     public static int getTerrainCost(
         int x, int y, 
         String unitType, 
@@ -183,6 +220,16 @@ public class MovementEngine {
         }
     }
 
+    /**
+     * Extrapolates the unit's attack range by iterating over all reachable move destinations
+     * and projecting the unit's weapon range outward.
+     * 
+     * @param u           The acting unit
+     * @param moveRange   The set of all tiles the unit can walk to
+     * @param attackRange The output set to be populated with tiles that can be attacked
+     * @param mapW        Map width (for boundary checking)
+     * @param mapH        Map height (for boundary checking)
+     */
     private static void calculateAttacks(MapUnit u, Set<Point> moveRange, Set<Point> attackRange, int mapW, int mapH) {
         int maxR = 0;
         int minR = 99;
@@ -220,6 +267,15 @@ public class MovementEngine {
         }
     }
 
+    /**
+     * Reconstructs the optimal movement path from the unit's starting position to the destination 
+     * by walking backward through the parent mapping generated during the movement calculation.
+     * 
+     * @param dest       The target tile coordinate
+     * @param start      The origin tile coordinate
+     * @param pathParent The map linking each visited tile to the tile that discovered it
+     * @return A list of points forming the path from start (exclusive) to destination (inclusive).
+     */
     public static List<Point> reconstructPath(Point dest, Point start, Map<Point, Point> pathParent) {
         List<Point> path = new ArrayList<>();
         Point curr = dest;

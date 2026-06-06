@@ -14,6 +14,11 @@ import game.ui.BaseScreen;
 import game.ui.Theme;
 import game.core.save.SaveManager;
 
+/**
+ * The primary navigation menu.
+ * Features a dark translucent overlay over a video background,
+ * and a left-aligned vertical menu column with animated hover states and sub-menus.
+ */
 public class MenuScreen extends BaseScreen {
 
     private static final long serialVersionUID = 1L;
@@ -42,11 +47,12 @@ public class MenuScreen extends BaseScreen {
         // Layer 0: Video background (BaseScreen)
         layeredPane.add(jfxPanel, JLayeredPane.DEFAULT_LAYER);
 
-        // Layer 1: Full-screen dark overlay
+        // Layer 1: Full-screen dark translucent overlay.
+        // This dims the background video to ensure the menu text remains readable.
         JPanel darkOverlay = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
-                g2.setColor(new Color(0, 0, 0, 100));
+                g2.setColor(new Color(0, 0, 0, 100)); // Black with ~40% opacity
                 g2.fillRect(0, 0, getWidth(), getHeight());
                 g2.dispose();
             }
@@ -54,13 +60,14 @@ public class MenuScreen extends BaseScreen {
         darkOverlay.setOpaque(false);
         layeredPane.add(darkOverlay, JLayeredPane.PALETTE_LAYER);
 
-        // Layer 2: Main UI
+        // Layer 2: Main Interactive UI
         JPanel mainUI = new JPanel(new BorderLayout());
         mainUI.setOpaque(false);
         layeredPane.add(mainUI, JLayeredPane.MODAL_LAYER);
 
+        // Left column housing the vertical list of menu buttons
         JPanel menuColumn = new JPanel();
-        menuColumn.setLayout(new BoxLayout(menuColumn, BoxLayout.Y_AXIS));
+        menuColumn.setLayout(new BoxLayout(menuColumn, BoxLayout.Y_AXIS)); // Stack elements vertically
         menuColumn.setOpaque(false);
 
         menuColumn.add(createSeparator());
@@ -80,19 +87,25 @@ public class MenuScreen extends BaseScreen {
         menuColumn.add(Box.createVerticalStrut(12));
         menuColumn.add(createSeparator());
 
+        // Wrapper panel to vertically center the menu column on the left side of the screen.
+        // Uses GridBagLayout because it automatically centers its contents by default.
         JPanel leftWrapper = new JPanel(new GridBagLayout());
         leftWrapper.setOpaque(false);
         leftWrapper.setPreferredSize(new Dimension(380, Integer.MAX_VALUE));
-        leftWrapper.setBorder(new EmptyBorder(0, 40, 0, 0));
+        leftWrapper.setBorder(new EmptyBorder(0, 40, 0, 0)); // 40px left padding from the screen edge
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.anchor = GridBagConstraints.WEST; // Align to the left inside the centered block
         leftWrapper.add(menuColumn, gbc);
         mainUI.add(leftWrapper, BorderLayout.WEST);
 
+        // Animation loop for the pulsating glow effect on hovered menu items.
+        // Oscillates a float between 0.0 and 1.0 continuously.
         glowTimer = new Timer(30, e -> {
             if (glowUp) { selectionGlow += 0.04f; if (selectionGlow >= 1f) { selectionGlow = 1f; glowUp = false; } }
             else        { selectionGlow -= 0.04f; if (selectionGlow <= 0f) { selectionGlow = 0f; glowUp = true; } }
+            
+            // Force repaint on all menu items to render the new glow frame
             for (JPanel p : menuItems) p.repaint();
             if (versusPopup != null && versusPopup.isVisible() && versusPopupItems != null) {
                 for (JPanel p : versusPopupItems) if (p != null) p.repaint();
@@ -110,13 +123,21 @@ public class MenuScreen extends BaseScreen {
         });
     }
 
+    /**
+     * Creates a decorative horizontal separator line with a fading gradient.
+     * Starts transparent, becomes gold in the center, and fades to transparent on the right.
+     */
     private JPanel createSeparator() {
         JPanel sep = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 int mid = getHeight() / 2;
+                
+                // Left half: Transparent -> Solid
                 g2.setPaint(new GradientPaint(0, mid, new Color(255, 215, 0, 0), getWidth() / 2, mid, Theme.GOLD_TRANS));
                 g2.fillRect(0, mid - 1, getWidth() / 2, 2);
+                
+                // Right half: Solid -> Transparent
                 g2.setPaint(new GradientPaint(getWidth() / 2, mid, Theme.GOLD_TRANS, getWidth(), mid, new Color(255, 215, 0, 0)));
                 g2.fillRect(getWidth() / 2, mid - 1, getWidth() / 2, 2);
                 g2.dispose();

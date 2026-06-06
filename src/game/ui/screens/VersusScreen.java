@@ -17,6 +17,11 @@ import game.ui.BaseScreen;
 import game.ui.Theme;
 import game.core.util.JsonUtil;
 
+/**
+ * Configuration screen for setting up a local multiplayer "Versus" match.
+ * Allows players to select a map, toggle fog of war, set game modes,
+ * and configure faction/color assignments for up to 6 players.
+ */
 public class VersusScreen extends BaseScreen {
     private static final long serialVersionUID = 1L;
     
