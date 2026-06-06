@@ -64,12 +64,16 @@ public class VersusGameplayScreen extends BaseScreen {
     public boolean fogOfWarEnabled = false;
     public boolean[][] visibleTiles;
     
-    public enum Weather { NONE, RAIN, SNOW, THUNDERSTORM }
+    public enum Weather { NONE, RAIN, SNOW, THUNDERSTORM, SANDSTORM, SNOWSTORM }
     public Weather currentWeather = Weather.NONE;
     public int weatherDaysRemaining = 0;
+    public Weather pendingWeather = null;
+    public int weatherTransitionTimer = 0;
+    private String primaryTilesetName = "Plain";
     
     private BufferedImage rainOverlay;
     private BufferedImage snowOverlay;
+    private BufferedImage sandOverlay;
     
     // ── Optimization Fields ──────────────────────────────────
     private boolean fogDirty = true;                       // Recalculate fog only when true
@@ -77,6 +81,19 @@ public class VersusGameplayScreen extends BaseScreen {
     private List<MapUnit> sortedRenderUnits = new ArrayList<>(); // Pre-sorted render list
     private boolean unitOrderDirty = true;                 // Re-sort only when true
     private BufferedImage battleBuffer;                     // Reusable battle cinematic buffer
+
+    // ── Smooth Camera & Pan Fields ────────────────────────
+    private double cameraTargetX = -1, cameraTargetY = -1; // Target viewport center (in pixels)
+    private double cameraCurrentX = -1, cameraCurrentY = -1; // Current smooth camera position
+    private double panVelocityX = 0, panVelocityY = 0;     // Drag inertia velocity
+    private Point lastDragPoint = null;                     // For drag delta calculation
+
+    // ── Path Arrow Preview Fields ─────────────────────────
+    private Point hoveredTile = null;                        // Tile currently under mouse cursor
+    private List<Point> previewPath = new ArrayList<>();     // Preview path from unit to hovered tile
+    private Map<MapUnit, Integer> healthBarTimers = new HashMap<>(); // Timed health bar display (frames remaining)
+    private Map<MapUnit, Double> animatedHpMap = new HashMap<>();    // Smooth trailing HP bar animation
+    private Map<MapUnit, Float> dyingUnitsMap = new HashMap<>();     // Fading out dead units on the map
     
     private void initWeatherOverlays() {
         if (rainOverlay != null) return;
@@ -101,6 +118,17 @@ public class VersusGameplayScreen extends BaseScreen {
             sg.fillOval(x, y, 3, 3);
         }
         sg.dispose();
+        
+        sandOverlay = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D sdg = sandOverlay.createGraphics();
+        sdg.setColor(new Color(230, 190, 100, 120));
+        for(int i=0; i<150; i++) {
+            int x = rnd.nextInt(256);
+            int y = rnd.nextInt(256);
+            sdg.drawLine(x, y, x - 12, y + 6);
+            sdg.fillOval(x, y, 2, 2);
+        }
+        sdg.dispose();
     }
 
 
@@ -116,6 +144,7 @@ public class VersusGameplayScreen extends BaseScreen {
         boolean isFinished = false;
         boolean isWaitingForDamage = false;
         double displayHp, targetHp;
+        float alpha = 1.0f;
 
         BattleActor(MapUnit u, boolean isAttacker, int sw, int sh) {
             this.mapUnit = u;
@@ -344,11 +373,20 @@ public class VersusGameplayScreen extends BaseScreen {
             int dx = baseShift + offsetX;
             int dy = offsetY;
             
+            Composite oldComp = g.getComposite();
+            if (alpha < 1.0f) {
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+            }
+            
             if (finalFlip) {
                 // Manually flip the image if it wasn't pre-mirrored in the spritesheet
                 g.drawImage(colored, dx + fw, dy, -fw, fh, null);
             } else {
                 g.drawImage(colored, dx, dy, fw, fh, null);
+            }
+            
+            if (alpha < 1.0f) {
+                g.setComposite(oldComp);
             }
             
             if (offsetX != 0) offsetX = (offsetX > 0) ? -offsetX + 1 : -offsetX - 1;
@@ -399,6 +437,8 @@ public class VersusGameplayScreen extends BaseScreen {
         scrollPane = new JScrollPane(canvasPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         gameLayer = new JLayeredPane();
         add(gameLayer, BorderLayout.CENTER);
@@ -421,7 +461,10 @@ public class VersusGameplayScreen extends BaseScreen {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-        if (isBattleActive) {
+        if (weatherTransitionTimer > 0) {
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, getWidth(), getHeight());
+        } else if (isBattleActive) {
             renderBattleCinematic((Graphics2D) g);
         } else if (phaseBannerTimer > 0) {
             drawPhaseBanner((Graphics2D) g);
@@ -798,14 +841,32 @@ public class VersusGameplayScreen extends BaseScreen {
         if (currentPlayerIdx == 0) {
             weatherDaysRemaining--;
             if (weatherDaysRemaining <= 0) {
-                weatherDaysRemaining = 3;
+                Weather nextWeather = Weather.NONE;
                 double roll = Math.random();
-                if (roll < 0.55) currentWeather = Weather.NONE;
-                else if (roll < 0.70) currentWeather = Weather.RAIN;
-                else if (roll < 0.85) currentWeather = Weather.SNOW;
-                else currentWeather = Weather.THUNDERSTORM;
                 
-                game.core.util.SoundManager.setRainLoop(currentWeather == Weather.RAIN || currentWeather == Weather.THUNDERSTORM);
+                String ts = primaryTilesetName.toLowerCase();
+                if (ts.contains("desert")) {
+                    if (roll < 0.55) nextWeather = Weather.NONE;
+                    else if (roll < 0.75) nextWeather = Weather.SANDSTORM;
+                    else if (roll < 0.90) nextWeather = Weather.RAIN;
+                    else nextWeather = Weather.THUNDERSTORM;
+                } else if (ts.contains("snow")) {
+                    if (roll < 0.55) nextWeather = Weather.NONE;
+                    else if (roll < 0.85) nextWeather = Weather.SNOW;
+                    else nextWeather = Weather.SNOWSTORM;
+                } else {
+                    if (roll < 0.55) nextWeather = Weather.NONE;
+                    else if (roll < 0.70) nextWeather = Weather.RAIN;
+                    else if (roll < 0.85) nextWeather = Weather.SNOW;
+                    else nextWeather = Weather.THUNDERSTORM;
+                }
+                
+                if (nextWeather != currentWeather) {
+                    pendingWeather = nextWeather;
+                    weatherTransitionTimer = 60; // 1 second blank screen
+                } else {
+                    weatherDaysRemaining = (currentWeather == Weather.NONE) ? 5 : 3;
+                }
             }
         }
         
@@ -816,6 +877,7 @@ public class VersusGameplayScreen extends BaseScreen {
                     if (Math.random() < 0.20) { // 20% chance to be struck by lightning
                         u.takeDamage(10);
                         flashTimer = 15; // Trigger lightning flash effect
+                        healthBarTimers.put(u, 180); // Show health bar for ~3 seconds (180 frames at 60fps)
                         struck = true;
                     }
                 }
@@ -866,6 +928,7 @@ public class VersusGameplayScreen extends BaseScreen {
         try {
             String json = new String(java.nio.file.Files.readAllBytes(new File(path).toPath()));
             String tsDefault = JsonUtil.extractJsonVal(json, "tileset");
+            this.primaryTilesetName = (tsDefault != null && !tsDefault.isEmpty()) ? tsDefault : "Plain";
             int eventsStart = json.indexOf("\"events\":");
             if (eventsStart != -1) {
                 int arrayStart = json.indexOf("[", eventsStart);
@@ -953,7 +1016,13 @@ public class VersusGameplayScreen extends BaseScreen {
         // ── Draw only visible tiles ──
         for (int y = startY; y < endY; y++) {
             for (int x = startX; x < endX; x++) {
-                String tsName = mapTSData[y][x]; Tileset ts = loadedTilesets.get(tsName);
+                String tsName = mapTSData[y][x]; 
+                if (tsName != null && tsName.equalsIgnoreCase("Plain") && 
+                    (currentWeather == Weather.SNOW || currentWeather == Weather.SNOWSTORM) &&
+                    loadedTilesets.containsKey("Snow")) {
+                    tsName = "Snow";
+                }
+                Tileset ts = loadedTilesets.get(tsName);
                 if (ts != null) g.drawImage(ts.getTile(mapData[y][x]), x*16, y*16, 16, 16, null);
                 else g.fillRect(x*16, y*16, 16, 16);
             }
@@ -976,6 +1045,11 @@ public class VersusGameplayScreen extends BaseScreen {
             if (p.x >= startX && p.x < endX && p.y >= startY && p.y < endY) {
                 g.setColor(new Color(0,100,255,120)); g.fillRect(p.x*16, p.y*16, 16, 16);
             }
+        }
+        
+        // ── Draw path arrows (preview path from selected unit to hovered tile) ──
+        if (!previewPath.isEmpty()) {
+            drawPathArrows(g, previewPath, startX, startY, endX, endY);
         }
         
         // ── Draw units (cached sorted order) ──
@@ -1024,11 +1098,34 @@ public class VersusGameplayScreen extends BaseScreen {
                 } else if (action.equals("Standing") || action.equals("Selected")) {
                     mirror = !u.renderMirrorX;
                 }
+                
+                Composite oldComp = g.getComposite();
+                float alpha = dyingUnitsMap.getOrDefault(u, 1.0f);
+                if (alpha < 1.0f) {
+                    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+                }
+
                 if (mirror) {
                     g.drawImage(colored, dx + 32, dy, dx, dy + 32, 0, 0, 32, 32, null);
                 } else {
                     g.drawImage(colored, dx, dy, 32, 32, null);
                 }
+                
+                if (alpha < 1.0f) {
+                    g.setComposite(oldComp);
+                }
+            }
+
+            // ── Draw health bar if unit qualifies ──
+            boolean isHpAnimating = animatedHpMap.containsKey(u) && animatedHpMap.get(u) > u.currentHp;
+            boolean showHpBar = (u == selectedUnit)
+                || (hoveredTile != null && u.position.equals(hoveredTile))
+                || healthBarTimers.containsKey(u)
+                || isHpAnimating;
+            if (showHpBar) {
+                int hpBarPx = (int) Math.round(u.renderPos.x * 16.0);
+                int hpBarPy = (int) Math.round(u.renderPos.y * 16.0);
+                drawUnitHealthBar(g, u, hpBarPx - 8, hpBarPy + 17);
             }
         }
         
@@ -1083,10 +1180,11 @@ public class VersusGameplayScreen extends BaseScreen {
                     g.setColor(new Color(255, 255, 255, 120));
                     g.fillRect(vx0, vy0, vx1 - vx0, vy1 - vy0);
                 }
-            } else if (currentWeather == Weather.SNOW) {
-                int offsetY = (int) ((t / 40) % 256);
+            } else if (currentWeather == Weather.SNOW || currentWeather == Weather.SNOWSTORM) {
+                int speed = (currentWeather == Weather.SNOWSTORM) ? 10 : 40;
+                int offsetY = (int) ((t / speed) % 256);
                 if (offsetY > 0) offsetY -= 256;
-                int sway = (int) (Math.sin(t / 1000.0) * 16);
+                int sway = (currentWeather == Weather.SNOWSTORM) ? (int) (-(t / speed) % 256) : (int) (Math.sin(t / 1000.0) * 16);
                 int offsetX = (sway % 256);
                 if (offsetX > 0) offsetX -= 256;
 
@@ -1096,6 +1194,25 @@ public class VersusGameplayScreen extends BaseScreen {
                 for (int y = wyStart; y < vy1; y += 256) {
                     for (int x = wxStart; x < vx1 + 256; x += 256) {
                         g.drawImage(snowOverlay, x, y, null);
+                        if (currentWeather == Weather.SNOWSTORM) {
+                            g.drawImage(snowOverlay, x + 128, y - 128, null);
+                        }
+                    }
+                }
+            } else if (currentWeather == Weather.SANDSTORM) {
+                int speed = 8;
+                int offsetX = (int) (-(t / speed) % 256);
+                int offsetY = (int) ((t / (speed * 2)) % 256);
+                if (offsetX > 0) offsetX -= 256;
+                if (offsetY > 0) offsetY -= 256;
+
+                int wxStart = ((vx0 / 256) * 256) + offsetX - 256;
+                int wyStart = ((vy0 / 256) * 256) + offsetY - 256;
+                
+                for (int y = wyStart; y < vy1; y += 256) {
+                    for (int x = wxStart; x < vx1 + 256; x += 256) {
+                        g.drawImage(sandOverlay, x, y, null);
+                        g.drawImage(sandOverlay, x + 128, y - 64, null);
                     }
                 }
             }
@@ -1548,9 +1665,10 @@ public class VersusGameplayScreen extends BaseScreen {
                 if (moveRange.contains(p) && selectedUnit != null && !selectedUnit.hasMoved) { 
                     oldUnitPos = new Point(selectedUnit.position); reconstructPath(p, selectedUnit);
                     selectedUnit.hasMoved = true; moveRange.clear(); attackRange.clear();
+                    previewPath.clear(); hoveredTile = null;
                     if (selectedUnit.movePath.isEmpty()) showActionMenu(selectedUnit);
                 } else {
-                    selectedUnit = null; moveRange.clear(); attackRange.clear(); MapUnit clickedUnit = null;
+                    selectedUnit = null; moveRange.clear(); attackRange.clear(); previewPath.clear(); hoveredTile = null; MapUnit clickedUnit = null;
                     for (MapUnit u : units) if (u.position.equals(p)) { clickedUnit = u; break; }
                     if (clickedUnit != null && !clickedUnit.hasActed && !clickedUnit.hasMoved && clickedUnit.ownerIndex == currentPlayerIdx) {
                         selectedUnit = clickedUnit; calculateMoveRange(clickedUnit);
@@ -1568,18 +1686,299 @@ public class VersusGameplayScreen extends BaseScreen {
         canvasPanel.addMouseMotionListener(new MouseAdapter() {
             @Override public void mouseDragged(MouseEvent e) {
                 if (lastMousePos != null) {
-                    JViewport viewPort = scrollPane.getViewport(); Point vPos = viewPort.getViewPosition();
-                    vPos.translate(lastMousePos.x - e.getX(), lastMousePos.y - e.getY());
-                    canvasPanel.scrollRectToVisible(new Rectangle(vPos, viewPort.getSize())); lastMousePos = e.getPoint();
+                    int dx = lastMousePos.x - e.getX();
+                    int dy = lastMousePos.y - e.getY();
+                    JViewport viewPort = scrollPane.getViewport();
+                    Point vPos = viewPort.getViewPosition();
+                    vPos.translate(dx, dy);
+                    // Clamp to valid viewport bounds
+                    int maxX = canvasPanel.getWidth() - viewPort.getWidth();
+                    int maxY = canvasPanel.getHeight() - viewPort.getHeight();
+                    vPos.x = Math.max(0, Math.min(vPos.x, maxX));
+                    vPos.y = Math.max(0, Math.min(vPos.y, maxY));
+                    viewPort.setViewPosition(vPos);
+                    // Track velocity for inertia
+                    panVelocityX = dx * 0.6;
+                    panVelocityY = dy * 0.6;
+                    lastDragPoint = e.getPoint();
+                    lastMousePos = e.getPoint();
+                    // Reset camera tracking so drag takes priority
+                    cameraTargetX = -1;
+                    cameraTargetY = -1;
+                }
+            }
+            @Override public void mouseMoved(MouseEvent e) {
+                int tx = (int)(e.getX() / (16 * zoomScale));
+                int ty = (int)(e.getY() / (16 * zoomScale));
+                Point newHover = new Point(tx, ty);
+                if (!newHover.equals(hoveredTile)) {
+                    hoveredTile = newHover;
+                    updatePreviewPath();
+                    needsRepaint = true;
                 }
             }
         });
+        canvasPanel.addMouseListener(new MouseAdapter() {
+            @Override public void mouseReleased(MouseEvent e) {
+                lastDragPoint = null; // Inertia will carry from panVelocity
+            }
+        });
+    }
+
+    /**
+     * Rebuilds the preview path from the selected unit to the hovered tile.
+     * Only generates a path if the unit is selected, hasn't moved yet, and
+     * the hovered tile is within the valid move range.
+     */
+    private void updatePreviewPath() {
+        previewPath.clear();
+        if (selectedUnit != null && !selectedUnit.hasMoved && hoveredTile != null && moveRange.contains(hoveredTile)) {
+            List<Point> path = MovementEngine.reconstructPath(hoveredTile, selectedUnit.position, pathParent);
+            if (path != null && !path.isEmpty()) {
+                // Prepend unit's current position as the path start
+                previewPath.add(new Point(selectedUnit.position));
+                previewPath.addAll(path);
+            }
+        }
+    }
+
+    /**
+     * Draws Fire Emblem-style directional path arrows on the map.
+     * Renders a thick colored path body with corners at turns and an
+     * arrowhead triangle at the destination tile.
+     */
+    private void drawPathArrows(Graphics2D g, List<Point> path, int startX, int startY, int endX, int endY) {
+        if (path == null || path.size() < 2) return;
+
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+
+        // Use player's team color for the path
+        Color teamColor = players.get(currentPlayerIdx).color;
+        Color pathFill = new Color(teamColor.getRed(), teamColor.getGreen(), teamColor.getBlue(), 180);
+        Color pathBorder = new Color(
+            Math.max(0, teamColor.getRed() - 60),
+            Math.max(0, teamColor.getGreen() - 60),
+            Math.max(0, teamColor.getBlue() - 60),
+            220
+        );
+        Color pathHighlight = new Color(
+            Math.min(255, teamColor.getRed() + 60),
+            Math.min(255, teamColor.getGreen() + 60),
+            Math.min(255, teamColor.getBlue() + 60),
+            120
+        );
+
+        int hw = 3; // Half-width of path body in tile pixels
+
+        // Draw path body segments
+        for (int i = 0; i < path.size(); i++) {
+            Point curr = path.get(i);
+            // Skip tiles outside viewport
+            if (curr.x < startX - 1 || curr.x > endX || curr.y < startY - 1 || curr.y > endY) continue;
+
+            int cx = curr.x * 16 + 8; // Tile center X
+            int cy = curr.y * 16 + 8; // Tile center Y
+
+            Point prev = (i > 0) ? path.get(i - 1) : null;
+            Point next = (i < path.size() - 1) ? path.get(i + 1) : null;
+
+            // Determine incoming and outgoing directions (dx, dy)
+            int inDx = 0, inDy = 0, outDx = 0, outDy = 0;
+            if (prev != null) { inDx = curr.x - prev.x; inDy = curr.y - prev.y; }
+            if (next != null) { outDx = next.x - curr.x; outDy = next.y - curr.y; }
+
+            if (i == 0 && next != null) {
+                // ── Start segment: draw from center toward next tile edge ──
+                drawPathRect(g2, cx, cy, outDx, outDy, hw, 8, pathFill, pathBorder);
+                // Small start circle
+                g2.setColor(pathFill);
+                g2.fillOval(cx - hw, cy - hw, hw * 2, hw * 2);
+                g2.setColor(pathBorder);
+                g2.drawOval(cx - hw, cy - hw, hw * 2, hw * 2);
+            } else if (next == null && prev != null) {
+                // ── End segment with arrowhead ──
+                // Draw body from edge to slightly before center
+                drawPathRect(g2, cx, cy, -inDx, -inDy, hw, -5, pathFill, pathBorder);
+                // Draw arrowhead triangle
+                drawArrowHead(g2, cx, cy, inDx, inDy, pathFill, pathBorder);
+            } else if (prev != null && next != null) {
+                // ── Middle segment ──
+                // Draw incoming half (from edge to center)
+                drawPathRect(g2, cx, cy, -inDx, -inDy, hw, -8, pathFill, pathBorder);
+                // Draw outgoing half (from center to edge)
+                drawPathRect(g2, cx, cy, outDx, outDy, hw, 8, pathFill, pathBorder);
+                // Fill center junction
+                g2.setColor(pathFill);
+                g2.fillRect(cx - hw, cy - hw, hw * 2, hw * 2);
+            }
+        }
+
+        // Draw highlight pass for glossy effect on the path body
+        for (int i = 0; i < path.size() - 1; i++) {
+            Point curr = path.get(i);
+            Point next = path.get(i + 1);
+            if (curr.x < startX - 1 || curr.x > endX || curr.y < startY - 1 || curr.y > endY) continue;
+
+            int cx = curr.x * 16 + 8;
+            int cy = curr.y * 16 + 8;
+            int nx = next.x * 16 + 8;
+            int ny = next.y * 16 + 8;
+
+            g2.setColor(pathHighlight);
+            if (cy == ny) { // Horizontal
+                int minX = Math.min(cx, nx);
+                g2.drawLine(minX, Math.min(cy, ny) - hw + 1, Math.max(cx, nx), Math.min(cy, ny) - hw + 1);
+            } else { // Vertical
+                int minY = Math.min(cy, ny);
+                g2.drawLine(cx - hw + 1, minY, cx - hw + 1, Math.max(cy, ny));
+            }
+        }
+
+        g2.dispose();
+    }
+
+    /**
+     * Draws a rectangular path segment extending from a center point in the given direction.
+     * @param cx, cy  Center of the tile
+     * @param dirX, dirY  Direction of the segment (-1, 0, or 1)
+     * @param hw  Half-width of the path body
+     * @param length  How far to extend (positive = outward, negative = inward toward center)
+     */
+    private void drawPathRect(Graphics2D g, int cx, int cy, int dirX, int dirY, int hw, int length, Color fill, Color border) {
+        int x, y, w, h;
+        if (dirX != 0) {
+            // Horizontal segment
+            if (dirX > 0) {
+                x = cx; y = cy - hw; w = Math.abs(length); h = hw * 2;
+            } else {
+                x = cx - Math.abs(length); y = cy - hw; w = Math.abs(length); h = hw * 2;
+            }
+        } else {
+            // Vertical segment
+            if (dirY > 0) {
+                x = cx - hw; y = cy; w = hw * 2; h = Math.abs(length);
+            } else {
+                x = cx - hw; y = cy - Math.abs(length); w = hw * 2; h = Math.abs(length);
+            }
+        }
+        g.setColor(fill);
+        g.fillRect(x, y, w, h);
+        g.setColor(border);
+        // Draw only the outer edges (not internal connections)
+        if (dirX != 0) {
+            g.drawLine(x, y, x + w, y);           // Top edge
+            g.drawLine(x, y + h - 1, x + w, y + h - 1); // Bottom edge
+        } else {
+            g.drawLine(x, y, x, y + h);           // Left edge
+            g.drawLine(x + w - 1, y, x + w - 1, y + h); // Right edge
+        }
+    }
+
+    /**
+     * Draws a pointed arrowhead triangle at the destination tile, facing the direction of movement.
+     */
+    private void drawArrowHead(Graphics2D g, int cx, int cy, int dirX, int dirY, Color fill, Color border) {
+        int size = 7; // Arrow point size
+        int[] xPts, yPts;
+
+        if (dirX > 0) { // Pointing RIGHT
+            xPts = new int[]{ cx + size, cx - 2, cx - 2 };
+            yPts = new int[]{ cy, cy - size, cy + size };
+        } else if (dirX < 0) { // Pointing LEFT
+            xPts = new int[]{ cx - size, cx + 2, cx + 2 };
+            yPts = new int[]{ cy, cy - size, cy + size };
+        } else if (dirY > 0) { // Pointing DOWN
+            xPts = new int[]{ cx, cx - size, cx + size };
+            yPts = new int[]{ cy + size, cy - 2, cy - 2 };
+        } else { // Pointing UP
+            xPts = new int[]{ cx, cx - size, cx + size };
+            yPts = new int[]{ cy - size, cy + 2, cy + 2 };
+        }
+
+        g.setColor(fill);
+        g.fillPolygon(xPts, yPts, 3);
+        g.setColor(border);
+        g.drawPolygon(xPts, yPts, 3);
+
+        // Inner highlight on arrowhead
+        g.setColor(new Color(255, 255, 255, 80));
+        if (dirX > 0) g.drawLine(cx - 1, cy - size + 2, cx + size - 2, cy);
+        else if (dirX < 0) g.drawLine(cx + 1, cy - size + 2, cx - size + 2, cy);
+        else if (dirY > 0) g.drawLine(cx - size + 2, cy - 1, cx, cy + size - 2);
+        else g.drawLine(cx - size + 2, cy + 1, cx, cy - size + 2);
+    }
+
+    /**
+     * Draws a compact pixel-art health bar below a map unit sprite.
+     * Uses a gradient fill that shifts green → yellow → red based on HP percentage.
+     * Rendered in tile-space coordinates so it scrolls and zooms with the map.
+     *
+     * @param g  Graphics context (already scaled to tile-space)
+     * @param u  The map unit to draw the bar for
+     * @param x  Left edge of the bar in tile pixels
+     * @param y  Top edge of the bar in tile pixels
+     */
+    private void drawUnitHealthBar(Graphics2D g, MapUnit u, int x, int y) {
+        if (u == null || u.stats == null || u.isDead) return;
+
+        int barW = 16;  // Width of the health bar
+        int barH = 2;   // Height of the health bar
+        // Center the bar under the 32px-wide sprite
+        int barX = x + 8;
+        int barY = y;
+
+        // ── Dark background track ──
+        g.setColor(new Color(10, 10, 15, 210));
+        g.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+
+        // ── Recessed inner track ──
+        g.setColor(new Color(30, 30, 40, 200));
+        g.fillRect(barX, barY, barW, barH);
+
+        double targetHp = u.currentHp;
+        double animHp = animatedHpMap.getOrDefault(u, targetHp);
+
+        double animPct = Math.max(0.0, Math.min(1.0, animHp / u.stats.maxHp));
+        double hpPct = Math.max(0.0, Math.min(1.0, targetHp / u.stats.maxHp));
+
+        int animFillW = (int) Math.round(barW * animPct);
+        int fillW = (int) Math.round(barW * hpPct);
+
+        // ── Animated Damage Trail ──
+        if (animFillW > fillW) {
+            g.setColor(new Color(255, 200, 200)); // Light red/pink trail
+            g.fillRect(barX, barY, animFillW, barH);
+        }
+
+        // ── HP fill ──
+        if (fillW > 0) {
+            Color hpColor;
+            if (hpPct > 0.55) {
+                hpColor = new Color(50, 210, 90);    // Green
+            } else if (hpPct > 0.25) {
+                hpColor = new Color(230, 200, 30);   // Yellow
+            } else {
+                hpColor = new Color(220, 55, 45);    // Red
+            }
+            g.setColor(hpColor);
+            g.fillRect(barX, barY, fillW, barH);
+
+            // Glossy highlight line (1px bright strip on top)
+            g.setColor(new Color(255, 255, 255, 90));
+            g.drawLine(barX, barY, barX + fillW - 1, barY);
+        }
+
+        // ── Thin border ──
+        g.setColor(new Color(60, 60, 70, 180));
+        g.drawRect(barX - 1, barY - 1, barW + 1, barH + 1);
     }
 
     private void cancelMove() {
         if (selectedUnit != null && oldUnitPos != null) {
             selectedUnit.position = new Point(oldUnitPos); selectedUnit.renderPos.x = oldUnitPos.x; selectedUnit.renderPos.y = oldUnitPos.y;
             selectedUnit.hasMoved = false; selectedUnit.movePath.clear(); selectedUnit = null; oldUnitPos = null; 
+            previewPath.clear(); hoveredTile = null;
             fogDirty = true; unitOrderDirty = true; needsRepaint = true;
             canvasPanel.repaint();
         }
@@ -1599,6 +1998,10 @@ public class VersusGameplayScreen extends BaseScreen {
             effectiveMove -= 3;
         } else if (currentWeather == Weather.THUNDERSTORM) {
             effectiveMove -= 3;
+        } else if (currentWeather == Weather.SANDSTORM) {
+            effectiveMove -= 4;
+        } else if (currentWeather == Weather.SNOWSTORM) {
+            effectiveMove -= 4;
         }
         effectiveMove = Math.max(0, effectiveMove);
         
@@ -2096,6 +2499,19 @@ public class VersusGameplayScreen extends BaseScreen {
 
     @Override public void update() {
         if (isPaused) return;
+        if (weatherTransitionTimer > 0) {
+            weatherTransitionTimer--;
+            if (weatherTransitionTimer == 0 && pendingWeather != null) {
+                currentWeather = pendingWeather;
+                pendingWeather = null;
+                weatherDaysRemaining = (currentWeather == Weather.NONE) ? 5 : 3;
+                game.core.util.SoundManager.setRainLoop(currentWeather == Weather.RAIN || currentWeather == Weather.THUNDERSTORM);
+                game.core.util.SoundManager.setWindLoop(currentWeather == Weather.SANDSTORM || currentWeather == Weather.SNOWSTORM);
+            }
+            canvasPanel.repaint();
+            repaint();
+            return;
+        }
         if (isBattleActive) { updateBattle(); canvasPanel.repaint(); repaint(); return; }
         if (isCaptureAnimActive) { updateCaptureAnim(); canvasPanel.repaint(); repaint(); return; }
         if (phaseBannerTimer > 0) {
@@ -2103,16 +2519,83 @@ public class VersusGameplayScreen extends BaseScreen {
             needsRepaint = true;
             repaint();
         }
+        // ── Decrement health bar display timers ──
+        if (!healthBarTimers.isEmpty()) {
+            healthBarTimers.entrySet().removeIf(entry -> {
+                entry.setValue(entry.getValue() - 1);
+                return entry.getValue() <= 0;
+            });
+            needsRepaint = true;
+        }
+
+        // ── Animate health bars ──
+        boolean hpAnimating = false;
+        for (MapUnit u : units) {
+            double actualHp = u.currentHp;
+            Double storedAnimHp = animatedHpMap.get(u);
+            
+            if (storedAnimHp == null) {
+                animatedHpMap.put(u, actualHp);
+            } else {
+                if (storedAnimHp > actualHp) {
+                    double newAnimHp = storedAnimHp - 0.3; // drain speed
+                    if (newAnimHp < actualHp) newAnimHp = actualHp;
+                    animatedHpMap.put(u, newAnimHp);
+                    hpAnimating = true;
+                } else if (storedAnimHp < actualHp) {
+                    animatedHpMap.put(u, actualHp);
+                }
+            }
+        }
+        if (hpAnimating) needsRepaint = true;
+
+        // ── Map Unit Death Fade Animation ──
+        for (int i = 0; i < units.size(); i++) {
+            MapUnit u = units.get(i);
+            if (u.isDead && !dyingUnitsMap.containsKey(u)) {
+                dyingUnitsMap.put(u, 1.0f);
+                SoundManager.playFadeDieAway1();
+            }
+        }
+        if (!dyingUnitsMap.isEmpty()) {
+            dyingUnitsMap.entrySet().forEach(entry -> {
+                entry.setValue(entry.getValue() - 0.04f); // 25 frames fade out
+            });
+            boolean removedAny = units.removeIf(u -> dyingUnitsMap.containsKey(u) && dyingUnitsMap.get(u) <= 0);
+            if (removedAny) {
+                dyingUnitsMap.keySet().removeIf(u -> !units.contains(u));
+                unitOrderDirty = true;
+                fogDirty = true;
+            }
+            needsRepaint = true;
+        }
+
         boolean anyMoving = false;
         boolean anyAnimated = false;
+        MapUnit movingUnit = null; // Track the unit currently moving for camera follow
         for (int i = 0; i < units.size(); i++) {
             MapUnit u = units.get(i); u.animTimer++;
             if (u.animTimer > 10) { u.animFrame++; u.animTimer = 0; anyAnimated = true; }
             if (!u.movePath.isEmpty()) {
                 anyMoving = true;
-                Point target = u.movePath.get(0); double speed = 0.25; double dx = target.x - u.renderPos.x, dy = target.y - u.renderPos.y;
-                if (Math.abs(dx) > speed) u.renderPos.x += Math.signum(dx) * speed; else u.renderPos.x = target.x;
-                if (Math.abs(dy) > speed) u.renderPos.y += Math.signum(dy) * speed; else u.renderPos.y = target.y;
+                movingUnit = u;
+                Point target = u.movePath.get(0);
+                double dx = target.x - u.renderPos.x;
+                double dy = target.y - u.renderPos.y;
+                double dist = Math.sqrt(dx * dx + dy * dy);
+                // Smooth lerp: move 20% of remaining distance each frame, with a minimum speed floor
+                double lerpFactor = 0.20;
+                double minSpeed = 0.06; // Prevents crawling at the very end
+                double moveX = dx * lerpFactor;
+                double moveY = dy * lerpFactor;
+                // Enforce minimum speed so we don't get stuck asymptotically approaching the target
+                if (Math.abs(moveX) < minSpeed && Math.abs(dx) > 0.01) moveX = Math.signum(dx) * minSpeed;
+                if (Math.abs(moveY) < minSpeed && Math.abs(dy) > 0.01) moveY = Math.signum(dy) * minSpeed;
+                u.renderPos.x += moveX;
+                u.renderPos.y += moveY;
+                // Snap to target when very close
+                if (Math.abs(target.x - u.renderPos.x) < 0.05) u.renderPos.x = target.x;
+                if (Math.abs(target.y - u.renderPos.y) < 0.05) u.renderPos.y = target.y;
                 if (u.renderPos.x == target.x && u.renderPos.y == target.y) {
                     u.movePath.remove(0);
                     unitOrderDirty = true; // Unit Y position changed
@@ -2125,10 +2608,79 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
             }
         }
+
+        // ── Smooth camera follow for moving unit ──
+        if (movingUnit != null) {
+            double unitPixelX = movingUnit.renderPos.x * TILE_SIZE * zoomScale;
+            double unitPixelY = movingUnit.renderPos.y * TILE_SIZE * zoomScale;
+            cameraTargetX = unitPixelX;
+            cameraTargetY = unitPixelY;
+        }
+        updateSmoothCamera();
+
+        // ── Apply drag inertia ──
+        if (lastDragPoint == null && (Math.abs(panVelocityX) > 0.5 || Math.abs(panVelocityY) > 0.5)) {
+            JViewport viewPort = scrollPane.getViewport();
+            Point vPos = viewPort.getViewPosition();
+            vPos.x += (int) panVelocityX;
+            vPos.y += (int) panVelocityY;
+            int maxX = canvasPanel.getWidth() - viewPort.getWidth();
+            int maxY = canvasPanel.getHeight() - viewPort.getHeight();
+            vPos.x = Math.max(0, Math.min(vPos.x, maxX));
+            vPos.y = Math.max(0, Math.min(vPos.y, maxY));
+            viewPort.setViewPosition(vPos);
+            panVelocityX *= 0.88; // Friction damping
+            panVelocityY *= 0.88;
+            needsRepaint = true;
+        }
+
         // Only repaint when something actually changed
         if (anyMoving || anyAnimated || currentWeather != Weather.NONE || needsRepaint) {
             canvasPanel.repaint();
             needsRepaint = false;
+        }
+    }
+
+    /**
+     * Smoothly interpolates the camera viewport toward the target position.
+     * Uses ease-out lerp for a natural, decelerating camera feel.
+     */
+    private void updateSmoothCamera() {
+        if (cameraTargetX < 0 || cameraTargetY < 0) return;
+        JViewport viewPort = scrollPane.getViewport();
+        if (viewPort == null) return;
+        Point vPos = viewPort.getViewPosition();
+        int vpW = viewPort.getWidth();
+        int vpH = viewPort.getHeight();
+
+        // Desired viewport top-left to center the target
+        double desiredX = cameraTargetX - vpW / 2.0;
+        double desiredY = cameraTargetY - vpH / 2.0;
+
+        // Initialize current camera position on first frame
+        if (cameraCurrentX < 0) { cameraCurrentX = vPos.x; cameraCurrentY = vPos.y; }
+
+        // Lerp toward desired position (ease-out)
+        double camLerp = 0.10;
+        cameraCurrentX += (desiredX - cameraCurrentX) * camLerp;
+        cameraCurrentY += (desiredY - cameraCurrentY) * camLerp;
+
+        // Clamp to valid bounds
+        int maxX = Math.max(0, canvasPanel.getWidth() - vpW);
+        int maxY = Math.max(0, canvasPanel.getHeight() - vpH);
+        int newX = Math.max(0, Math.min((int) Math.round(cameraCurrentX), maxX));
+        int newY = Math.max(0, Math.min((int) Math.round(cameraCurrentY), maxY));
+
+        if (newX != vPos.x || newY != vPos.y) {
+            viewPort.setViewPosition(new Point(newX, newY));
+            needsRepaint = true;
+        }
+
+        // Stop tracking once we've settled close enough and unit is done moving
+        if (Math.abs(desiredX - cameraCurrentX) < 1 && Math.abs(desiredY - cameraCurrentY) < 1) {
+            boolean anyStillMoving = false;
+            for (MapUnit u : units) { if (!u.movePath.isEmpty()) { anyStillMoving = true; break; } }
+            if (!anyStillMoving) { cameraTargetX = -1; cameraTargetY = -1; }
         }
     }
 
@@ -2169,6 +2721,19 @@ public class VersusGameplayScreen extends BaseScreen {
                 else defenderActor.setMode(getBattleMode(next.isCrit, combatDistance));
             } else {
                 battleEndDelay++;
+                
+                // ── Battle Cinematic Death Fade ──
+                if (battleEndDelay == 1) {
+                    if (activeBattle.attacker.hp <= 0) SoundManager.playFadeDieAway1();
+                    if (activeBattle.defender.hp <= 0) SoundManager.playFadeDieAway1();
+                }
+                if (activeBattle.attacker.hp <= 0 && attackerActor != null) {
+                    attackerActor.alpha = Math.max(0f, 1.0f - (battleEndDelay / 40f)); // Fade out over 40 frames
+                }
+                if (activeBattle.defender.hp <= 0 && defenderActor != null) {
+                    defenderActor.alpha = Math.max(0f, 1.0f - (battleEndDelay / 40f));
+                }
+
                 if (battleEndDelay > 60) {
                     isBattleActive = false;
                     BattleManager.Combatant a = activeBattle.attacker; BattleManager.Combatant d = activeBattle.defender;
@@ -2177,7 +2742,6 @@ public class VersusGameplayScreen extends BaseScreen {
                         a.mapUnit.hasActed = true;
                         if (a.hp <= 0) {
                             a.mapUnit.isDead = true;
-                            SoundManager.playFadeDieAway1();
                             units.remove(a.mapUnit);
                         }
                     }
@@ -2185,7 +2749,6 @@ public class VersusGameplayScreen extends BaseScreen {
                         d.mapUnit.currentHp = d.hp;
                         if (d.hp <= 0) {
                             d.mapUnit.isDead = true;
-                            SoundManager.playFadeDieAway1();
                             units.remove(d.mapUnit);
                         }
                     }

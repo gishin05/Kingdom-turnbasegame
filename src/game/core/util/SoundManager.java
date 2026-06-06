@@ -47,6 +47,7 @@ public class SoundManager {
     // Weather SFX
     private static Clip sfxRain;
     private static Clip sfxThunder;
+    private static Clip sfxWind;
 
     // Map SFX — Footsteps
     private static Clip sfxStepGrass;
@@ -62,13 +63,14 @@ public class SoundManager {
     }
 
     private static void initSounds() {
-        sfxCursor = loadOrSynthesize("HoverAudio.wav", generateCursorWave());
-        sfxDecide = loadOrSynthesize("decide.wav", generateDecideWave());
-        sfxCancel = loadOrSynthesize("cancel.wav", generateCancelWave());
-        sfxWindow = loadOrSynthesize("window.wav", generateWindowWave());
+        sfxCursor = loadAudioFile("HoverAudio.wav");
+        sfxDecide = loadAudioFile("decide.wav");
+        sfxCancel = loadAudioFile("cancel.wav");
+        sfxWindow = loadAudioFile("window.wav");
         
-        sfxRain = loadOrSynthesize("rain.wav", generateRainWave());
-        sfxThunder = loadOrSynthesize("thunder.wav", generateThunderWave());
+        sfxRain = loadAudioFile("rain.wav");
+        sfxThunder = loadAudioFile("thunder.wav");
+        sfxWind = loadAudioFile("wind.wav");
     }
 
     private static void initBgm() {
@@ -140,116 +142,7 @@ public class SoundManager {
         return null;
     }
 
-    private static Clip loadOrSynthesize(String filename, byte[] synthesizedFallback) {
-        File file = new File(GamePaths.BUNDLED_ROOT, "audio/" + filename);
-        if (file.exists()) {
-            try {
-                AudioInputStream stream = AudioSystem.getAudioInputStream(file);
-                Clip clip = AudioSystem.getClip();
-                clip.open(stream);
-                return clip;
-            } catch (Exception e) {
-                System.err.println("Failed to load WAV " + filename + ", falling back to synthesis.");
-            }
-        }
-        return createClip(synthesizedFallback);
-    }
 
-    private static Clip createClip(byte[] data) {
-        try {
-            AudioFormat format = new AudioFormat(8000, 8, 1, true, false);
-            Clip clip = AudioSystem.getClip();
-            clip.open(format, data, 0, data.length);
-            return clip;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    // --- PROCEDURAL RETRO SYNTHESIS ENGINE ---
-
-    private static byte[] generateCursorWave() {
-        int rate = 8000;
-        int len = (int)(rate * 0.05);
-        byte[] buf = new byte[len];
-        for (int i = 0; i < len; i++) {
-            double t = (double) i / rate;
-            double freq = (t < 0.02) ? 880 : 784;
-            double amp = Math.exp(-t * 120);
-            buf[i] = (byte)(Math.sin(2 * Math.PI * freq * t) * 127 * amp);
-        }
-        return buf;
-    }
-
-    private static byte[] generateDecideWave() {
-        int rate = 8000;
-        int len = (int)(rate * 0.15);
-        byte[] buf = new byte[len];
-        for (int i = 0; i < len; i++) {
-            double t = (double) i / rate;
-            double freq = (t < 0.04) ? 523.25 : 783.99; // C5 to G5
-            double amp = Math.exp(-t * 25);
-            buf[i] = (byte)(Math.sin(2 * Math.PI * freq * t) * 127 * amp);
-        }
-        return buf;
-    }
-
-    private static byte[] generateCancelWave() {
-        int rate = 8000;
-        int len = (int)(rate * 0.10);
-        byte[] buf = new byte[len];
-        for (int i = 0; i < len; i++) {
-            double t = (double) i / rate;
-            double freq = 330.0 - (t * 1500); // Descending frequency sweep
-            double amp = Math.exp(-t * 20);
-            buf[i] = (byte)(Math.sin(2 * Math.PI * freq * t) * 127 * amp);
-        }
-        return buf;
-    }
-
-    private static byte[] generateWindowWave() {
-        int rate = 8000;
-        int len = (int)(rate * 0.12);
-        byte[] buf = new byte[len];
-        for (int i = 0; i < len; i++) {
-            double t = (double) i / rate;
-            double freq = 392.0 + (t * 3000); // Rising swoop
-            double amp = Math.exp(-t * 8);
-            buf[i] = (byte)(Math.sin(2 * Math.PI * freq * t) * 127 * amp);
-        }
-        return buf;
-    }
-
-    private static byte[] generateRainWave() {
-        int rate = 8000;
-        int len = rate * 2; 
-        byte[] buf = new byte[len];
-        java.util.Random rnd = new java.util.Random(123);
-        double last = 0;
-        for (int i = 0; i < len; i++) {
-            double noise = (rnd.nextDouble() * 2 - 1) * 0.5;
-            double filtered = (last + noise) * 0.5;
-            last = filtered;
-            buf[i] = (byte)(filtered * 20); // soft volume
-        }
-        return buf;
-    }
-
-    private static byte[] generateThunderWave() {
-        int rate = 8000;
-        int len = (int)(rate * 1.5);
-        byte[] buf = new byte[len];
-        java.util.Random rnd = new java.util.Random();
-        for (int i = 0; i < len; i++) {
-            double t = (double) i / rate;
-            double noise = (rnd.nextDouble() * 2 - 1);
-            double amp = Math.exp(-t * 2); 
-            amp *= (1.0 + Math.sin(2 * Math.PI * 15 * t)) * 0.5; 
-            buf[i] = (byte)(noise * 127 * amp);
-        }
-        return buf;
-    }
 
     // --- PLAYBACK METHODS ---
 
@@ -278,6 +171,26 @@ public class SoundManager {
         } else {
             if (sfxRain.isActive() || sfxRain.isRunning()) {
                 sfxRain.stop();
+            }
+        }
+    }
+
+    public static void setWindLoop(boolean active) {
+        if (sfxWind == null) return;
+        if (active) {
+            if (!sfxWind.isRunning() && !sfxWind.isActive()) {
+                try {
+                    FloatControl gain = (FloatControl) sfxWind.getControl(FloatControl.Type.MASTER_GAIN);
+                    float dB = (sfxVolume <= 0f) ? gain.getMinimum() : (float) (20.0 * Math.log10(sfxVolume));
+                    dB = Math.max(gain.getMinimum(), Math.min(dB, gain.getMaximum()));
+                    gain.setValue(dB);
+                } catch (Exception ignored) {}
+                sfxWind.setFramePosition(0);
+                sfxWind.loop(Clip.LOOP_CONTINUOUSLY);
+            }
+        } else {
+            if (sfxWind.isActive() || sfxWind.isRunning()) {
+                sfxWind.stop();
             }
         }
     }
