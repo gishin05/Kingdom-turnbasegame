@@ -20,6 +20,9 @@ public class Tileset {
     
     // Terrain metadata mapping tile index to properties
     private Map<Integer, TerrainProperty> terrainMap = new HashMap<>();
+    
+    // Cache of individual tile images — independent copies for GPU acceleration
+    private Map<Integer, BufferedImage> tileCache = new HashMap<>();
 
     public Tileset(String name, File file) {
         this(name, file, 16, 16);
@@ -37,6 +40,9 @@ public class Tileset {
     public int getTileHeight() { return tileHeight; }
 
     public BufferedImage getTile(int id) {
+        BufferedImage cached = tileCache.get(id);
+        if (cached != null) return cached;
+        
         int cols = image.getWidth() / tileWidth;
         int x = (id % cols) * tileWidth;
         int y = (id / cols) * tileHeight;
@@ -44,7 +50,14 @@ public class Tileset {
         if (x + tileWidth > image.getWidth() || y + tileHeight > image.getHeight()) {
             return null;
         }
-        return image.getSubimage(x, y, tileWidth, tileHeight);
+        // Create an independent copy instead of getSubimage() view —
+        // subimage views share the parent DataBuffer and prevent GPU acceleration.
+        BufferedImage tile = new BufferedImage(tileWidth, tileHeight, BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D tg = tile.createGraphics();
+        tg.drawImage(image, 0, 0, tileWidth, tileHeight, x, y, x + tileWidth, y + tileHeight, null);
+        tg.dispose();
+        tileCache.put(id, tile);
+        return tile;
     }
 
     public int getMaxTileId() {

@@ -46,7 +46,11 @@ public class SpriteColorer {
 
         float targetHue = targetHSB[0];
         
-        int topLeft = src.getRGB(0, 0);
+        // Bulk read all pixels at once — much faster than per-pixel getRGB(x,y)
+        int[] srcPixels = src.getRGB(0, 0, w, h, null, 0, w);
+        int[] dstPixels = new int[srcPixels.length];
+        
+        int topLeft = srcPixels[0];
         int tAlpha = (topLeft >> 24) & 0xFF;
         int tR = (topLeft >> 16) & 0xFF;
         int tG = (topLeft >> 8) & 0xFF;
@@ -54,57 +58,60 @@ public class SpriteColorer {
         // Consider top-left pixel as background if it is significantly green or magenta
         boolean topLeftIsBackground = (tAlpha > 0 && ((tG > tR + 20 && tG > tB + 20) || (tR > 200 && tB > 200 && tG < 50)));
 
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                int argb = src.getRGB(x, y);
-                int alpha = (argb >> 24) & 0xFF;
+        float[] hsb = new float[3]; // Reuse array to avoid per-pixel allocation
+        
+        for (int i = 0; i < srcPixels.length; i++) {
+            int argb = srcPixels[i];
+            int alpha = (argb >> 24) & 0xFF;
 
-                if (alpha == 0) {
-                    result.setRGB(x, y, 0); // fully transparent
-                    continue;
-                }
+            if (alpha == 0) {
+                dstPixels[i] = 0; // fully transparent
+                continue;
+            }
 
-                int r = (argb >> 16) & 0xFF;
-                int g = (argb >> 8) & 0xFF;
-                int b = argb & 0xFF;
+            int r = (argb >> 16) & 0xFF;
+            int g = (argb >> 8) & 0xFF;
+            int b = argb & 0xFF;
 
-                boolean isBackground = false;
-                
-                if (topLeftIsBackground && argb == topLeft) {
-                    isBackground = true;
-                } else if (r == 112 && g == 248 && b == 112) {
-                    // Exact match for common FEBuilder green (#70F870)
-                    isBackground = true;
-                } else if (Math.abs(r - 168) < 10 && Math.abs(g - 208) < 10 && Math.abs(b - 160) < 10) {
-                    // Match for older/duller green exports, allowing slight variance but not broad sweeping greens
-                    isBackground = true;
-                }
+            boolean isBackground = false;
+            
+            if (topLeftIsBackground && argb == topLeft) {
+                isBackground = true;
+            } else if (r == 112 && g == 248 && b == 112) {
+                // Exact match for common FEBuilder green (#70F870)
+                isBackground = true;
+            } else if (Math.abs(r - 168) < 10 && Math.abs(g - 208) < 10 && Math.abs(b - 160) < 10) {
+                // Match for older/duller green exports, allowing slight variance but not broad sweeping greens
+                isBackground = true;
+            }
 
-                if (isBackground) {
-                    result.setRGB(x, y, 0);
-                    continue;
-                }
+            if (isBackground) {
+                dstPixels[i] = 0;
+                continue;
+            }
 
-                float[] hsb = Color.RGBtoHSB(r, g, b, null);
+            Color.RGBtoHSB(r, g, b, hsb);
 
-                // Check if this pixel is in the "blue team color" range
-                if (hsb[0] >= BLUE_HUE_MIN && hsb[0] <= BLUE_HUE_MAX && hsb[1] >= 0.08f) {
-                    if (isTargetAlreadyBlue) {
-                        // Original color is already blue; keep original artist's hand-drawn blue details!
-                        result.setRGB(x, y, argb);
-                    } else {
-                        // Scale original saturation and brightness by target's levels
-                        float newSat = hsb[1] * targetHSB[1];
-                        float newBri = hsb[2] * targetHSB[2];
-                        int newRGB = Color.HSBtoRGB(targetHue, newSat, newBri);
-                        // Preserve original alpha
-                        result.setRGB(x, y, (alpha << 24) | (newRGB & 0x00FFFFFF));
-                    }
+            // Check if this pixel is in the "blue team color" range
+            if (hsb[0] >= BLUE_HUE_MIN && hsb[0] <= BLUE_HUE_MAX && hsb[1] >= 0.08f) {
+                if (isTargetAlreadyBlue) {
+                    // Original color is already blue; keep original artist's hand-drawn blue details!
+                    dstPixels[i] = argb;
                 } else {
-                    result.setRGB(x, y, argb); // keep original
+                    // Scale original saturation and brightness by target's levels
+                    float newSat = hsb[1] * targetHSB[1];
+                    float newBri = hsb[2] * targetHSB[2];
+                    int newRGB = Color.HSBtoRGB(targetHue, newSat, newBri);
+                    // Preserve original alpha
+                    dstPixels[i] = (alpha << 24) | (newRGB & 0x00FFFFFF);
                 }
+            } else {
+                dstPixels[i] = argb; // keep original
             }
         }
+        
+        // Bulk write all pixels at once
+        result.setRGB(0, 0, w, h, dstPixels, 0, w);
 
         cache.put(key, result);
         return result;

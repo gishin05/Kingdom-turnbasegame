@@ -33,11 +33,22 @@ public class MovementEngine {
         MovementResult result = new MovementResult();
         if (u == null) return result;
 
+        // Pre-build enemy position set for O(1) blockage checks instead of O(units) per neighbor
+        Set<Point> enemyPositions = new HashSet<>();
+        for (MapUnit other : units) {
+            if (isEnemy(u, other) && !other.isDead) {
+                enemyPositions.add(other.position);
+            }
+        }
+
         PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingInt(n -> n.cost));
         queue.add(new Node(u.position, 0));
         
         Map<Point, Integer> moveCosts = new HashMap<>();
         moveCosts.put(u.position, 0);
+
+        // Pre-allocate neighbor array to reduce GC pressure in the hot loop
+        Point[] neighbors = new Point[4];
 
         while (!queue.isEmpty()) {
             Node current = queue.poll();
@@ -47,25 +58,16 @@ public class MovementEngine {
             
             result.moveRange.add(current.pos);
 
-            Point[] neighbors = {
-                new Point(current.pos.x, current.pos.y - 1),
-                new Point(current.pos.x, current.pos.y + 1),
-                new Point(current.pos.x - 1, current.pos.y),
-                new Point(current.pos.x + 1, current.pos.y)
-            };
+            neighbors[0] = new Point(current.pos.x, current.pos.y - 1);
+            neighbors[1] = new Point(current.pos.x, current.pos.y + 1);
+            neighbors[2] = new Point(current.pos.x - 1, current.pos.y);
+            neighbors[3] = new Point(current.pos.x + 1, current.pos.y);
 
             for (Point next : neighbors) {
                 if (next.x < 0 || next.x >= mapW || next.y < 0 || next.y >= mapH) continue;
                 
-                // Enemy blockage
-                boolean blockedByEnemy = false;
-                for (MapUnit other : units) {
-                    if (other.position.equals(next) && isEnemy(u, other)) {
-                        blockedByEnemy = true;
-                        break;
-                    }
-                }
-                if (blockedByEnemy) continue;
+                // O(1) enemy blockage check instead of iterating all units
+                if (enemyPositions.contains(next)) continue;
 
                 int cost = getTerrainCost(next.x, next.y, u.stats.unitType, mapData, mapTSData, loadedTilesets, mapW, mapH);
                 if (cost == -1) continue;

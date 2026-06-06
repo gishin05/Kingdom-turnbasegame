@@ -66,6 +66,13 @@ public class VersusGameplayScreen extends BaseScreen {
     private BufferedImage rainOverlay;
     private BufferedImage snowOverlay;
     
+    // ── Optimization Fields ──────────────────────────────────
+    private boolean fogDirty = true;                       // Recalculate fog only when true
+    private boolean needsRepaint = true;                   // Only repaint canvas when true
+    private List<MapUnit> sortedRenderUnits = new ArrayList<>(); // Pre-sorted render list
+    private boolean unitOrderDirty = true;                 // Re-sort only when true
+    private BufferedImage battleBuffer;                     // Reusable battle cinematic buffer
+    
     private void initWeatherOverlays() {
         if (rainOverlay != null) return;
         
@@ -809,6 +816,9 @@ public class VersusGameplayScreen extends BaseScreen {
         // Reset all units at the start of any turn so they regain their team colors
         for (MapUnit u : units) { u.hasActed = false; u.hasMoved = false; }
         recolorCache.clear(); // Ensure sprites are re-processed with team colors
+        fogDirty = true;           // Fog needs recalculation on turn change
+        unitOrderDirty = true;     // Re-sort units
+        needsRepaint = true;
 
         // ── Capture reset check ──────────────────────────────────
         // If the unit that was capturing has died or moved off the event tile, reset it
@@ -911,21 +921,57 @@ public class VersusGameplayScreen extends BaseScreen {
 
     private void renderGame(Graphics2D g) {
         if (mapData == null) return;
-        updateFogOfWar();
+        
+        // Only recalculate fog when state has changed
+        if (fogDirty) {
+            updateFogOfWar();
+            fogDirty = false;
+        }
+        
         g.scale(zoomScale, zoomScale);
-        for (int y = 0; y < mapH; y++) {
-            for (int x = 0; x < mapW; x++) {
+        
+        // ── Viewport culling: calculate visible tile range ──
+        Rectangle viewRect = scrollPane.getViewport().getViewRect();
+        int startX = Math.max(0, (int)(viewRect.x / (TILE_SIZE * zoomScale)) - 1);
+        int startY = Math.max(0, (int)(viewRect.y / (TILE_SIZE * zoomScale)) - 1);
+        int endX = Math.min(mapW, (int)((viewRect.x + viewRect.width) / (TILE_SIZE * zoomScale)) + 2);
+        int endY = Math.min(mapH, (int)((viewRect.y + viewRect.height) / (TILE_SIZE * zoomScale)) + 2);
+        
+        // ── Draw only visible tiles ──
+        for (int y = startY; y < endY; y++) {
+            for (int x = startX; x < endX; x++) {
                 String tsName = mapTSData[y][x]; Tileset ts = loadedTilesets.get(tsName);
                 if (ts != null) g.drawImage(ts.getTile(mapData[y][x]), x*16, y*16, 16, 16, null);
                 else g.fillRect(x*16, y*16, 16, 16);
             }
         }
-        for (EventInfo ev : eventMap.values()) drawFlag(g, ev);
-        for (Point p : attackRange) { g.setColor(new Color(255,50,50,120)); g.fillRect(p.x*16, p.y*16, 16, 16); }
-        for (Point p : moveRange) { g.setColor(new Color(0,100,255,120)); g.fillRect(p.x*16, p.y*16, 16, 16); }
-        List<MapUnit> sortedUnits = new ArrayList<>(units);
-        sortedUnits.sort(Comparator.comparingDouble(u -> u.renderPos.y));
-        for (MapUnit u : sortedUnits) {
+        
+        // ── Draw flags (only visible ones) ──
+        for (EventInfo ev : eventMap.values()) {
+            if (ev.x >= startX && ev.x < endX && ev.y >= startY && ev.y < endY) {
+                drawFlag(g, ev);
+            }
+        }
+        
+        // ── Draw range overlays (only visible tiles) ──
+        for (Point p : attackRange) {
+            if (p.x >= startX && p.x < endX && p.y >= startY && p.y < endY) {
+                g.setColor(new Color(255,50,50,120)); g.fillRect(p.x*16, p.y*16, 16, 16);
+            }
+        }
+        for (Point p : moveRange) {
+            if (p.x >= startX && p.x < endX && p.y >= startY && p.y < endY) {
+                g.setColor(new Color(0,100,255,120)); g.fillRect(p.x*16, p.y*16, 16, 16);
+            }
+        }
+        
+        // ── Draw units (cached sorted order) ──
+        if (unitOrderDirty) {
+            sortedRenderUnits = new ArrayList<>(units);
+            sortedRenderUnits.sort(Comparator.comparingDouble(u -> u.renderPos.y));
+            unitOrderDirty = false;
+        }
+        for (MapUnit u : sortedRenderUnits) {
             if (fogOfWarEnabled && visibleTiles != null) {
                 if (u.position.y >= 0 && u.position.y < mapH && u.position.x >= 0 && u.position.x < mapW) {
                     if (!visibleTiles[u.position.y][u.position.x] && u.ownerIndex != currentPlayerIdx) {
@@ -933,6 +979,11 @@ public class VersusGameplayScreen extends BaseScreen {
                     }
                 }
             }
+            // Viewport cull units: skip if entirely outside visible area
+            int ux = (int) Math.round(u.renderPos.x);
+            int uy = (int) Math.round(u.renderPos.y);
+            if (ux < startX - 2 || ux > endX + 1 || uy < startY - 2 || uy > endY + 1) continue;
+            
             String action = "Standing"; if (u == selectedUnit) action = "Selected";
             if (!u.movePath.isEmpty()) {
                 Point next = u.movePath.get(0);
@@ -968,11 +1019,11 @@ public class VersusGameplayScreen extends BaseScreen {
             }
         }
         
-        // ── Draw Fog of War Overlay ──
+        // ── Draw Fog of War Overlay (viewport-culled) ──
         if (fogOfWarEnabled && visibleTiles != null) {
             g.setColor(new Color(0, 0, 0, 160));
-            for (int y = 0; y < mapH; y++) {
-                for (int x = 0; x < mapW; x++) {
+            for (int y = startY; y < endY; y++) {
+                for (int x = startX; x < endX; x++) {
                     if (!visibleTiles[y][x]) {
                         g.fillRect(x * 16, y * 16, 16, 16);
                     }
@@ -980,17 +1031,20 @@ public class VersusGameplayScreen extends BaseScreen {
             }
         }
         
-        // ── Draw Weather Layer ──
+        // ── Draw Weather Layer (viewport-culled) ──
         if (currentWeather != Weather.NONE) {
             initWeatherOverlays();
             long t = System.currentTimeMillis();
-            int mw = mapW * 16;
-            int mh = mapH * 16;
+            // Use viewport bounds instead of full map for weather tiling
+            int vx0 = startX * 16;
+            int vy0 = startY * 16;
+            int vx1 = endX * 16;
+            int vy1 = endY * 16;
             
             if (currentWeather == Weather.RAIN || currentWeather == Weather.THUNDERSTORM) {
                 if (currentWeather == Weather.THUNDERSTORM) {
                     g.setColor(new Color(0, 0, 30, 80));
-                    g.fillRect(0, 0, mw, mh);
+                    g.fillRect(vx0, vy0, vx1 - vx0, vy1 - vy0);
                 }
                 
                 int speed = 15;
@@ -999,11 +1053,14 @@ public class VersusGameplayScreen extends BaseScreen {
                 if (offsetX > 0) offsetX -= 256;
                 if (offsetY > 0) offsetY -= 256;
                 
-                for (int y = offsetY - 256; y < mh; y += 256) {
-                    for (int x = offsetX - 256; x < mw; x += 256) {
+                // Snap to tile-aligned start for weather overlay
+                int wxStart = ((vx0 / 256) * 256) + offsetX - 256;
+                int wyStart = ((vy0 / 256) * 256) + offsetY - 256;
+                
+                for (int y = wyStart; y < vy1; y += 256) {
+                    for (int x = wxStart; x < vx1; x += 256) {
                         g.drawImage(rainOverlay, x, y, null);
                         if (currentWeather == Weather.THUNDERSTORM) {
-                            // Draw a second faster/denser layer for thunderstorm
                             g.drawImage(rainOverlay, x + 128, y - 128, null);
                         }
                     }
@@ -1011,7 +1068,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 
                 if (currentWeather == Weather.THUNDERSTORM && Math.random() < 0.02) {
                     g.setColor(new Color(255, 255, 255, 120));
-                    g.fillRect(0, 0, mw, mh);
+                    g.fillRect(vx0, vy0, vx1 - vx0, vy1 - vy0);
                 }
             } else if (currentWeather == Weather.SNOW) {
                 int offsetY = (int) ((t / 40) % 256);
@@ -1020,8 +1077,11 @@ public class VersusGameplayScreen extends BaseScreen {
                 int offsetX = (sway % 256);
                 if (offsetX > 0) offsetX -= 256;
 
-                for (int y = offsetY - 256; y < mh; y += 256) {
-                    for (int x = offsetX - 256; x < mw + 256; x += 256) {
+                int wxStart = ((vx0 / 256) * 256) + offsetX - 256;
+                int wyStart = ((vy0 / 256) * 256) + offsetY - 256;
+                
+                for (int y = wyStart; y < vy1; y += 256) {
+                    for (int x = wxStart; x < vx1 + 256; x += 256) {
                         g.drawImage(snowOverlay, x, y, null);
                     }
                 }
@@ -1057,8 +1117,15 @@ public class VersusGameplayScreen extends BaseScreen {
         g.setColor(new Color(5, 5, 10));
         g.fillRect(0, 0, screenW, screenH);
 
-        BufferedImage buffer = new BufferedImage(248, 160, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D bg2d = buffer.createGraphics();
+        // Reuse pre-allocated battle buffer instead of allocating every frame
+        if (battleBuffer == null) {
+            battleBuffer = new BufferedImage(248, 160, BufferedImage.TYPE_INT_ARGB);
+        }
+        Graphics2D bg2d = battleBuffer.createGraphics();
+        // Clear buffer before reuse
+        bg2d.setComposite(java.awt.AlphaComposite.Clear);
+        bg2d.fillRect(0, 0, 248, 160);
+        bg2d.setComposite(java.awt.AlphaComposite.SrcOver);
 
         if (battleBg != null) {
             bg2d.drawImage(battleBg, 0, 0, 248, 160, null);
@@ -1113,7 +1180,7 @@ public class VersusGameplayScreen extends BaseScreen {
             sy = (int)(Math.random() * 8 * scale - 4 * scale);
         }
 
-        g.drawImage(buffer, drawX + sx, drawY + sy, scaledW, scaledH, null);
+        g.drawImage(battleBuffer, drawX + sx, drawY + sy, scaledW, scaledH, null);
 
         if (flashTimer > 0) {
             g.setColor(new Color(255, 255, 255, 180));
@@ -1499,7 +1566,9 @@ public class VersusGameplayScreen extends BaseScreen {
     private void cancelMove() {
         if (selectedUnit != null && oldUnitPos != null) {
             selectedUnit.position = new Point(oldUnitPos); selectedUnit.renderPos.x = oldUnitPos.x; selectedUnit.renderPos.y = oldUnitPos.y;
-            selectedUnit.hasMoved = false; selectedUnit.movePath.clear(); selectedUnit = null; oldUnitPos = null; canvasPanel.repaint();
+            selectedUnit.hasMoved = false; selectedUnit.movePath.clear(); selectedUnit = null; oldUnitPos = null; 
+            fogDirty = true; unitOrderDirty = true; needsRepaint = true;
+            canvasPanel.repaint();
         }
     }
 
@@ -2009,7 +2078,7 @@ public class VersusGameplayScreen extends BaseScreen {
         MapUnit u = new MapUnit(cat, name, MapUnit.Faction.PLAYER, new Point(ev.x, ev.y)); u.ownerIndex = currentPlayerIdx;
         WeaponItem ironLance = WeaponItem.byName("Iron Lance"); ironLance.maxUses = 20; ironLance.currentUses = 20; u.addItem(ironLance);
         WeaponItem javelin = WeaponItem.byName("Javelin"); javelin.maxUses = 10; javelin.currentUses = 10; u.addItem(javelin);
-        units.add(u); loadAnims(u); canvasPanel.repaint();
+        units.add(u); loadAnims(u); unitOrderDirty = true; fogDirty = true; needsRepaint = true; canvasPanel.repaint();
     }
 
     @Override public void update() {
@@ -2018,28 +2087,34 @@ public class VersusGameplayScreen extends BaseScreen {
         if (isCaptureAnimActive) { updateCaptureAnim(); canvasPanel.repaint(); repaint(); return; }
         if (phaseBannerTimer > 0) {
             phaseBannerTimer--;
+            needsRepaint = true;
             repaint();
         }
+        boolean anyMoving = false;
+        boolean anyAnimated = false;
         for (int i = 0; i < units.size(); i++) {
-            MapUnit u = units.get(i); u.animTimer++; if (u.animTimer > 10) { u.animFrame++; u.animTimer = 0; }
+            MapUnit u = units.get(i); u.animTimer++;
+            if (u.animTimer > 10) { u.animFrame++; u.animTimer = 0; anyAnimated = true; }
             if (!u.movePath.isEmpty()) {
+                anyMoving = true;
                 Point target = u.movePath.get(0); double speed = 0.25; double dx = target.x - u.renderPos.x, dy = target.y - u.renderPos.y;
                 if (Math.abs(dx) > speed) u.renderPos.x += Math.signum(dx) * speed; else u.renderPos.x = target.x;
                 if (Math.abs(dy) > speed) u.renderPos.y += Math.signum(dy) * speed; else u.renderPos.y = target.y;
                 if (u.renderPos.x == target.x && u.renderPos.y == target.y) {
                     u.movePath.remove(0);
+                    unitOrderDirty = true; // Unit Y position changed
                     if (isArmoredSubtype(u)) SoundManager.playStepHeavy();
                     else if (isMountedSubtype(u)) SoundManager.playStepHorse();
                     else if (isInfantrySubtype(u)) SoundManager.playStepInfantry();
                     else SoundManager.playFootstep();
-                    if (u.movePath.isEmpty()) { u.position = new Point(target); showActionMenu(u); }
+                    if (u.movePath.isEmpty()) { u.position = new Point(target); fogDirty = true; showActionMenu(u); }
                 }
             }
         }
-        if (currentWeather != Weather.NONE) {
+        // Only repaint when something actually changed
+        if (anyMoving || anyAnimated || currentWeather != Weather.NONE || needsRepaint) {
             canvasPanel.repaint();
-        } else {
-            canvasPanel.repaint();
+            needsRepaint = false;
         }
     }
 
@@ -2092,6 +2167,9 @@ public class VersusGameplayScreen extends BaseScreen {
                             units.remove(d.mapUnit);
                         }
                     }
+                    fogDirty = true;         // Fog may have changed if units died
+                    unitOrderDirty = true;   // Unit list changed
+                    needsRepaint = true;
                     selectedUnit = null; activeBattle = null; attackerActor = null; defenderActor = null;
                 }
             }
