@@ -49,13 +49,17 @@ public class VersusGameplayScreen extends BaseScreen {
     private JPanel canvasPanel;
     private JScrollPane scrollPane;
     private JLabel dayLabel, goldLabel;
+    private JPanel playerPanel;
+    private JPanel enemyPanel;
+    private JLabel enemyNameLabel;
+    private JLabel enemyHpLabel;
+    private MapUnit selectedEnemy = null;
     private int phaseBannerTimer = 0;
     private String lastLoadedMapPath;
 
     private JLayeredPane gameLayer;
     private JPanel menuOverlay;
     private boolean isPaused = false;
-    private JButton menuBtn;
     
     private Map<String, List<BufferedImage>> mapAnimCache = new HashMap<>();
     private Map<String, BufferedImage> recolorCache = new HashMap<>();
@@ -90,6 +94,7 @@ public class VersusGameplayScreen extends BaseScreen {
 
     // ── Path Arrow Preview Fields ─────────────────────────
     private Point hoveredTile = null;                        // Tile currently under mouse cursor
+    private Point lastKnownMouseViewPos = null;              // Used for edge cursor panning
     private List<Point> previewPath = new ArrayList<>();     // Preview path from unit to hovered tile
     private Map<MapUnit, Integer> healthBarTimers = new HashMap<>(); // Timed health bar display (frames remaining)
     private Map<MapUnit, Double> animatedHpMap = new HashMap<>();    // Smooth trailing HP bar animation
@@ -443,10 +448,13 @@ public class VersusGameplayScreen extends BaseScreen {
         gameLayer = new JLayeredPane();
         add(gameLayer, BorderLayout.CENTER);
         gameLayer.add(scrollPane, JLayeredPane.DEFAULT_LAYER);
+        
+        gameLayer.add(playerPanel, JLayeredPane.PALETTE_LAYER);
+        gameLayer.add(enemyPanel, JLayeredPane.PALETTE_LAYER);
 
         menuOverlay = buildMenuOverlay();
         menuOverlay.setVisible(false);
-        gameLayer.add(menuOverlay, JLayeredPane.PALETTE_LAYER);
+        gameLayer.add(menuOverlay, JLayeredPane.MODAL_LAYER);
 
         addComponentListener(new ComponentAdapter() {
             @Override public void componentResized(ComponentEvent e) {
@@ -492,23 +500,54 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private void initUI() {
-        JPanel topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(30, 30, 40));
-        dayLabel = new JLabel("DAY 1"); dayLabel.setFont(Theme.getPixelFont(18f)); dayLabel.setForeground(Color.WHITE);
-        goldLabel = new JLabel("🪙 0"); goldLabel.setFont(Theme.getPixelFont(18f)); goldLabel.setForeground(Color.YELLOW);
-        JButton btnEnd = new JButton("END TURN"); btnEnd.addActionListener(e -> nextTurn());
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
-        left.setOpaque(false);
-        left.add(dayLabel); left.add(goldLabel); left.add(btnEnd);
-        topBar.add(left, BorderLayout.WEST);
+        playerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
+        playerPanel.setBackground(new Color(30, 30, 40, 220));
+        playerPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 215, 0, 100), 3),
+            BorderFactory.createEmptyBorder(20, 35, 20, 35)
+        ));
+        
+        dayLabel = new JLabel("DAY 1"); dayLabel.setFont(Theme.getPixelFont(26f)); dayLabel.setForeground(Color.WHITE);
+        goldLabel = new JLabel("🪙 0"); goldLabel.setFont(Theme.getPixelFont(26f)); goldLabel.setForeground(Color.YELLOW);
+        
+        playerPanel.add(dayLabel);
+        playerPanel.add(Box.createHorizontalStrut(25));
+        playerPanel.add(goldLabel);
 
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
-        right.setOpaque(false);
-        menuBtn = new JButton("MENU");
-        menuBtn.addActionListener(e -> toggleMenu());
-        right.add(menuBtn);
-        topBar.add(right, BorderLayout.EAST);
-        add(topBar, BorderLayout.NORTH);
+        enemyPanel = new JPanel();
+        enemyPanel.setLayout(new BoxLayout(enemyPanel, BoxLayout.Y_AXIS));
+        enemyPanel.setBackground(new Color(30, 30, 40, 220));
+        enemyPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 100, 100, 150), 3),
+            BorderFactory.createEmptyBorder(25, 40, 25, 40)
+        ));
+        
+        enemyNameLabel = new JLabel("Enemy");
+        enemyNameLabel.setFont(Theme.getPixelFont(26f));
+        enemyNameLabel.setForeground(Color.WHITE);
+        enemyNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        enemyHpLabel = new JLabel("HP: 0/0");
+        enemyHpLabel.setFont(Theme.getPixelFont(20f));
+        enemyHpLabel.setForeground(new Color(255, 100, 100));
+        enemyHpLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        enemyPanel.add(enemyNameLabel);
+        enemyPanel.add(Box.createVerticalStrut(15));
+        enemyPanel.add(enemyHpLabel);
+        enemyPanel.setVisible(false);
+    }
+
+    private void updateEnemyPanel() {
+        if (selectedEnemy != null) {
+            enemyNameLabel.setText(selectedEnemy.unitName);
+            enemyHpLabel.setText("HP: " + selectedEnemy.currentHp + " / " + selectedEnemy.stats.maxHp);
+            enemyPanel.setVisible(true);
+            enemyPanel.setSize(enemyPanel.getPreferredSize());
+            layoutGameLayer();
+        } else {
+            enemyPanel.setVisible(false);
+        }
     }
 
     private void layoutGameLayer() {
@@ -518,6 +557,15 @@ public class VersusGameplayScreen extends BaseScreen {
         if (w <= 0 || h <= 0) return;
         scrollPane.setBounds(0, 0, w, h);
         if (menuOverlay != null) menuOverlay.setBounds(0, 0, w, h);
+        
+        if (playerPanel != null) {
+            Dimension pSize = playerPanel.getPreferredSize();
+            playerPanel.setBounds(10, 10, pSize.width, pSize.height);
+        }
+        if (enemyPanel != null && enemyPanel.isVisible()) {
+            Dimension eSize = enemyPanel.getPreferredSize();
+            enemyPanel.setBounds(w - eSize.width - 10, 10, eSize.width, eSize.height);
+        }
     }
 
     private JPanel buildMenuOverlay() {
@@ -836,6 +884,7 @@ public class VersusGameplayScreen extends BaseScreen {
         dayLabel.setText("DAY " + currentDay + " - PLAYER " + (currentPlayerIdx + 1));
         dayLabel.setForeground(p.color);
         goldLabel.setText("🪙 " + p.gold);
+        layoutGameLayer();
         
         // ── Weather Logic ──
         if (currentPlayerIdx == 0) {
@@ -995,6 +1044,36 @@ public class VersusGameplayScreen extends BaseScreen {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    private void drawCursor(Graphics2D g, int tx, int ty) {
+        long t = System.currentTimeMillis();
+        int offset = (int)(Math.sin(t / 150.0) * 2); // Animate in and out by 2 pixels
+        
+        g.setStroke(new BasicStroke(2f));
+        g.setColor(new Color(255, 255, 255, 200));
+        
+        int px = tx * 16;
+        int py = ty * 16;
+        int size = 16;
+        
+        // Draw 4 corners moving in and out
+        // Top-left
+        g.drawPolyline(new int[]{px - offset, px - offset, px + 3 - offset}, 
+                       new int[]{py + 3 - offset, py - offset, py - offset}, 3);
+        // Top-right
+        g.drawPolyline(new int[]{px + size - 3 + offset, px + size + offset, px + size + offset}, 
+                       new int[]{py - offset, py - offset, py + 3 - offset}, 3);
+        // Bottom-right
+        g.drawPolyline(new int[]{px + size + offset, px + size + offset, px + size - 3 + offset}, 
+                       new int[]{py + size - 3 + offset, py + size + offset, py + size + offset}, 3);
+        // Bottom-left
+        g.drawPolyline(new int[]{px + 3 - offset, px - offset, px - offset}, 
+                       new int[]{py + size + offset, py + size + offset, py + size - 3 + offset}, 3);
+                       
+        // Inner fill
+        g.setColor(new Color(255, 255, 255, 40));
+        g.fillRect(px, py, size, size);
+    }
+
     private void renderGame(Graphics2D g) {
         if (mapData == null) return;
         
@@ -1050,6 +1129,14 @@ public class VersusGameplayScreen extends BaseScreen {
         // ── Draw path arrows (preview path from selected unit to hovered tile) ──
         if (!previewPath.isEmpty()) {
             drawPathArrows(g, previewPath, startX, startY, endX, endY);
+        }
+        
+        // ── Draw Cursor (Animated) ──
+        if (hoveredTile != null || selectedUnit != null) {
+            Point target = (hoveredTile != null) ? hoveredTile : selectedUnit.position;
+            if (target.x >= startX && target.x < endX && target.y >= startY && target.y < endY) {
+                drawCursor(g, target.x, target.y);
+            }
         }
         
         // ── Draw units (cached sorted order) ──
@@ -1670,6 +1757,15 @@ public class VersusGameplayScreen extends BaseScreen {
                 } else {
                     selectedUnit = null; moveRange.clear(); attackRange.clear(); previewPath.clear(); hoveredTile = null; MapUnit clickedUnit = null;
                     for (MapUnit u : units) if (u.position.equals(p)) { clickedUnit = u; break; }
+                    
+                    if (clickedUnit != null && clickedUnit.ownerIndex != currentPlayerIdx) {
+                        selectedEnemy = clickedUnit;
+                        updateEnemyPanel();
+                    } else {
+                        selectedEnemy = null;
+                        updateEnemyPanel();
+                    }
+
                     if (clickedUnit != null && !clickedUnit.hasActed && !clickedUnit.hasMoved && clickedUnit.ownerIndex == currentPlayerIdx) {
                         selectedUnit = clickedUnit; calculateMoveRange(clickedUnit);
                     } else if (clickedUnit == null) {
@@ -1677,7 +1773,12 @@ public class VersusGameplayScreen extends BaseScreen {
                         if (ev != null && ev.owner == currentPlayerIdx) {
                             boolean occupied = false; for (MapUnit u : units) if (u.position.equals(p)) { occupied = true; break; }
                             if (!occupied) showDeployMenu(ev);
+                            else showGlobalMenu(e.getX(), e.getY());
+                        } else {
+                            showGlobalMenu(e.getX(), e.getY());
                         }
+                    } else {
+                        showGlobalMenu(e.getX(), e.getY());
                     }
                 }
                 canvasPanel.repaint();
@@ -1685,6 +1786,7 @@ public class VersusGameplayScreen extends BaseScreen {
         });
         canvasPanel.addMouseMotionListener(new MouseAdapter() {
             @Override public void mouseDragged(MouseEvent e) {
+                lastKnownMouseViewPos = null;
                 if (lastMousePos != null) {
                     int dx = lastMousePos.x - e.getX();
                     int dy = lastMousePos.y - e.getY();
@@ -1708,6 +1810,10 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
             }
             @Override public void mouseMoved(MouseEvent e) {
+                JViewport viewPort = scrollPane.getViewport();
+                Point vPos = viewPort.getViewPosition();
+                lastKnownMouseViewPos = new Point(e.getX() - vPos.x, e.getY() - vPos.y);
+                
                 int tx = (int)(e.getX() / (16 * zoomScale));
                 int ty = (int)(e.getY() / (16 * zoomScale));
                 Point newHover = new Point(tx, ty);
@@ -1721,6 +1827,9 @@ public class VersusGameplayScreen extends BaseScreen {
         canvasPanel.addMouseListener(new MouseAdapter() {
             @Override public void mouseReleased(MouseEvent e) {
                 lastDragPoint = null; // Inertia will carry from panVelocity
+            }
+            @Override public void mouseExited(MouseEvent e) {
+                lastKnownMouseViewPos = null;
             }
         });
     }
@@ -2018,8 +2127,17 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private void showActionMenu(MapUnit u) {
-        int menuX = (int)(u.position.x * 16 * zoomScale);
-        int menuY = (int)(u.position.y * 16 * zoomScale);
+        int tileX = (int)(u.position.x * 16 * zoomScale);
+        int tileY = (int)(u.position.y * 16 * zoomScale);
+        
+        int menuX = tileX + (int)(24 * zoomScale);
+        int menuY = tileY - (int)(8 * zoomScale);
+        
+        Rectangle viewRect = scrollPane.getViewport().getViewRect();
+        if (menuX + 200 > viewRect.x + viewRect.width) {
+            menuX = tileX - 200; // Place it on the left if too close to right edge
+        }
+        
         showMainActionMenu(u, menuX, menuY);
     }
 
@@ -2038,8 +2156,35 @@ public class VersusGameplayScreen extends BaseScreen {
         return ev != null && ev.owner != u.ownerIndex;
     }
 
-    private void showMainActionMenu(MapUnit u, int x, int y) {
+    private JPopupMenu createStyledMenu() {
         JPopupMenu menu = new JPopupMenu();
+        menu.setBackground(new Color(40, 40, 50));
+        menu.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 215, 0, 180), 2),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        return menu;
+    }
+
+    private JMenuItem createStyledMenuItem(String text) {
+        JMenuItem item = new JMenuItem(text);
+        item.setFont(Theme.getPixelFont(16f));
+        item.setForeground(Color.WHITE);
+        item.setBackground(new Color(40, 40, 50));
+        item.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        item.setOpaque(true);
+        item.addChangeListener(e -> {
+            if (item.isArmed()) {
+                item.setBackground(new Color(100, 100, 120));
+            } else {
+                item.setBackground(new Color(40, 40, 50));
+            }
+        });
+        return item;
+    }
+
+    private void showMainActionMenu(MapUnit u, int x, int y) {
+        JPopupMenu menu = createStyledMenu();
         
         // --- 1. Attack Option ---
         boolean hasAttackOptions = false;
@@ -2060,7 +2205,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         if (hasAttackOptions) {
-            JMenuItem attackOpt = new JMenuItem("Attack");
+            JMenuItem attackOpt = createStyledMenuItem("Attack");
             attackOpt.addActionListener(e -> {
                 menu.setVisible(false);
                 showWeaponSelectionMenu(u, x, y);
@@ -2072,7 +2217,7 @@ public class VersusGameplayScreen extends BaseScreen {
         if (canCapture(u)) {
             EventInfo ev = eventMap.get(u.position);
             String captureLabel = "Capture";
-            JMenuItem captureOpt = new JMenuItem(captureLabel);
+            JMenuItem captureOpt = createStyledMenuItem(captureLabel);
             captureOpt.addActionListener(e -> {
                 menu.setVisible(false);
                 performCapture(u, ev);
@@ -2090,7 +2235,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         if (hasItemOptions) {
-            JMenuItem itemOpt = new JMenuItem("Item");
+            JMenuItem itemOpt = createStyledMenuItem("Item");
             itemOpt.addActionListener(e -> {
                 menu.setVisible(false);
                 showItemSelectionMenu(u, x, y);
@@ -2099,7 +2244,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         // --- 4. Wait Option ---
-        JMenuItem waitOpt = new JMenuItem("Wait");
+        JMenuItem waitOpt = createStyledMenuItem("Wait");
         waitOpt.addActionListener(e -> {
             menu.setVisible(false);
             u.hasActed = true;
@@ -2272,7 +2417,7 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private void showWeaponSelectionMenu(MapUnit u, int x, int y) {
-        JPopupMenu menu = new JPopupMenu();
+        JPopupMenu menu = createStyledMenu();
         
         for (WeaponItem wi : u.inventory) {
             if (wi.isWeapon() && !wi.isBroken()) {
@@ -2287,7 +2432,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
                 
                 if (!targets.isEmpty()) {
-                    JMenuItem wpnOpt = new JMenuItem(wi.name + " (" + wi.currentUses + "/" + wi.maxUses + ")");
+                    JMenuItem wpnOpt = createStyledMenuItem(wi.name + " (" + wi.currentUses + "/" + wi.maxUses + ")");
                     wpnOpt.addActionListener(e -> {
                         menu.setVisible(false);
                         showTargetSelectionMenu(u, wi, targets, x, y);
@@ -2298,7 +2443,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         // Back option
-        JMenuItem backOpt = new JMenuItem("< Back");
+        JMenuItem backOpt = createStyledMenuItem("< Back");
         backOpt.addActionListener(e -> {
             menu.setVisible(false);
             showMainActionMenu(u, x, y);
@@ -2309,10 +2454,10 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private void showTargetSelectionMenu(MapUnit u, WeaponItem wi, List<MapUnit> targets, int x, int y) {
-        JPopupMenu menu = new JPopupMenu();
+        JPopupMenu menu = createStyledMenu();
         
         for (MapUnit target : targets) {
-            JMenuItem targetOpt = new JMenuItem(target.unitName + " (HP: " + target.currentHp + "/" + target.stats.maxHp + ")");
+            JMenuItem targetOpt = createStyledMenuItem(target.unitName + " (HP: " + target.currentHp + "/" + target.stats.maxHp + ")");
             targetOpt.addActionListener(e -> {
                 menu.setVisible(false);
                 // Equip this weapon
@@ -2329,7 +2474,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         // Back option
-        JMenuItem backOpt = new JMenuItem("< Back");
+        JMenuItem backOpt = createStyledMenuItem("< Back");
         backOpt.addActionListener(e -> {
             menu.setVisible(false);
             showWeaponSelectionMenu(u, x, y);
@@ -2340,11 +2485,11 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private void showItemSelectionMenu(MapUnit u, int x, int y) {
-        JPopupMenu menu = new JPopupMenu();
+        JPopupMenu menu = createStyledMenu();
         
         for (WeaponItem wi : u.inventory) {
             if (!wi.isBroken()) {
-                JMenuItem itemOpt = new JMenuItem(wi.name + " (" + wi.currentUses + "/" + wi.maxUses + ")");
+                JMenuItem itemOpt = createStyledMenuItem(wi.name + " (" + wi.currentUses + "/" + wi.maxUses + ")");
                 itemOpt.addActionListener(e -> {
                     menu.setVisible(false);
                     showItemActionMenu(u, wi, x, y);
@@ -2354,7 +2499,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         // Back option
-        JMenuItem backOpt = new JMenuItem("< Back");
+        JMenuItem backOpt = createStyledMenuItem("< Back");
         backOpt.addActionListener(e -> {
             menu.setVisible(false);
             showMainActionMenu(u, x, y);
@@ -2365,10 +2510,10 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private void showItemActionMenu(MapUnit u, WeaponItem wi, int x, int y) {
-        JPopupMenu menu = new JPopupMenu();
+        JPopupMenu menu = createStyledMenu();
         
         if (wi.isWeapon()) {
-            JMenuItem equipOpt = new JMenuItem("Equip");
+            JMenuItem equipOpt = createStyledMenuItem("Equip");
             equipOpt.addActionListener(e -> {
                 menu.setVisible(false);
                 int idx = u.inventory.indexOf(wi);
@@ -2381,7 +2526,7 @@ public class VersusGameplayScreen extends BaseScreen {
             });
             menu.add(equipOpt);
         } else {
-            JMenuItem useOpt = new JMenuItem("Use (Heal 20 HP)");
+            JMenuItem useOpt = createStyledMenuItem("Use (Heal 20 HP)");
             useOpt.addActionListener(e -> {
                 menu.setVisible(false);
                 u.heal(20);
@@ -2395,7 +2540,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         // Back option
-        JMenuItem backOpt = new JMenuItem("< Back");
+        JMenuItem backOpt = createStyledMenuItem("< Back");
         backOpt.addActionListener(e -> {
             menu.setVisible(false);
             showItemSelectionMenu(u, x, y);
@@ -2429,7 +2574,7 @@ public class VersusGameplayScreen extends BaseScreen {
         // Refresh the UnitRegistry to capture any newly created unit directories
         game.core.unit.UnitRegistry.reload();
         
-        JPopupMenu menu = new JPopupMenu();
+        JPopupMenu menu = createStyledMenu();
         String targetCategory;
         if ("ARMORY".equals(ev.type)) {
             targetCategory = "Unit";
@@ -2455,7 +2600,7 @@ public class VersusGameplayScreen extends BaseScreen {
                     File us = new File(unitsDir, name);
                     if (us.exists() && us.isDirectory()) {
                         int price = DeploymentEngine.calculatePrice(targetCategory, name);
-                        JMenuItem buyItem = new JMenuItem("Deploy " + name + " ($" + price + ")");
+                        JMenuItem buyItem = createStyledMenuItem("Deploy " + name + " ($" + price + ")");
                         buyItem.addActionListener(e -> deployUnit(targetCategory, name, price, ev));
                         menu.add(buyItem);
                     }
@@ -2466,35 +2611,59 @@ public class VersusGameplayScreen extends BaseScreen {
         // Fallbacks if no units found
         if (menu.getComponentCount() == 0) {
             if ("ARMORY".equals(ev.type)) {
-                JMenuItem buyKnight = new JMenuItem("Deploy Knight ($500)");
+                JMenuItem buyKnight = createStyledMenuItem("Deploy Knight ($500)");
                 buyKnight.addActionListener(e -> deployUnit("Unit", "Knight", 500, ev));
                 menu.add(buyKnight);
             } else if ("HQ".equals(ev.type)) {
-                JMenuItem buyEphraim = new JMenuItem("Deploy Ephraim ($1000)");
+                JMenuItem buyEphraim = createStyledMenuItem("Deploy Ephraim ($1000)");
                 buyEphraim.addActionListener(e -> deployUnit("Champion", "Ephraim", 1000, ev));
                 menu.add(buyEphraim);
             } else if ("FORT".equals(ev.type)) {
-                JMenuItem buyShip = new JMenuItem("Deploy Battleship ($800)");
+                JMenuItem buyShip = createStyledMenuItem("Deploy Battleship ($800)");
                 buyShip.addActionListener(e -> deployUnit("Ocean Unit", "Battleship", 800, ev));
                 menu.add(buyShip);
             } else if ("AERIE".equals(ev.type)) {
-                JMenuItem buyPegasus = new JMenuItem("Deploy Pegasus ($600)");
+                JMenuItem buyPegasus = createStyledMenuItem("Deploy Pegasus ($600)");
                 buyPegasus.addActionListener(e -> deployUnit("Air Unit", "Pegasus", 600, ev));
                 menu.add(buyPegasus);
             }
         }
 
-        menu.show(canvasPanel, (int)(ev.x*16*zoomScale), (int)(ev.y*16*zoomScale));
+        int tileX = (int)(ev.x * 16 * zoomScale);
+        int tileY = (int)(ev.y * 16 * zoomScale);
+        int menuX = tileX + (int)(24 * zoomScale);
+        int menuY = tileY - (int)(8 * zoomScale);
+        
+        Rectangle viewRect = scrollPane.getViewport().getViewRect();
+        if (menuX + 200 > viewRect.x + viewRect.width) {
+            menuX = tileX - 200;
+        }
+        
+        menu.show(canvasPanel, menuX, menuY);
     }
 
     private void deployUnit(String cat, String name, int cost, EventInfo ev) {
         VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
         if (p.gold < cost) { JOptionPane.showMessageDialog(this, "Not enough gold!"); return; }
-        p.gold -= cost; goldLabel.setText("🪙 " + p.gold);
+        p.gold -= cost; goldLabel.setText("🪙 " + p.gold); layoutGameLayer();
         MapUnit u = new MapUnit(cat, name, MapUnit.Faction.PLAYER, new Point(ev.x, ev.y)); u.ownerIndex = currentPlayerIdx;
         WeaponItem ironLance = WeaponItem.byName("Iron Lance"); ironLance.maxUses = 20; ironLance.currentUses = 20; u.addItem(ironLance);
         WeaponItem javelin = WeaponItem.byName("Javelin"); javelin.maxUses = 10; javelin.currentUses = 10; u.addItem(javelin);
         units.add(u); loadAnims(u); unitOrderDirty = true; fogDirty = true; needsRepaint = true; canvasPanel.repaint();
+    }
+
+    private void showGlobalMenu(int x, int y) {
+        JPopupMenu menu = createStyledMenu();
+        
+        JMenuItem endTurnOpt = createStyledMenuItem("End Turn");
+        endTurnOpt.addActionListener(e -> nextTurn());
+        menu.add(endTurnOpt);
+        
+        JMenuItem settingsOpt = createStyledMenuItem("Settings (Menu)");
+        settingsOpt.addActionListener(e -> toggleMenu());
+        menu.add(settingsOpt);
+        
+        menu.show(canvasPanel, x, y);
     }
 
     @Override public void update() {
@@ -2582,7 +2751,6 @@ public class VersusGameplayScreen extends BaseScreen {
                 Point target = u.movePath.get(0);
                 double dx = target.x - u.renderPos.x;
                 double dy = target.y - u.renderPos.y;
-                double dist = Math.sqrt(dx * dx + dy * dy);
                 // Smooth lerp: move 20% of remaining distance each frame, with a minimum speed floor
                 double lerpFactor = 0.20;
                 double minSpeed = 0.06; // Prevents crawling at the very end
@@ -2617,6 +2785,45 @@ public class VersusGameplayScreen extends BaseScreen {
             cameraTargetY = unitPixelY;
         }
         updateSmoothCamera();
+
+        // ── Cursor Edge Panning ──
+        if (lastKnownMouseViewPos != null && !isBattleActive && phaseBannerTimer <= 0) {
+            int edgeMargin = 40;
+            int panSpeed = 10;
+            JViewport viewPort = scrollPane.getViewport();
+            Point vPos = viewPort.getViewPosition();
+            int vw = viewPort.getWidth();
+            int vh = viewPort.getHeight();
+            boolean panned = false;
+            
+            if (lastKnownMouseViewPos.x < edgeMargin) { vPos.x -= panSpeed; panned = true; }
+            else if (lastKnownMouseViewPos.x > vw - edgeMargin) { vPos.x += panSpeed; panned = true; }
+            
+            if (lastKnownMouseViewPos.y < edgeMargin) { vPos.y -= panSpeed; panned = true; }
+            else if (lastKnownMouseViewPos.y > vh - edgeMargin) { vPos.y += panSpeed; panned = true; }
+            
+            if (panned) {
+                int maxX = canvasPanel.getWidth() - vw;
+                int maxY = canvasPanel.getHeight() - vh;
+                vPos.x = Math.max(0, Math.min(vPos.x, maxX));
+                vPos.y = Math.max(0, Math.min(vPos.y, maxY));
+                viewPort.setViewPosition(vPos);
+                
+                // Re-evaluate hoveredTile since camera moved but physical mouse didn't
+                int tx = (int)((vPos.x + lastKnownMouseViewPos.x) / (16 * zoomScale));
+                int ty = (int)((vPos.y + lastKnownMouseViewPos.y) / (16 * zoomScale));
+                Point newHover = new Point(tx, ty);
+                if (!newHover.equals(hoveredTile)) {
+                    hoveredTile = newHover;
+                    updatePreviewPath();
+                }
+                needsRepaint = true;
+                
+                // Clear camera target so edge panning doesn't fight smooth camera
+                cameraTargetX = -1;
+                cameraTargetY = -1;
+            }
+        }
 
         // ── Apply drag inertia ──
         if (lastDragPoint == null && (Math.abs(panVelocityX) > 0.5 || Math.abs(panVelocityY) > 0.5)) {
@@ -2756,6 +2963,8 @@ public class VersusGameplayScreen extends BaseScreen {
                     unitOrderDirty = true;   // Unit list changed
                     needsRepaint = true;
                     selectedUnit = null; activeBattle = null; attackerActor = null; defenderActor = null;
+                    if (selectedEnemy != null && selectedEnemy.isDead) selectedEnemy = null;
+                    updateEnemyPanel();
                 }
             }
         }
