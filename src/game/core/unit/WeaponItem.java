@@ -20,6 +20,7 @@ public class WeaponItem {
     public int hit     = 80;  // base hit rate bonus
     public int crit    = 0;   // base critical rate bonus
     public int weight  = 8;   // reduces attack speed when > unit CON
+    public String effectiveAgainst = ""; // comma-separated subtypes (e.g., "Armored,Mounted")
 
     // ── Range ─────────────────────────────────────────────────
     public int minRange = 1;
@@ -66,7 +67,7 @@ public class WeaponItem {
              + ",\n  \"crit\":" + crit + ",\n  \"weight\":" + weight
              + ",\n  \"minRange\":" + minRange + ",\n  \"maxRange\":" + maxRange
              + ",\n  \"maxUses\":" + maxUses + ",\n  \"currentUses\":" + currentUses
-             + ",\n  \"animFolder\":\"" + animWeaponFolder + "\"\n}";
+             + ",\n  \"animFolder\":\"" + animWeaponFolder + "\",\n  \"effectiveAgainst\":\"" + effectiveAgainst + "\"\n}";
     }
 
     public static WeaponItem fromJson(String json) {
@@ -82,6 +83,7 @@ public class WeaponItem {
         w.maxUses          = num(json, "maxUses",35);
         w.currentUses      = num(json, "currentUses",35);
         w.animWeaponFolder = str(json, "animFolder");
+        w.effectiveAgainst = str(json, "effectiveAgainst");
         return w;
     }
 
@@ -197,6 +199,18 @@ public class WeaponItem {
         new WeaponItem("Warp",          "Staff",     0, 100,  0,  3,   1,    5, 10, "staff"),
     };
 
+    static {
+        for (WeaponItem w : FE8_WEAPONS) {
+            if (w.name.equals("Reginleif")) w.effectiveAgainst = "Armored,Mounted";
+            if (w.name.equals("Armorslayer")) w.effectiveAgainst = "Armored";
+            if (w.name.equals("Horseslayer")) w.effectiveAgainst = "Mounted";
+            if (w.name.equals("Halberd")) w.effectiveAgainst = "Mounted";
+            if (w.name.equals("Hammer")) w.effectiveAgainst = "Armored";
+            if (w.name.equals("Zanbato")) w.effectiveAgainst = "Mounted";
+            if (w.name.equals("Rapier")) w.effectiveAgainst = "Armored,Mounted";
+        }
+    }
+
     public static WeaponItem defaultForType(String type) {
         for (WeaponItem w : FE8_WEAPONS) {
             if (w.weaponType.equalsIgnoreCase(type)) return copy(w);
@@ -212,8 +226,10 @@ public class WeaponItem {
     }
 
     private static WeaponItem copy(WeaponItem src) {
-        return new WeaponItem(src.name, src.weaponType, src.might, src.hit, src.crit,
-                              src.weight, src.minRange, src.maxRange, src.maxUses, src.animWeaponFolder);
+        WeaponItem w = new WeaponItem(src.name, src.weaponType, src.might, src.hit, src.crit,
+                                      src.weight, src.minRange, src.maxRange, src.maxUses, src.animWeaponFolder);
+        w.effectiveAgainst = src.effectiveAgainst;
+        return w;
     }
 
     // ── JSON helpers ──────────────────────────────────────────

@@ -161,14 +161,15 @@ public class VersusGameplayScreen extends BaseScreen {
 
         private void loadBattleAssets() {
             String[] cats = {"Champion", "Unit", "units", "battle", "anims"};
-            String[] weapons = {"Lance", "Spear", "lance", "spear", "Sword", "sword", "Axe", "axe", "Bow", "bow", "Magic", "magic", "Attack"};
             String uName = mapUnit.unitName;
             
-            // Apply name overrides/fallbacks to match folder names
-            if ("Knight".equalsIgnoreCase(uName)) uName = "Cavalier";
-            else if ("Sentinel".equalsIgnoreCase(uName)) uName = "Swordmaster";
-            else if ("Ephraim".equalsIgnoreCase(uName)) uName = "Ephraim_Lord";
-            else if ("Pegasus".equalsIgnoreCase(uName)) uName = "Pegasus Knight";
+            WeaponItem equipped = mapUnit.getEquipped();
+            String[] weapons;
+            if (equipped != null && equipped.animWeaponFolder != null) {
+                weapons = new String[]{equipped.animWeaponFolder, equipped.weaponType, "Lance", "Spear", "lance", "spear", "Sword", "sword", "Axe", "axe", "Bow", "bow", "Magic", "magic", "Attack"};
+            } else {
+                weapons = new String[]{"Lance", "Spear", "lance", "spear", "Sword", "sword", "Axe", "axe", "Bow", "bow", "Magic", "magic", "Attack"};
+            }
             
             File baseDir = null;
             String[] rootPaths = GamePaths.battleAssetSearchRoots();
@@ -2575,15 +2576,11 @@ public class VersusGameplayScreen extends BaseScreen {
         game.core.unit.UnitRegistry.reload();
         
         JPopupMenu menu = createStyledMenu();
-        String targetCategory;
-        if ("ARMORY".equals(ev.type)) {
-            targetCategory = "Unit";
-        } else if ("HQ".equals(ev.type)) {
+        final String targetCategory;
+        if ("HQ".equals(ev.type)) {
             targetCategory = "Champion";
-        } else if ("FORT".equals(ev.type)) {
-            targetCategory = "Ocean Unit";
-        } else if ("AERIE".equals(ev.type)) {
-            targetCategory = "Air Unit";
+        } else if ("ARMORY".equals(ev.type) || "FORT".equals(ev.type) || "AERIE".equals(ev.type)) {
+            targetCategory = "Unit";
         } else {
             return;
         }
@@ -2599,8 +2596,15 @@ public class VersusGameplayScreen extends BaseScreen {
                     String name = bs.getName();
                     File us = new File(unitsDir, name);
                     if (us.exists() && us.isDirectory()) {
+                        UnitStats stats = UnitRegistry.get(name);
+                        
+                        // Filter units by building type
+                        if ("ARMORY".equals(ev.type) && !"Land Unit".equalsIgnoreCase(stats.unitType)) continue;
+                        if ("AERIE".equals(ev.type) && !"Air Unit".equalsIgnoreCase(stats.unitType)) continue;
+                        if ("FORT".equals(ev.type) && !"Ocean Unit".equalsIgnoreCase(stats.unitType)) continue;
+
                         int price = DeploymentEngine.calculatePrice(targetCategory, name);
-                        JMenuItem buyItem = createStyledMenuItem("Deploy " + name + " ($" + price + ")");
+                        JMenuItem buyItem = createStyledMenuItem(name + " (" + price + ")");
                         buyItem.addActionListener(e -> deployUnit(targetCategory, name, price, ev));
                         menu.add(buyItem);
                     }
@@ -2611,19 +2615,19 @@ public class VersusGameplayScreen extends BaseScreen {
         // Fallbacks if no units found
         if (menu.getComponentCount() == 0) {
             if ("ARMORY".equals(ev.type)) {
-                JMenuItem buyKnight = createStyledMenuItem("Deploy Knight ($500)");
+                JMenuItem buyKnight = createStyledMenuItem("Knight (500)");
                 buyKnight.addActionListener(e -> deployUnit("Unit", "Knight", 500, ev));
                 menu.add(buyKnight);
             } else if ("HQ".equals(ev.type)) {
-                JMenuItem buyEphraim = createStyledMenuItem("Deploy Ephraim ($1000)");
+                JMenuItem buyEphraim = createStyledMenuItem("Ephraim (1000)");
                 buyEphraim.addActionListener(e -> deployUnit("Champion", "Ephraim", 1000, ev));
                 menu.add(buyEphraim);
             } else if ("FORT".equals(ev.type)) {
-                JMenuItem buyShip = createStyledMenuItem("Deploy Battleship ($800)");
+                JMenuItem buyShip = createStyledMenuItem("Battleship (800)");
                 buyShip.addActionListener(e -> deployUnit("Ocean Unit", "Battleship", 800, ev));
                 menu.add(buyShip);
             } else if ("AERIE".equals(ev.type)) {
-                JMenuItem buyPegasus = createStyledMenuItem("Deploy Pegasus ($600)");
+                JMenuItem buyPegasus = createStyledMenuItem("Pegasus (600)");
                 buyPegasus.addActionListener(e -> deployUnit("Air Unit", "Pegasus", 600, ev));
                 menu.add(buyPegasus);
             }
@@ -2642,13 +2646,77 @@ public class VersusGameplayScreen extends BaseScreen {
         menu.show(canvasPanel, menuX, menuY);
     }
 
+    private boolean hasRangedAnimation(File battleDir, String... folderNames) {
+        for (String fName : folderNames) {
+            File dir = new File(battleDir, fName);
+            if (!dir.exists()) continue;
+            File script = new File(dir, "script.txt");
+            if (!script.exists()) continue;
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(script))) {
+                String line;
+                boolean inRangedMode = false;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.startsWith("/// - Mode 5") || line.startsWith("/// - Mode 6")) {
+                        inRangedMode = true;
+                    } else if (line.startsWith("/// - Mode")) {
+                        inRangedMode = false;
+                    } else if (inRangedMode && !line.isEmpty() && !line.startsWith("~") && !line.startsWith("//") && !line.startsWith("#")) {
+                        return true;
+                    }
+                }
+            } catch (Exception e) {}
+        }
+        return false;
+    }
+
     private void deployUnit(String cat, String name, int cost, EventInfo ev) {
         VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
         if (p.gold < cost) { JOptionPane.showMessageDialog(this, "Not enough gold!"); return; }
         p.gold -= cost; goldLabel.setText("🪙 " + p.gold); layoutGameLayer();
         MapUnit u = new MapUnit(cat, name, MapUnit.Faction.PLAYER, new Point(ev.x, ev.y)); u.ownerIndex = currentPlayerIdx;
-        WeaponItem ironLance = WeaponItem.byName("Iron Lance"); ironLance.maxUses = 20; ironLance.currentUses = 20; u.addItem(ironLance);
-        WeaponItem javelin = WeaponItem.byName("Javelin"); javelin.maxUses = 10; javelin.currentUses = 10; u.addItem(javelin);
+        
+        File battleDir = new File(GamePaths.BATTLE, cat + "/" + name);
+        if (!battleDir.exists()) battleDir = new File(GamePaths.BATTLE, name);
+        
+        boolean hasWeapons = false;
+        if (battleDir.exists()) {
+            if (new File(battleDir, "Sword").exists() || new File(battleDir, "sword").exists()) {
+                WeaponItem w = WeaponItem.byName("Iron Sword"); w.maxUses = 20; w.currentUses = 20; u.addItem(w); hasWeapons = true;
+            }
+            if (new File(battleDir, "Lance").exists() || new File(battleDir, "lance").exists() || new File(battleDir, "Spear").exists() || new File(battleDir, "spear").exists()) {
+                if ("Ephraim".equalsIgnoreCase(name)) {
+                    WeaponItem reginleif = WeaponItem.byName("Reginleif");
+                    reginleif.maxUses = 45; reginleif.currentUses = 45;
+                    u.addItem(reginleif);
+                } else {
+                    WeaponItem w1 = WeaponItem.byName("Iron Lance"); w1.maxUses = 20; w1.currentUses = 20; u.addItem(w1);
+                }
+                if (hasRangedAnimation(battleDir, "Lance", "lance", "Spear", "spear")) {
+                    WeaponItem w2 = WeaponItem.byName("Javelin"); w2.maxUses = 10; w2.currentUses = 10; u.addItem(w2);
+                }
+                hasWeapons = true;
+            }
+            if (new File(battleDir, "Axe").exists() || new File(battleDir, "axe").exists()) {
+                WeaponItem w1 = WeaponItem.byName("Iron Axe"); w1.maxUses = 20; w1.currentUses = 20; u.addItem(w1);
+                if (hasRangedAnimation(battleDir, "Axe", "axe")) {
+                    WeaponItem w2 = WeaponItem.byName("Hand Axe"); w2.maxUses = 10; w2.currentUses = 10; u.addItem(w2);
+                }
+                hasWeapons = true;
+            }
+            if (new File(battleDir, "Bow").exists() || new File(battleDir, "bow").exists()) {
+                WeaponItem w = WeaponItem.byName("Iron Bow"); w.maxUses = 20; w.currentUses = 20; u.addItem(w); hasWeapons = true;
+            }
+            if (new File(battleDir, "Magic").exists() || new File(battleDir, "magic").exists()) {
+                WeaponItem w = WeaponItem.byName("Fire"); w.maxUses = 20; w.currentUses = 20; u.addItem(w); hasWeapons = true;
+            }
+        }
+        
+        if (!hasWeapons) {
+            WeaponItem ironLance = WeaponItem.byName("Iron Lance"); ironLance.maxUses = 20; ironLance.currentUses = 20; u.addItem(ironLance);
+            WeaponItem javelin = WeaponItem.byName("Javelin"); javelin.maxUses = 10; javelin.currentUses = 10; u.addItem(javelin);
+        }
+        
         units.add(u); loadAnims(u); unitOrderDirty = true; fogDirty = true; needsRepaint = true; canvasPanel.repaint();
     }
 

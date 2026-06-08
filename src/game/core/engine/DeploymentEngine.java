@@ -10,7 +10,7 @@ public class DeploymentEngine {
         int statsSum = stats.maxHp + stats.strength + stats.magic + stats.skill + 
                        stats.speed + stats.luck + stats.defense + stats.resistance + stats.move;
         int basePrice = "Champion".equalsIgnoreCase(category) ? 500 : 0;
-        int statsCost = statsSum * 8;
+        int statsCost = (statsSum * statsSum) / 6;
         int rawPrice = basePrice + statsCost;
         return ((rawPrice + 24) / 50) * 50;
     }

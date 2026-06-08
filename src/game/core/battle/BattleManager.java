@@ -52,6 +52,7 @@ public class BattleManager {
         public WeaponType weaponType;
         public int weaponWeight, weaponAtk, weaponHit, weaponCrit;
         public int weaponMinRange, weaponMaxRange;
+        public String effectiveAgainst = "";
 
         // Computed
         public int battleAtk, battleHit, battleCrit, battleAvoid, battleDodge, atkSpeed;
@@ -123,8 +124,10 @@ public class BattleManager {
             c.weaponMinRange = w.minRange;
             c.weaponMaxRange = w.maxRange;
             c.weaponType     = toWpnType(w.weaponType);
+            c.effectiveAgainst = w.effectiveAgainst;
         } else {
             c.weaponType = WeaponType.UNARMED;
+            c.effectiveAgainst = "";
         }
         return c;
     }
@@ -148,14 +151,26 @@ public class BattleManager {
 
     private void computeStats(Combatant c, Combatant target) {
         // Attack Speed = Speed - max(0, weight - CON)
-        int penalty  = Math.max(0, c.weaponWeight - c.con);
-        c.atkSpeed   = c.speed - penalty;
+        c.atkSpeed = c.speed - Math.max(0, c.weaponWeight - c.con);
 
-        // Attack = Str/Mag + weapon.might
+        int effectiveBonus = 1;
+        if (c.effectiveAgainst != null && !c.effectiveAgainst.isEmpty() && target.mapUnit != null) {
+            String subType = target.mapUnit.stats.subUnitType;
+            if (subType != null) {
+                for (String type : c.effectiveAgainst.split(",")) {
+                    if (type.trim().equalsIgnoreCase(subType)) {
+                        effectiveBonus = 3;
+                        break;
+                    }
+                }
+            }
+        }
+
         boolean isMagic = c.weaponType == WeaponType.ANIMA
                        || c.weaponType == WeaponType.LIGHT
                        || c.weaponType == WeaponType.DARK;
-        c.battleAtk  = (isMagic ? c.magic : c.attack) + c.weaponAtk;
+        // Attack Power = Strength/Magic + (Weapon Might * Effective Multiplier)
+        c.battleAtk  = (isMagic ? c.magic : c.attack) + (c.weaponAtk * effectiveBonus);
 
         // Hit Rate = Skill*2 + Luck/2 + weapon.hit
         c.battleHit  = c.skill * 2 + c.luck / 2 + c.weaponHit;
