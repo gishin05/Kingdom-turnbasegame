@@ -1451,18 +1451,18 @@ public class VersusGameplayScreen extends BaseScreen {
         String subType = c.mapUnit.stats.subUnitType;
         drawSubtypeIcons(g, subType, x + 15 + nameW + 8, y + 9);
         
-        // Exact HP numbers aligned to the right of the row
+        // Exact HP numbers under the name
         g.setFont(Theme.getPixelFont(14f));
         g.setColor(Color.WHITE);
         String hpStr = (int)Math.round(actor.displayHp) + " / " + c.maxHp;
-        int hpStrW = g.getFontMetrics().stringWidth(hpStr);
-        g.drawString(hpStr, x + STATS_BOX_WIDTH - 15 - hpStrW, y + 25);
+        g.drawString(hpStr, x + 15, y + 41);
         
-        // Equipped Weapon display under the name
+        // Equipped Weapon display aligned to the right of the top row
         String wpnName = (c.mapUnit.getEquipped() != null) ? c.mapUnit.getEquipped().name : "Unarmed";
         g.setFont(Theme.getPixelFont(11f));
         g.setColor(Theme.TEXT_SECONDARY);
-        g.drawString(wpnName, x + 15, y + 41);
+        int wpnW = g.getFontMetrics().stringWidth(wpnName);
+        g.drawString(wpnName, x + STATS_BOX_WIDTH - 15 - wpnW, y + 25);
         
         // Modern Segmented Health Bar
         int barX = x + 15;
