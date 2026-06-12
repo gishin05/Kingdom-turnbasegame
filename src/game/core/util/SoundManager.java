@@ -37,6 +37,10 @@ public class SoundManager {
     private static Clip sfxSpearSpin;
     private static Clip sfxBowRelease;
     private static Clip sfxStepHeavy;
+    private static Clip sfxShadowFlash;
+    private static Clip sfxSwordOut;
+    private static Clip sfxSwordBack;
+    private static Clip sfxBallista;
 
     // Battle SFX — Unit Feedback
     private static Clip sfxHumanFall;
@@ -55,6 +59,7 @@ public class SoundManager {
     private static Clip sfxStepInfantry;
     private static Clip sfxStepHorse;
     private static Clip sfxStepFlier;
+    private static Clip sfxStepSiege;
 
     static {
         initSounds();
@@ -112,6 +117,10 @@ public class SoundManager {
         sfxSpearSpin   = loadAudioFile("spear_spin.aif");
         sfxBowRelease  = loadAudioFile("bow_release.aif");
         sfxStepHeavy   = loadAudioFile("step_heavy.aif");
+        sfxShadowFlash = loadAudioFile("shadow_flash.aif");
+        sfxSwordOut    = loadAudioFile("sword_out.aif");
+        sfxSwordBack   = loadAudioFile("sword_back.aif");
+        sfxBallista    = loadAudioFile("Ballista.aif");
 
         // Unit feedback
         sfxHumanFall   = loadAudioFile("human_fall.aif");
@@ -125,6 +134,7 @@ public class SoundManager {
         sfxStepInfantry = loadAudioFile("Infantry_Move.aif");
         sfxStepHorse   = loadAudioFile("horse1_Move.aif");
         sfxStepFlier   = loadAudioFile("Flier_Move.aif");
+        sfxStepSiege   = loadAudioFile("siege_move.wav");
     }
 
     private static Clip loadAudioFile(String filename) {
@@ -294,6 +304,10 @@ public class SoundManager {
     public static void playSpearSpin()   { play(sfxSpearSpin); }
     public static void playBowRelease()  { play(sfxBowRelease); }
     public static void playStepHeavy()   { play(sfxStepHeavy); }
+    public static void playShadowFlash() { play(sfxShadowFlash); }
+    public static void playSwordOut()    { play(sfxSwordOut); }
+    public static void playSwordBack()   { play(sfxSwordBack); }
+    public static void playBallista()    { play(sfxBallista); }
     public static void playHumanFall()   { play(sfxHumanFall); }
     public static void playFadeDieAway1(){ play(sfxFadeDieAway1); }
     public static void playHpTick()      { play(sfxHpTick); }
@@ -302,6 +316,7 @@ public class SoundManager {
     public static void playStepStone()   { play(sfxStepStone); }
     public static void playStepInfantry(){ play(sfxStepInfantry); }
     public static void playStepHorse()   { play(sfxStepHorse); }
+    public static void playStepSiege()   { play(sfxStepSiege); }
     
     private static long lastFlierStepTime = 0;
     public static void playStepFlier() { 
@@ -319,7 +334,13 @@ public class SoundManager {
     public static void playBattleHitSfx(String weaponType, boolean isCrit, boolean isMiss, int damage, boolean isKill) {
         if (isMiss)              { playMiss(); return; }
         if (isCrit)              { playHitCritical(); return; }
-        if (isKill)              { playHitKill(); return; }
+        if (isKill) {
+            if (sfxHitKill != null) {
+                playHitKill(); 
+                return;
+            }
+            // If hit_kill.aif is missing, fall through to play the normal weapon hit sound
+        }
         if (damage == 0)         { playNoDamage(); return; }
         if (weaponType == null)  { playHitMelee(); return; }
         switch (weaponType.toUpperCase()) {
@@ -345,7 +366,10 @@ public class SoundManager {
         if (code == null) return;
         String wpn = (weaponType != null) ? weaponType.toUpperCase() : "";
         switch (code) {
-            case "C1B": playStepHeavy(); break;       // Heavy footstep / charge
+            case "C1B": playStepInfantry(); break;       // Infantry footstep / charge
+            case "C1C":                                // Horse trot / step
+            case "C1D":                                // Horse gallop
+            case "C1E": playStepHorse(); break;        // Horse gallop alternate
             case "C22":                                // Short weapon swing
             case "C23":                                // Shorter weapon swing
                 switch (wpn) {
@@ -357,11 +381,21 @@ public class SoundManager {
                 break;
             case "C1F": playStepFlier(); break;        // Flier Wing Flap / Move
             case "C38": playSpearSpin(); break;        // Spear spin / lance whoosh
+            case "C36":
+                if ("SWORD".equals(wpn)) playSwordOut();
+                break;
+            case "C14":
+                if ("BOW".equals(wpn)) playBallista();
+                break;
+            case "C43":
+                if ("SWORD".equals(wpn)) playSwordBack();
+                break;
             case "C25":                                // Ranged weapon launch
                 switch (wpn) {
                     case "LANCE":
                     case "SPEAR": playSpearSpin(); break;   // Javelin throw
                     case "AXE":   playAxeSwing(); break;    // Hand Axe throw
+                    case "SWORD": playShadowFlash(); break; // Assassin shadow throw
                     default:      playBowRelease(); break;  // Bow / magic
                 }
                 break;

@@ -162,6 +162,7 @@ public class WeaponItem {
         new WeaponItem("Short Bow",     "Bow",       5,  90,  5,  4,   1,   2,  30, "bow"),
         new WeaponItem("Longbow",       "Bow",       5,  65,  0,  9,   2,   3,  20, "bow"),
         new WeaponItem("Nidhogg",       "Bow",      20,  70,  0,  9,   2,   3,  30, "bow"),
+        new WeaponItem("Ballista",      "Bow",      10,  70,  0, 10,   4,   9,   5, "bow"),
 
         // ── ANIMA ──────────────────────────────── Mt  Hit Crit Wt  minR maxR Uses  animFolder
         new WeaponItem("Fire",          "Anima",     5,  90,  0,  4,   1,   2,  40, "anima"),

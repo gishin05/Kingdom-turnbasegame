@@ -240,6 +240,11 @@ public class BattleManager {
     }
 
     private void executeHit(BattleResult res, Combatant atk, Combatant def, boolean isAtk) {
+        WeaponItem w = atk.mapUnit != null ? atk.mapUnit.getEquipped() : null;
+        if (w != null && w.isBroken()) {
+            return; // Can't attack if weapon broke in a previous hit this combat
+        }
+
         int hitChance  = Math.max(0, Math.min(100, atk.battleHit  - def.battleAvoid));
         int critChance = Math.max(0, Math.min(100, atk.battleCrit - def.battleDodge));
 
@@ -253,6 +258,10 @@ public class BattleManager {
 
         def.hp = Math.max(0, def.hp - dmg);
         res.hits.add(new BattleHit(isAtk, dmg, crit, miss));
+
+        if (w != null && w.isWeapon()) {
+            w.useOnce();
+        }
     }
 
     /** 2-RN system: avg of two d100 rolls vs threshold (FE8 uses this to make extreme hit/miss rarer) */

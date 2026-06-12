@@ -1,0 +1,22 @@
+{
+  "name": "Soldier",
+  "type": "Land Unit",
+  "subType": "Infantry",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 18,
+  "str": 4,
+  "mag": 0,
+  "skl": 8,
+  "spd": 5,
+  "lck": 3,
+  "def": 3,
+  "res": 2,
+  "aff": "Fire",
+  "mov": 5,
+  "con": 5,
+  "aid": 4,
+  "trv": 0,
+  "cond": "Healthy",
+  "bwl": { "b":0,"w":0,"l":0 }
+}

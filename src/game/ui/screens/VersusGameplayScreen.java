@@ -150,6 +150,7 @@ public class VersusGameplayScreen extends BaseScreen {
         boolean isWaitingForDamage = false;
         double displayHp, targetHp;
         float alpha = 1.0f;
+        int hitPauseTimer = 0;
 
         BattleActor(MapUnit u, boolean isAttacker, int sw, int sh) {
             this.mapUnit = u;
@@ -237,11 +238,17 @@ public class VersusGameplayScreen extends BaseScreen {
             this.durationCounter = 0;
             this.isFinished = (mode == AnimationScript.MODE_STANDING || mode == 12);
             this.isWaitingForDamage = false;
+            this.hitPauseTimer = 0;
         }
 
         void update() {
             if (displayHp > targetHp) displayHp = Math.max(targetHp, displayHp - 0.5);
             else if (displayHp < targetHp) displayHp = Math.min(targetHp, displayHp + 0.5);
+
+            if (hitPauseTimer > 0) {
+                hitPauseTimer--;
+                return;
+            }
 
             if (isWaitingForDamage) return;
             List<AnimationCommand> cmds = (script != null) ? script.getCommands(currentMode) : new ArrayList<>();
@@ -299,16 +306,17 @@ public class VersusGameplayScreen extends BaseScreen {
                     if ((this == attackerActor && hit.isAttacker) || (this == defenderActor && !hit.isAttacker)) {
                         BattleActor target = (this == attackerActor) ? defenderActor : attackerActor;
                         
-                        target.takeHit(hit);
-                        currentHitIdx++;
-
-                        // Play battle SFX based on attacker weapon type and outcome
-                        BattleManager.Combatant atkC = (this == attackerActor) ? activeBattle.attacker : activeBattle.defender;
-                        String wpnType = (atkC.weaponType != null) ? atkC.weaponType.name() : null;
-                        boolean isKill = !hit.isMiss && (target.targetHp <= 0);
-                        SoundManager.playBattleHitSfx(wpnType, hit.isCrit, hit.isMiss, hit.damage, isKill);
-
-                        if (!hit.isMiss) this.isWaitingForDamage = true;
+                        this.hitPauseTimer = 15; // Delay in damage hit frame before moving to the next frame
+                        
+                        if (combatDistance > 3) {
+                            VersusGameplayScreen.this.battleCameraTargetX = (this == VersusGameplayScreen.this.attackerActor) ? -100 : 100;
+                            VersusGameplayScreen.this.isBattlePanning = true;
+                            VersusGameplayScreen.this.pendingHit = hit;
+                            VersusGameplayScreen.this.pendingHitActor = this;
+                            VersusGameplayScreen.this.pendingTargetActor = target;
+                        } else {
+                            VersusGameplayScreen.this.applyHit(this, target, hit);
+                        }
                     }
                 }
             } else if (code.equals("C06")) {
@@ -371,7 +379,9 @@ public class VersusGameplayScreen extends BaseScreen {
             int fh = colored.getHeight();
             
             int baseShift = 0;
-            if (combatDistance >= 2) {
+            if (combatDistance > 3) {
+                baseShift = mirror ? -100 : 100;
+            } else if (combatDistance >= 2) {
                 baseShift = mirror ? -40 : 40;
             } else {
                 baseShift = mirror ? -5 : 5;
@@ -405,6 +415,14 @@ public class VersusGameplayScreen extends BaseScreen {
     private int currentHitIdx = 0;
     private int flashTimer = 0, shakeTimer = 0, battleEndDelay = 0;
     private int combatDistance = 1;
+
+    // ── Cinematic Panning State ──────────────────────────────
+    private double battleCameraX = 0;
+    private double battleCameraTargetX = 0;
+    private boolean isBattlePanning = false;
+    private BattleManager.BattleHit pendingHit = null;
+    private BattleActor pendingHitActor = null;
+    private BattleActor pendingTargetActor = null;
 
     // ── Capture Animation State ───────────────────────────────
     private boolean isCaptureAnimActive = false;
@@ -1049,8 +1067,14 @@ public class VersusGameplayScreen extends BaseScreen {
         long t = System.currentTimeMillis();
         int offset = (int)(Math.sin(t / 150.0) * 2); // Animate in and out by 2 pixels
         
+        Color cursorColor = new Color(255, 255, 255, 200);
+        if (players != null && currentPlayerIdx >= 0 && currentPlayerIdx < players.size()) {
+            Color pColor = players.get(currentPlayerIdx).color;
+            cursorColor = new Color(pColor.getRed(), pColor.getGreen(), pColor.getBlue(), 200);
+        }
+        
         g.setStroke(new BasicStroke(2f));
-        g.setColor(new Color(255, 255, 255, 200));
+        g.setColor(cursorColor);
         
         int px = tx * 16;
         int py = ty * 16;
@@ -1071,7 +1095,7 @@ public class VersusGameplayScreen extends BaseScreen {
                        new int[]{py + size + offset, py + size + offset, py + size - 3 + offset}, 3);
                        
         // Inner fill
-        g.setColor(new Color(255, 255, 255, 40));
+        g.setColor(new Color(cursorColor.getRed(), cursorColor.getGreen(), cursorColor.getBlue(), 40));
         g.fillRect(px, py, size, size);
     }
 
@@ -1352,10 +1376,20 @@ public class VersusGameplayScreen extends BaseScreen {
             bg2d.fillRect(0, 0, 248, 160);
         }
 
+        bg2d.translate(-battleCameraX, 0);
+
         if (battlePlatform != null) {
-            int platShift = (combatDistance >= 2) ? 40 : 5;
-            bg2d.drawImage(battlePlatform, 10 + platShift, 110, 100, 40, null);
-            bg2d.drawImage(battlePlatform, 138 - platShift, 110, 100, 40, null);
+            int platShift1 = 5;
+            int platShift2 = 5;
+            if (combatDistance > 3) {
+                platShift1 = 100;
+                platShift2 = 100;
+            } else if (combatDistance >= 2) {
+                platShift1 = 40;
+                platShift2 = 40;
+            }
+            bg2d.drawImage(battlePlatform, 10 + platShift1, 110, 100, 40, null);
+            bg2d.drawImage(battlePlatform, 138 - platShift2, 110, 100, 40, null);
         }
 
         boolean attackerOnTop = true;
@@ -2459,6 +2493,15 @@ public class VersusGameplayScreen extends BaseScreen {
         
         for (MapUnit target : targets) {
             JMenuItem targetOpt = createStyledMenuItem(target.unitName + " (HP: " + target.currentHp + "/" + target.stats.maxHp + ")");
+            targetOpt.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent me) {
+                    hoveredTile = new Point(target.position);
+                    cameraTargetX = target.renderPos.x * 16 * zoomScale + 8 * zoomScale;
+                    cameraTargetY = target.renderPos.y * 16 * zoomScale + 8 * zoomScale;
+                    canvasPanel.repaint();
+                }
+            });
             targetOpt.addActionListener(e -> {
                 menu.setVisible(false);
                 // Equip this weapon
@@ -2476,6 +2519,15 @@ public class VersusGameplayScreen extends BaseScreen {
         
         // Back option
         JMenuItem backOpt = createStyledMenuItem("< Back");
+        backOpt.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent me) {
+                hoveredTile = new Point(u.position);
+                cameraTargetX = u.renderPos.x * 16 * zoomScale + 8 * zoomScale;
+                cameraTargetY = u.renderPos.y * 16 * zoomScale + 8 * zoomScale;
+                canvasPanel.repaint();
+            }
+        });
         backOpt.addActionListener(e -> {
             menu.setVisible(false);
             showWeaponSelectionMenu(u, x, y);
@@ -2559,6 +2611,18 @@ public class VersusGameplayScreen extends BaseScreen {
         }
     }
 
+    public void applyHit(BattleActor source, BattleActor target, BattleManager.BattleHit hit) {
+        target.takeHit(hit);
+        currentHitIdx++;
+
+        BattleManager.Combatant atkC = (source == attackerActor) ? activeBattle.attacker : activeBattle.defender;
+        String wpnType = (atkC != null && atkC.weaponType != null) ? atkC.weaponType.name() : null;
+        boolean isKill = !hit.isMiss && (target.targetHp <= 0);
+        SoundManager.playBattleHitSfx(wpnType, hit.isCrit, hit.isMiss, hit.damage, isKill);
+
+        if (!hit.isMiss) source.isWaitingForDamage = true;
+    }
+
     private void startCombat(MapUnit a, MapUnit d) {
         BattleManager bm = new BattleManager();
         activeBattle = bm.generateBattle(a, d);
@@ -2567,6 +2631,16 @@ public class VersusGameplayScreen extends BaseScreen {
         attackerActor = new BattleActor(a, true, getWidth(), getHeight()); defenderActor = new BattleActor(d, false, getWidth(), getHeight());
         BattleManager.BattleHit first = activeBattle.hits.get(0);
         combatDistance = Math.abs(a.position.x - d.position.x) + Math.abs(a.position.y - d.position.y);
+        
+        if (combatDistance > 3) {
+            boolean firstIsAttacker = first.isAttacker;
+            battleCameraX = firstIsAttacker ? 100 : -100;
+            battleCameraTargetX = battleCameraX;
+        } else {
+            battleCameraX = 0;
+            battleCameraTargetX = 0;
+        }
+        
         attackerActor.setMode(getBattleMode(first.isCrit, combatDistance));
         defenderActor.setMode(AnimationScript.MODE_STANDING);
     }
@@ -2705,7 +2779,11 @@ public class VersusGameplayScreen extends BaseScreen {
                 hasWeapons = true;
             }
             if (new File(battleDir, "Bow").exists() || new File(battleDir, "bow").exists()) {
-                WeaponItem w = WeaponItem.byName("Iron Bow"); w.maxUses = 20; w.currentUses = 20; u.addItem(w); hasWeapons = true;
+                if ("Ballista".equalsIgnoreCase(name)) {
+                    WeaponItem w = WeaponItem.byName("Ballista"); w.maxUses = 5; w.currentUses = 5; u.addItem(w); hasWeapons = true;
+                } else {
+                    WeaponItem w = WeaponItem.byName("Iron Bow"); w.maxUses = 20; w.currentUses = 20; u.addItem(w); hasWeapons = true;
+                }
             }
             if (new File(battleDir, "Magic").exists() || new File(battleDir, "magic").exists()) {
                 WeaponItem w = WeaponItem.byName("Fire"); w.maxUses = 20; w.currentUses = 20; u.addItem(w); hasWeapons = true;
@@ -2838,6 +2916,7 @@ public class VersusGameplayScreen extends BaseScreen {
                     if (isArmoredSubtype(u)) SoundManager.playStepHeavy();
                     else if (isMountedSubtype(u)) SoundManager.playStepHorse();
                     else if (isFlierSubtype(u)) SoundManager.playStepFlier();
+                    else if (isSiegeSubtype(u)) SoundManager.playStepSiege();
                     else if (isInfantrySubtype(u)) SoundManager.playStepInfantry();
                     else SoundManager.playFootstep();
                     if (u.movePath.isEmpty()) { u.position = new Point(target); fogDirty = true; showActionMenu(u); }
@@ -2971,6 +3050,12 @@ public class VersusGameplayScreen extends BaseScreen {
         return st.equals("infantry");
     }
 
+    private boolean isSiegeSubtype(MapUnit u) {
+        if (u == null || u.stats == null || u.stats.subUnitType == null) return false;
+        String st = u.stats.subUnitType.trim().toLowerCase();
+        return st.equals("siege");
+    }
+
     private boolean isMountedSubtype(MapUnit u) {
         if (u == null || u.stats == null || u.stats.subUnitType == null) return false;
         String st = u.stats.subUnitType.trim().toLowerCase();
@@ -2987,11 +3072,40 @@ public class VersusGameplayScreen extends BaseScreen {
 
     private void updateBattle() {
         if (!isBattleActive || attackerActor == null || defenderActor == null) return;
+        
+        if (isBattlePanning) {
+            double panSpeed = 6.0;
+            if (Math.abs(battleCameraX - battleCameraTargetX) <= panSpeed) {
+                battleCameraX = battleCameraTargetX;
+                isBattlePanning = false;
+                if (pendingHit != null) {
+                    applyHit(pendingHitActor, pendingTargetActor, pendingHit);
+                    pendingHit = null;
+                }
+            } else if (battleCameraX < battleCameraTargetX) {
+                battleCameraX += panSpeed;
+            } else {
+                battleCameraX -= panSpeed;
+            }
+            return;
+        }
+        
         if (flashTimer > 0) flashTimer--; if (shakeTimer > 0) shakeTimer--;
         attackerActor.update(); defenderActor.update();
         if (attackerActor.isFinished && defenderActor.isFinished) {
             if (currentHitIdx < activeBattle.hits.size()) {
                 BattleManager.BattleHit next = activeBattle.hits.get(currentHitIdx);
+                
+                if (combatDistance > 3) {
+                    double requiredCamX = next.isAttacker ? 100 : -100;
+                    if (Math.abs(battleCameraX - requiredCamX) > 1) {
+                        battleCameraTargetX = requiredCamX;
+                        isBattlePanning = true;
+                        pendingHit = null;
+                        return;
+                    }
+                }
+
                 if (next.isAttacker) attackerActor.setMode(getBattleMode(next.isCrit, combatDistance));
                 else defenderActor.setMode(getBattleMode(next.isCrit, combatDistance));
             } else {
