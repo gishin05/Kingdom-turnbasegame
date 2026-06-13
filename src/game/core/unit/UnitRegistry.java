@@ -56,16 +56,7 @@ public class UnitRegistry {
 
     /** Load stats directly from a specific category/unit path (bypasses cache). */
     public static UnitStats load(String category, String unitName) {
-        File f = new File(ANIMS_BASE + "/" + category + "/" + unitName + "/stats.json");
-        if (f.exists()) {
-            try {
-                String json = new String(Files.readAllBytes(f.toPath()));
-                return UnitStats.fromJson(json);
-            } catch (Exception e) {
-                System.err.println("[UnitRegistry] Error loading " + f.getPath() + ": " + e.getMessage());
-            }
-        }
-        return new UnitStats();
+        return UnitStats.load(category, unitName);
     }
 
     /** Get all unit names for a given category */
@@ -104,23 +95,30 @@ public class UnitRegistry {
     }
 
     private static void scanCategory(String category) {
-        File catDir = new File(ANIMS_BASE + "/" + category);
-        if (!catDir.exists() || !catDir.isDirectory()) return;
+        for (String root : game.core.util.GamePaths.battleAssetSearchRoots()) {
+            File catDir = new File(root + category);
+            if (!catDir.exists() || !catDir.isDirectory()) continue;
 
-        File[] units = catDir.listFiles(File::isDirectory);
-        if (units == null) return;
+            File[] units = catDir.listFiles(File::isDirectory);
+            if (units == null) continue;
 
-        for (File unitDir : units) {
-            String name = unitDir.getName();
-            UnitStats stats = load(category, name);
-            stats.unitName = name;  // ensure name is set even if stats.json is missing
-            cache.put(name, stats);
-            categoryMap.put(name, category);
+            for (File unitDir : units) {
+                String name = unitDir.getName();
+                // Avoid overwriting if already found in a higher priority root
+                if (!cache.containsKey(name)) {
+                    UnitStats stats = load(category, name);
+                    stats.unitName = name;  // ensure name is set even if stats.json is missing
+                    cache.put(name, stats);
+                    categoryMap.put(name, category);
+                }
+            }
         }
     }
 
     public static List<WeaponItem> getDefaultWeapons(String cat, String name) {
         List<WeaponItem> weapons = new ArrayList<>();
+        if ("Fleet".equalsIgnoreCase(name)) return weapons;
+        
         File battleDir = new File(game.core.util.GamePaths.BATTLE, cat + "/" + name);
         if (!battleDir.exists()) battleDir = new File(game.core.util.GamePaths.BATTLE, name);
         

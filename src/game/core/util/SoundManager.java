@@ -60,6 +60,7 @@ public class SoundManager {
     private static Clip sfxStepHorse;
     private static Clip sfxStepFlier;
     private static Clip sfxStepSiege;
+    private static Clip sfxStepShip;
 
     static {
         initSounds();
@@ -135,6 +136,7 @@ public class SoundManager {
         sfxStepHorse   = loadAudioFile("horse1_Move.aif");
         sfxStepFlier   = loadAudioFile("Flier_Move.aif");
         sfxStepSiege   = loadAudioFile("siege_move.wav");
+        sfxStepShip    = loadAudioFile("ship_move.aif");
     }
 
     private static Clip loadAudioFile(String filename) {
@@ -342,6 +344,17 @@ public class SoundManager {
     public static void playStepInfantry(){ play(sfxStepInfantry); }
     public static void playStepHorse()   { play(sfxStepHorse); }
     public static void playStepSiege()   { play(sfxStepSiege); }
+    public static void playStepShip() { 
+        if (sfxStepShip != null && !sfxStepShip.isActive()) {
+            play(sfxStepShip);
+        }
+    }
+    
+    public static void stopStepShip() {
+        if (sfxStepShip != null && (sfxStepShip.isActive() || sfxStepShip.isRunning())) {
+            sfxStepShip.stop();
+        }
+    }
     
     private static long lastFlierStepTime = 0;
     public static void playStepFlier() { 

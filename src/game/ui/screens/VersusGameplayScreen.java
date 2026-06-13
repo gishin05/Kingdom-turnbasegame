@@ -28,24 +28,26 @@ import javax.swing.*;
  * Handles rendering the battle map, processing unit movement and attacks,
  * managing the turn cycle, and displaying combat cinematics.
  */
+import game.core.engine.AiLogic;
+
 public class VersusGameplayScreen extends BaseScreen {
     private static final long serialVersionUID = 1L;
     private static final int STATS_BOX_WIDTH = 380;
-    private final int TILE_SIZE = 16;
-    private int mapW, mapH;
-    private int[][] mapData;
-    private String[][] mapTSData;
-    private Map<String, Tileset> loadedTilesets = new HashMap<>();
+    public final int TILE_SIZE = 16;
+    public int mapW, mapH;
+    public int[][] mapData;
+    public String[][] mapTSData;
+    public Map<String, Tileset> loadedTilesets = new HashMap<>();
     private Map<String, File> tilesetFiles = new HashMap<>();
-    private List<MapUnit> units = new ArrayList<>();
+    public List<MapUnit> units = new ArrayList<>();
     private MapUnit selectedUnit = null;
     private Point oldUnitPos = null;
-    private Set<Point> moveRange = new HashSet<>();
-    private Set<Point> attackRange = new HashSet<>();
+    public Set<Point> moveRange = new HashSet<>();
+    public Set<Point> attackRange = new HashSet<>();
     private Map<Point, Point> pathParent = new HashMap<>();
-    private int currentDay = 1, currentPlayerIdx = 0;
-    private List<VersusScreen.PlayerSettings> players;
-    private float zoomScale = 3.0f;
+    public int currentDay = 1, currentPlayerIdx = 0;
+    public List<VersusScreen.PlayerSettings> players;
+    public float zoomScale = 3.0f;
     private JPanel canvasPanel;
     private JScrollPane scrollPane;
     private JLabel dayLabel, goldLabel;
@@ -80,14 +82,14 @@ public class VersusGameplayScreen extends BaseScreen {
     private BufferedImage sandOverlay;
     
     // ── Optimization Fields ──────────────────────────────────
-    private boolean fogDirty = true;                       // Recalculate fog only when true
-    private boolean needsRepaint = true;                   // Only repaint canvas when true
+    public boolean fogDirty = true;                       // Recalculate fog only when true
+    boolean needsRepaint = true;                   // Only repaint canvas when true
     private List<MapUnit> sortedRenderUnits = new ArrayList<>(); // Pre-sorted render list
-    private boolean unitOrderDirty = true;                 // Re-sort only when true
+    public boolean unitOrderDirty = true;                 // Re-sort only when true
     private BufferedImage battleBuffer;                     // Reusable battle cinematic buffer
 
     // ── Smooth Camera & Pan Fields ────────────────────────
-    private double cameraTargetX = -1, cameraTargetY = -1; // Target viewport center (in pixels)
+    public double cameraTargetX = -1, cameraTargetY = -1; // Target viewport center (in pixels)
     private double cameraCurrentX = -1, cameraCurrentY = -1; // Current smooth camera position
     private double panVelocityX = 0, panVelocityY = 0;     // Drag inertia velocity
     private Point lastDragPoint = null;                     // For drag delta calculation
@@ -116,10 +118,7 @@ public class VersusGameplayScreen extends BaseScreen {
     private String previewUnitName;
     
     // ── AI State Fields ───────────────────────────────
-    private int aiState = 0;
-    private int aiTimer = 0;
-    private MapUnit currentAiUnit = null;
-    private List<MapUnit> aiUnactedUnits = new ArrayList<>();
+    AiLogic aiLogic = new AiLogic(this);
     
     private void initWeatherOverlays() {
         if (rainOverlay != null) return;
@@ -177,7 +176,11 @@ public class VersusGameplayScreen extends BaseScreen {
             this.mapUnit = u;
             this.displayHp = u.currentHp;
             this.targetHp = u.currentHp;
-            this.mirror = !isAttacker;
+            if ("Ballista".equalsIgnoreCase(u.unitName)) {
+                this.mirror = isAttacker; // Ballista sprites natively face left instead of right
+            } else {
+                this.mirror = !isAttacker;
+            }
             loadBattleAssets();
         }
 
@@ -434,7 +437,7 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private BattleManager.BattleResult activeBattle = null;
-    private boolean isBattleActive = false;
+    public boolean isBattleActive = false;
     private BattleActor attackerActor, defenderActor;
     private int currentHitIdx = 0;
     private int flashTimer = 0, shakeTimer = 0, battleEndDelay = 0;
@@ -449,21 +452,21 @@ public class VersusGameplayScreen extends BaseScreen {
     private BattleActor pendingTargetActor = null;
 
     // ── Capture Animation State ───────────────────────────────
-    private boolean isCaptureAnimActive = false;
+    public boolean isCaptureAnimActive = false;
     private EventInfo captureAnimEvent = null;
     private MapUnit captureAnimUnit = null;
     private double captureBarDisplay = 40.0;  // Animated display HP (counts down smoothly)
     private double captureBarTarget  = 40.0;  // Target HP after this capture action
     private int captureAnimTimer = 0;          // Delay counter before marking action complete
 
-    private class EventInfo {
-        int x, y, owner; String type;
+    public class EventInfo {
+        public int x, y, owner; public String type;
         // Capture state
-        int captureHp = 40;              // Event's capture HP (starts at 40, resets to 40)
-        Integer capturingPlayerIdx = null; // Which player index is currently capturing this event
-        EventInfo(int x, int y, String type, int owner) { this.x = x; this.y = y; this.type = type; this.owner = owner; }
+        public int captureHp = 40;              // Event's capture HP (starts at 40, resets to 40)
+        public Integer capturingPlayerIdx = null; // Which player index is currently capturing this event
+        public EventInfo(int x, int y, String type, int owner) { this.x = x; this.y = y; this.type = type; this.owner = owner; }
     }
-    private Map<Point, EventInfo> eventMap = new HashMap<>();
+    public Map<Point, EventInfo> eventMap = new HashMap<>();
     private Point lastMousePos;
 
     public VersusGameplayScreen(Main main) {
@@ -754,6 +757,17 @@ public class VersusGameplayScreen extends BaseScreen {
             ud.hasActed = u.hasActed;
             ud.hasMoved = u.hasMoved;
             ud.isDead = u.isDead;
+            if (u.loadedUnits != null) {
+                for (MapUnit lu : u.loadedUnits) {
+                    VersusSaveData.UnitData lud = new VersusSaveData.UnitData();
+                    lud.category = lu.category;
+                    lud.unitName = lu.unitName;
+                    lud.ownerIndex = lu.ownerIndex;
+                    lud.currentHp = lu.currentHp;
+                    lud.maxHp = (lu.stats != null ? lu.stats.maxHp : lu.currentHp);
+                    ud.loadedUnits.add(lud);
+                }
+            }
             d.units.add(ud);
         }
         return d;
@@ -800,6 +814,15 @@ public class VersusGameplayScreen extends BaseScreen {
             u.hasActed = ud.hasActed;
             u.hasMoved = ud.hasMoved;
             u.isDead = ud.isDead;
+            if (ud.loadedUnits != null) {
+                for (VersusSaveData.UnitData lud : ud.loadedUnits) {
+                    MapUnit lu = new MapUnit(lud.category, lud.unitName, MapUnit.Faction.PLAYER, new Point(-1, -1));
+                    lu.ownerIndex = lud.ownerIndex;
+                    lu.currentHp = lud.currentHp;
+                    lu.stats.maxHp = lud.maxHp;
+                    u.loadedUnits.add(lu);
+                }
+            }
             units.add(u);
             loadAnims(u);
         }
@@ -826,7 +849,7 @@ public class VersusGameplayScreen extends BaseScreen {
         canvasPanel.revalidate();
     }
 
-    private boolean isPlayerVisionActive(int ownerIndex) {
+    public boolean isPlayerVisionActive(int ownerIndex) {
         if (players == null || players.isEmpty() || ownerIndex < 0 || ownerIndex >= players.size()) {
             return ownerIndex == currentPlayerIdx;
         }
@@ -947,7 +970,7 @@ public class VersusGameplayScreen extends BaseScreen {
         return frames;
     }
 
-    private void nextTurn() {
+    public void nextTurn() {
         currentPlayerIdx++;
         if (currentPlayerIdx >= players.size()) { currentPlayerIdx = 0; currentDay++; }
         startTurn();
@@ -1236,7 +1259,13 @@ public class VersusGameplayScreen extends BaseScreen {
         for (MapUnit u : sortedRenderUnits) {
             if (fogOfWarEnabled && visibleTiles != null) {
                 if (u.position.y >= 0 && u.position.y < mapH && u.position.x >= 0 && u.position.x < mapW) {
-                    if (!visibleTiles[u.position.y][u.position.x] && !isPlayerVisionActive(u.ownerIndex)) {
+                    int ry = (int) Math.round(u.renderPos.y);
+                    int rx = (int) Math.round(u.renderPos.x);
+                    if (ry >= 0 && ry < mapH && rx >= 0 && rx < mapW) {
+                        if (!visibleTiles[ry][rx] && !isPlayerVisionActive(u.ownerIndex)) {
+                            continue;
+                        }
+                    } else if (!isPlayerVisionActive(u.ownerIndex)) {
                         continue;
                     }
                 }
@@ -1271,7 +1300,11 @@ public class VersusGameplayScreen extends BaseScreen {
                 if (action.equals("Walk_Up") || action.equals("Walk_Down")) {
                     mirror = false;
                 } else if (action.equals("Standing") || action.equals("Selected")) {
-                    mirror = !u.renderMirrorX;
+                    if ("Fleet".equalsIgnoreCase(u.unitName) || "Ballista".equalsIgnoreCase(u.unitName)) {
+                        mirror = u.renderMirrorX;
+                    } else {
+                        mirror = !u.renderMirrorX;
+                    }
                 }
                 
                 Composite oldComp = g.getComposite();
@@ -2193,7 +2226,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
     }
 
-    private void calculateMoveRange(MapUnit u) {
+    public void calculateMoveRange(MapUnit u) {
         moveRange.clear(); attackRange.clear(); pathParent.clear();
         if (u == null) return;
         
@@ -2222,7 +2255,7 @@ public class VersusGameplayScreen extends BaseScreen {
         pathParent.putAll(res.pathParent);
     }
 
-    private void reconstructPath(Point dest, MapUnit u) {
+    public void reconstructPath(Point dest, MapUnit u) {
         u.movePath = MovementEngine.reconstructPath(dest, u.position, pathParent);
     }
 
@@ -2245,7 +2278,7 @@ public class VersusGameplayScreen extends BaseScreen {
      * Returns true if the unit is eligible to capture the event at its current position.
      * Only Land Units that are NOT of Siege subtype can capture.
      */
-    private boolean canCapture(MapUnit u) {
+    public boolean canCapture(MapUnit u) {
         if (u == null || u.stats == null) return false;
         // Must be a Land Unit
         if (!"Land Unit".equalsIgnoreCase(u.stats.unitType)) return false;
@@ -2343,15 +2376,91 @@ public class VersusGameplayScreen extends BaseScreen {
             menu.add(itemOpt);
         }
         
-        // --- 4. Wait Option ---
-        JMenuItem waitOpt = createStyledMenuItem("Wait");
-        waitOpt.addActionListener(e -> {
-            menu.setVisible(false);
-            u.hasActed = true;
-            selectedUnit = null;
-            canvasPanel.repaint();
-        });
-        menu.add(waitOpt);
+        // --- 4. Load Option ---
+        if (!"Fleet".equalsIgnoreCase(u.unitName) && !"Air Unit".equalsIgnoreCase(u.stats.unitType) && u.category != null && !u.category.equalsIgnoreCase("Champion")) {
+            List<MapUnit> adjacentFleets = new ArrayList<>();
+            for (MapUnit other : units) {
+                if (other.ownerIndex == u.ownerIndex && "Fleet".equalsIgnoreCase(other.unitName) && !other.isDead) {
+                    int d = Math.abs(other.position.x - u.position.x) + Math.abs(other.position.y - u.position.y);
+                    if (d <= 1 && (other.loadedUnits == null || other.loadedUnits.size() < 3)) {
+                        adjacentFleets.add(other);
+                    }
+                }
+            }
+            if (!adjacentFleets.isEmpty()) {
+                JMenuItem loadOpt = createStyledMenuItem("Load");
+                loadOpt.addActionListener(e -> {
+                    menu.setVisible(false);
+                    if (adjacentFleets.size() == 1) {
+                        MapUnit target = adjacentFleets.get(0);
+                        u.hasActed = true;
+                        u.hasMoved = true;
+                        if (target.loadedUnits == null) target.loadedUnits = new ArrayList<>();
+                        target.loadedUnits.add(u);
+                        units.remove(u);
+                        game.core.util.SoundManager.playDecide();
+                        selectedUnit = null;
+                        hoveredTile = new Point(target.position);
+                        fogDirty = true;
+                        unitOrderDirty = true;
+                        needsRepaint = true;
+                        canvasPanel.repaint();
+                    } else {
+                        showLoadSelectionMenu(u, adjacentFleets, x, y);
+                    }
+                });
+                menu.add(loadOpt);
+            }
+        }
+        
+        // --- 5. Drop Option ---
+        if ("Fleet".equalsIgnoreCase(u.unitName) && u.loadedUnits != null && !u.loadedUnits.isEmpty()) {
+            List<Point> validDropPoints = new ArrayList<>();
+            MapUnit toDrop = u.loadedUnits.get(0);
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    if (Math.abs(dx) + Math.abs(dy) == 1) {
+                        int nx = u.position.x + dx;
+                        int ny = u.position.y + dy;
+                        if (nx >= 0 && nx < mapW && ny >= 0 && ny < mapH) {
+                            int cost = game.core.engine.MovementEngine.getTerrainCost(nx, ny, toDrop.stats.unitType, mapData, mapTSData, loadedTilesets, mapW, mapH);
+                            if (cost != -1) {
+                                boolean occ = false;
+                                for (MapUnit occU : units) if (!occU.isDead && occU.position.x == nx && occU.position.y == ny) { occ = true; break; }
+                                if (!occ) validDropPoints.add(new Point(nx, ny));
+                            }
+                        }
+                    }
+                }
+            }
+            if (!validDropPoints.isEmpty()) {
+                JMenuItem dropOpt = createStyledMenuItem("Drop");
+                dropOpt.addActionListener(e -> {
+                    menu.setVisible(false);
+                    showDropSelectionMenu(u, toDrop, validDropPoints, x, y);
+                });
+                menu.add(dropOpt);
+            }
+        }
+        
+        // --- 6. Wait Option ---
+        boolean isOccupied = false;
+        for (MapUnit other : units) {
+            if (other != u && !other.isDead && other.position.equals(u.position)) {
+                isOccupied = true;
+                break;
+            }
+        }
+        if (!isOccupied) {
+            JMenuItem waitOpt = createStyledMenuItem("Wait");
+            waitOpt.addActionListener(e -> {
+                menu.setVisible(false);
+                u.hasActed = true;
+                selectedUnit = null;
+                canvasPanel.repaint();
+            });
+            menu.add(waitOpt);
+        }
         
         menu.show(canvasPanel, x, y);
     }
@@ -2360,7 +2469,7 @@ public class VersusGameplayScreen extends BaseScreen {
      * Executes the Capture action: reduces the event's HP by the unit's current HP,
      * starts the animated capture progress bar, and handles ownership change if HP <= 0.
      */
-    private void performCapture(MapUnit u, EventInfo ev) {
+    public void performCapture(MapUnit u, EventInfo ev) {
         // Capture damage = unit's HP normalized to a 1–10 scale (Advance Wars style)
         // A full-HP unit deals 10 damage per turn → 4 turns to capture a 40 HP event
         int captureDamage = (int) Math.ceil((double) u.currentHp / u.stats.maxHp * 10.0);
@@ -2627,6 +2736,97 @@ public class VersusGameplayScreen extends BaseScreen {
         menu.show(canvasPanel, x, y);
     }
 
+    private void showLoadSelectionMenu(MapUnit u, List<MapUnit> targets, int x, int y) {
+        javax.swing.JPopupMenu menu = createStyledMenu();
+        for (MapUnit target : targets) {
+            String dir = "";
+            if (target.position.y < u.position.y) dir = "North";
+            else if (target.position.y > u.position.y) dir = "South";
+            else if (target.position.x > u.position.x) dir = "East";
+            else if (target.position.x < u.position.x) dir = "West";
+            else dir = "Here";
+            
+            JMenuItem opt = createStyledMenuItem("Fleet (" + dir + ")");
+            opt.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseEntered(java.awt.event.MouseEvent me) {
+                    hoveredTile = new Point(target.position);
+                    cameraTargetX = target.renderPos.x * 16 * zoomScale + 8 * zoomScale;
+                    cameraTargetY = target.renderPos.y * 16 * zoomScale + 8 * zoomScale;
+                    canvasPanel.repaint();
+                }
+            });
+            opt.addActionListener(e -> {
+                menu.setVisible(false);
+                u.hasActed = true;
+                u.hasMoved = true;
+                if (target.loadedUnits == null) target.loadedUnits = new ArrayList<>();
+                target.loadedUnits.add(u);
+                units.remove(u);
+                game.core.util.SoundManager.playDecide();
+                selectedUnit = null;
+                hoveredTile = new Point(target.position);
+                fogDirty = true;
+                unitOrderDirty = true;
+                needsRepaint = true;
+                canvasPanel.repaint();
+            });
+            menu.add(opt);
+        }
+        JMenuItem backOpt = createStyledMenuItem("< Back");
+        backOpt.addActionListener(e -> {
+            menu.setVisible(false);
+            showMainActionMenu(u, x, y);
+        });
+        menu.add(backOpt);
+        menu.show(canvasPanel, x, y);
+    }
+
+    private void showDropSelectionMenu(MapUnit u, MapUnit droppedUnit, List<Point> tiles, int x, int y) {
+        javax.swing.JPopupMenu menu = createStyledMenu();
+        for (Point tile : tiles) {
+            String dir = "";
+            if (tile.y < u.position.y) dir = "North";
+            else if (tile.y > u.position.y) dir = "South";
+            else if (tile.x > u.position.x) dir = "East";
+            else dir = "West";
+            
+            JMenuItem opt = createStyledMenuItem("Drop " + dir);
+            opt.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseEntered(java.awt.event.MouseEvent me) {
+                    hoveredTile = new Point(tile);
+                    cameraTargetX = tile.x * 16 * zoomScale + 8 * zoomScale;
+                    cameraTargetY = tile.y * 16 * zoomScale + 8 * zoomScale;
+                    canvasPanel.repaint();
+                }
+            });
+            opt.addActionListener(e -> {
+                menu.setVisible(false);
+                u.loadedUnits.remove(droppedUnit);
+                droppedUnit.position = new Point(tile);
+                droppedUnit.renderPos = new java.awt.geom.Point2D.Double(tile.x, tile.y);
+                droppedUnit.hasActed = true;
+                droppedUnit.hasMoved = true;
+                units.add(droppedUnit);
+                game.core.util.SoundManager.playDecide();
+                selectedUnit = null;
+                hoveredTile = new Point(tile);
+                u.hasActed = true;
+                fogDirty = true;
+                unitOrderDirty = true;
+                needsRepaint = true;
+                canvasPanel.repaint();
+            });
+            menu.add(opt);
+        }
+        JMenuItem backOpt = createStyledMenuItem("< Back");
+        backOpt.addActionListener(e -> {
+            menu.setVisible(false);
+            showMainActionMenu(u, x, y);
+        });
+        menu.add(backOpt);
+        menu.show(canvasPanel, x, y);
+    }
+
     private void showItemActionMenu(MapUnit u, WeaponItem wi, int x, int y) {
         JPopupMenu menu = createStyledMenu();
         
@@ -2688,9 +2888,46 @@ public class VersusGameplayScreen extends BaseScreen {
         if (!hit.isMiss) source.isWaitingForDamage = true;
     }
 
-    private void startCombat(MapUnit a, MapUnit d) {
+    public void startCombat(MapUnit a, MapUnit d) {
         BattleManager bm = new BattleManager();
-        activeBattle = bm.generateBattle(a, d);
+        BattleManager.BattleResult br = bm.generateBattle(a, d);
+        
+        if ("Fleet".equalsIgnoreCase(a.unitName) || "Fleet".equalsIgnoreCase(d.unitName)) {
+            // Map-only combat resolution
+            BattleManager.Combatant atk = br.attacker;
+            BattleManager.Combatant def = br.defender;
+            
+            a.currentHp = atk.hp;
+            a.hasActed = true;
+            if (a.currentHp <= 0) {
+                a.isDead = true;
+                units.remove(a);
+            } else {
+                healthBarTimers.put(a, 180);
+            }
+            
+            d.currentHp = def.hp;
+            if (d.currentHp <= 0) {
+                d.isDead = true;
+                units.remove(d);
+            } else {
+                healthBarTimers.put(d, 180);
+            }
+            
+            fogDirty = true;
+            unitOrderDirty = true;
+            needsRepaint = true;
+            
+            String wpnType = (atk != null && atk.weaponType != null) ? atk.weaponType.name() : null;
+            game.core.util.SoundManager.playBattleHitSfx(wpnType, false, false, 5, d.isDead);
+            
+            selectedUnit = null;
+            if (selectedEnemy != null && selectedEnemy.isDead) selectedEnemy = null;
+            updateEnemyPanel();
+            return;
+        }
+
+        activeBattle = br;
         isBattleActive = true; currentHitIdx = 0; battleEndDelay = 0;
         recolorCache.clear(); // Clear cache to prevent old background/mirror artifacts
         attackerActor = new BattleActor(a, true, getWidth(), getHeight()); defenderActor = new BattleActor(d, false, getWidth(), getHeight());
@@ -3043,7 +3280,7 @@ public class VersusGameplayScreen extends BaseScreen {
         if (unitEntries.isEmpty()) {
             if ("ARMORY".equals(ev.type)) unitEntries.add(new Object[]{"Unit", "Knight", UnitRegistry.get("Knight"), 500});
             else if ("HQ".equals(ev.type)) unitEntries.add(new Object[]{"Champion", "Ephraim", UnitRegistry.get("Ephraim"), 1000});
-            else if ("FORT".equals(ev.type)) unitEntries.add(new Object[]{"Unit", "Battleship", UnitRegistry.get("Battleship"), 800});
+            else if ("FORT".equals(ev.type)) unitEntries.add(new Object[]{"Unit", "Fleet", UnitRegistry.get("Fleet"), 800});
             else if ("AERIE".equals(ev.type)) unitEntries.add(new Object[]{"Unit", "Pegasus Knight", UnitRegistry.get("Pegasus Knight"), 600});
         }
 
@@ -3179,55 +3416,15 @@ public class VersusGameplayScreen extends BaseScreen {
 
 
 
-    private void deployUnit(String cat, String name, int cost, EventInfo ev) {
+    public void deployUnit(String cat, String name, int cost, EventInfo ev) {
         VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
         if (p.gold < cost) { JOptionPane.showMessageDialog(this, "Not enough gold!"); return; }
         p.gold -= cost; goldLabel.setText("🪙 " + p.gold); layoutGameLayer();
         MapUnit u = new MapUnit(cat, name, MapUnit.Faction.PLAYER, new Point(ev.x, ev.y)); u.ownerIndex = currentPlayerIdx;
         
-        File battleDir = new File(GamePaths.BATTLE, cat + "/" + name);
-        if (!battleDir.exists()) battleDir = new File(GamePaths.BATTLE, name);
-        
-        boolean hasWeapons = false;
-        if (battleDir.exists()) {
-            if (new File(battleDir, "Sword").exists() || new File(battleDir, "sword").exists()) {
-                WeaponItem w = WeaponItem.byName("Iron Sword"); w.maxUses = 20; w.currentUses = 20; u.addItem(w); hasWeapons = true;
-            }
-            if (new File(battleDir, "Lance").exists() || new File(battleDir, "lance").exists() || new File(battleDir, "Spear").exists() || new File(battleDir, "spear").exists()) {
-                if ("Ephraim".equalsIgnoreCase(name)) {
-                    WeaponItem reginleif = WeaponItem.byName("Reginleif");
-                    reginleif.maxUses = 45; reginleif.currentUses = 45;
-                    u.addItem(reginleif);
-                } else {
-                    WeaponItem w1 = WeaponItem.byName("Iron Lance"); w1.maxUses = 20; w1.currentUses = 20; u.addItem(w1);
-                }
-                if (UnitRegistry.hasRangedAnimation(battleDir, "Lance", "lance", "Spear", "spear")) {
-                    WeaponItem w2 = WeaponItem.byName("Javelin"); w2.maxUses = 10; w2.currentUses = 10; u.addItem(w2);
-                }
-                hasWeapons = true;
-            }
-            if (new File(battleDir, "Axe").exists() || new File(battleDir, "axe").exists()) {
-                WeaponItem w1 = WeaponItem.byName("Iron Axe"); w1.maxUses = 20; w1.currentUses = 20; u.addItem(w1);
-                if (UnitRegistry.hasRangedAnimation(battleDir, "Axe", "axe")) {
-                    WeaponItem w2 = WeaponItem.byName("Hand Axe"); w2.maxUses = 10; w2.currentUses = 10; u.addItem(w2);
-                }
-                hasWeapons = true;
-            }
-            if (new File(battleDir, "Bow").exists() || new File(battleDir, "bow").exists()) {
-                if ("Ballista".equalsIgnoreCase(name)) {
-                    WeaponItem w = WeaponItem.byName("Ballista"); w.maxUses = 5; w.currentUses = 5; u.addItem(w); hasWeapons = true;
-                } else {
-                    WeaponItem w = WeaponItem.byName("Iron Bow"); w.maxUses = 20; w.currentUses = 20; u.addItem(w); hasWeapons = true;
-                }
-            }
-            if (new File(battleDir, "Magic").exists() || new File(battleDir, "magic").exists()) {
-                WeaponItem w = WeaponItem.byName("Fire"); w.maxUses = 20; w.currentUses = 20; u.addItem(w); hasWeapons = true;
-            }
-        }
-        
-        if (!hasWeapons) {
-            WeaponItem ironLance = WeaponItem.byName("Iron Lance"); ironLance.maxUses = 20; ironLance.currentUses = 20; u.addItem(ironLance);
-            WeaponItem javelin = WeaponItem.byName("Javelin"); javelin.maxUses = 10; javelin.currentUses = 10; u.addItem(javelin);
+        List<WeaponItem> defaultWeapons = UnitRegistry.getDefaultWeapons(cat, name);
+        for (WeaponItem w : defaultWeapons) {
+            u.addItem(w);
         }
         
         units.add(u); loadAnims(u); unitOrderDirty = true; fogDirty = true; needsRepaint = true; canvasPanel.repaint();
@@ -3269,7 +3466,7 @@ public class VersusGameplayScreen extends BaseScreen {
             needsRepaint = true;
             repaint();
         } else if (players != null && !players.isEmpty() && players.get(currentPlayerIdx).isAI) {
-            updateAI();
+            aiLogic.updateAI();
         }
         // ── Decrement health bar display timers ──
         if (!healthBarTimers.isEmpty()) {
@@ -3354,9 +3551,11 @@ public class VersusGameplayScreen extends BaseScreen {
                     else if (isMountedSubtype(u)) SoundManager.playStepHorse();
                     else if (isFlierSubtype(u)) SoundManager.playStepFlier();
                     else if (isSiegeSubtype(u)) SoundManager.playStepSiege();
+                    else if (isShipSubtype(u)) SoundManager.playStepShip();
                     else if (isInfantrySubtype(u)) SoundManager.playStepInfantry();
                     else SoundManager.playFootstep();
                     if (u.movePath.isEmpty()) { 
+                        if (isShipSubtype(u)) SoundManager.stopStepShip();
                         u.position = new Point(target); 
                         fogDirty = true; 
                         if (players != null && !players.isEmpty() && !players.get(u.ownerIndex).isAI) {
@@ -3369,10 +3568,22 @@ public class VersusGameplayScreen extends BaseScreen {
 
         // ── Smooth camera follow for moving unit ──
         if (movingUnit != null) {
-            double unitPixelX = movingUnit.renderPos.x * TILE_SIZE * zoomScale;
-            double unitPixelY = movingUnit.renderPos.y * TILE_SIZE * zoomScale;
-            cameraTargetX = unitPixelX;
-            cameraTargetY = unitPixelY;
+            int ry = (int) Math.round(movingUnit.renderPos.y);
+            int rx = (int) Math.round(movingUnit.renderPos.x);
+            boolean visible = false;
+            if (fogOfWarEnabled && visibleTiles != null && ry >= 0 && ry < mapH && rx >= 0 && rx < mapW) {
+                visible = visibleTiles[ry][rx] || isPlayerVisionActive(movingUnit.ownerIndex);
+            } else if (!fogOfWarEnabled) {
+                visible = true;
+            } else if (isPlayerVisionActive(movingUnit.ownerIndex)) {
+                visible = true;
+            }
+            if (visible) {
+                double unitPixelX = movingUnit.renderPos.x * TILE_SIZE * zoomScale;
+                double unitPixelY = movingUnit.renderPos.y * TILE_SIZE * zoomScale;
+                cameraTargetX = unitPixelX;
+                cameraTargetY = unitPixelY;
+            }
         }
         updateSmoothCamera();
 
@@ -3438,161 +3649,6 @@ public class VersusGameplayScreen extends BaseScreen {
         }
     }
 
-    private void updateAI() {
-        if (aiTimer > 0) { aiTimer--; return; }
-
-        if (aiState == 0) { // Init Turn
-            VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
-            
-            for (Map.Entry<Point, EventInfo> entry : eventMap.entrySet()) {
-                EventInfo ev = entry.getValue();
-                if (ev.owner == currentPlayerIdx && ("BASE".equalsIgnoreCase(ev.type) || "ARMORY".equalsIgnoreCase(ev.type) || "HQ".equalsIgnoreCase(ev.type) || "FORT".equalsIgnoreCase(ev.type) || "AERIE".equalsIgnoreCase(ev.type))) {
-                    boolean occupied = false;
-                    for (MapUnit u : units) {
-                        if (!u.isDead && u.position.equals(entry.getKey())) {
-                            occupied = true; break;
-                        }
-                    }
-                    if (!occupied) {
-                        String cat = "Unit";
-                        List<String> aiUnitChoices = new ArrayList<>();
-                        
-                        if ("HQ".equalsIgnoreCase(ev.type)) {
-                            cat = "Champion";
-                            aiUnitChoices.add("Ephraim");
-                        } else if ("AERIE".equalsIgnoreCase(ev.type)) {
-                            cat = "Unit";
-                            aiUnitChoices.add("Pegasus Knight");
-                        } else if ("FORT".equalsIgnoreCase(ev.type)) {
-                            cat = "Unit";
-                            aiUnitChoices.add("Battleship");
-                        } else {
-                            cat = "Unit";
-                            aiUnitChoices.addAll(Arrays.asList("Soldier", "Assassin", "Cavalier", "Knight", "Sentinel"));
-                        }
-                        
-                        java.util.Collections.shuffle(aiUnitChoices);
-                        for (String uName : aiUnitChoices) {
-                            int cost = game.core.engine.DeploymentEngine.calculatePrice(cat, uName);
-                            if (p.gold >= cost) {
-                                deployUnit(cat, uName, cost, ev);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            aiUnactedUnits.clear();
-            for (MapUnit u : units) {
-                if (!u.isDead && u.ownerIndex == currentPlayerIdx && !u.hasActed) {
-                    aiUnactedUnits.add(u);
-                }
-            }
-            if (aiUnactedUnits.isEmpty()) {
-                nextTurn();
-                return;
-            }
-            currentAiUnit = aiUnactedUnits.get(0);
-            aiState = 1;
-            aiTimer = 30; // Wait before acting
-        }
-        else if (aiState == 1) { // Camera focus
-            cameraTargetX = currentAiUnit.renderPos.x * TILE_SIZE * zoomScale;
-            cameraTargetY = currentAiUnit.renderPos.y * TILE_SIZE * zoomScale;
-            aiState = 2;
-            aiTimer = 15;
-        }
-        else if (aiState == 2) { // Decide Move & Attack
-            calculateMoveRange(currentAiUnit);
-            WeaponItem equipped = currentAiUnit.getEquipped();
-            int minR = equipped != null ? equipped.minRange : 1;
-            int maxR = equipped != null ? equipped.maxRange : 1;
-            
-            // Find target enemy
-            double bestScore = -9999;
-            Point bestMovePos = currentAiUnit.position;
-            
-            for (Point p : moveRange) {
-                // If there's another unit here, we can't end our turn here (unless it's us)
-                boolean occupied = false;
-                for (MapUnit u : units) {
-                    if (u != currentAiUnit && !u.isDead && u.position.equals(p)) {
-                        occupied = true; break;
-                    }
-                }
-                if (occupied) continue;
-                
-                // Score this position
-                double score = 0;
-                for (MapUnit e : units) {
-                    if (e.ownerIndex != currentPlayerIdx && !e.isDead) {
-                        int dist = Math.abs(e.position.x - p.x) + Math.abs(e.position.y - p.y);
-                        // If we can attack from here, huge score!
-                        if (dist >= minR && dist <= maxR) {
-                            score += 1000 - e.currentHp; // prefer low HP targets
-                        } else {
-                            // Otherwise, prefer getting closer to enemies
-                            score -= dist * 5;
-                        }
-                    }
-                }
-                // Tiebreaker: prefer tiles closer to our current position
-                score -= (Math.abs(p.x - currentAiUnit.position.x) + Math.abs(p.y - currentAiUnit.position.y));
-                
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMovePos = p;
-                }
-            }
-            
-            // Reconstruct path
-            reconstructPath(bestMovePos, currentAiUnit);
-            currentAiUnit.hasMoved = true;
-            moveRange.clear();
-            attackRange.clear();
-            aiState = 3;
-        }
-        else if (aiState == 3) { // Wait for movement to finish
-            if (currentAiUnit.movePath.isEmpty()) {
-                aiState = 4;
-                aiTimer = 15;
-            }
-        }
-        else if (aiState == 4) { // Combat
-            // Check if we can attack someone
-            MapUnit target = null;
-            int bestHp = 9999;
-            WeaponItem equipped = currentAiUnit.getEquipped();
-            int minR = equipped != null ? equipped.minRange : 1;
-            int maxR = equipped != null ? equipped.maxRange : 1;
-            
-            for (MapUnit e : units) {
-                if (e.ownerIndex != currentPlayerIdx && !e.isDead) {
-                    int dist = Math.abs(e.position.x - currentAiUnit.position.x) + Math.abs(e.position.y - currentAiUnit.position.y);
-                    if (dist >= minR && dist <= maxR) {
-                        if (e.currentHp < bestHp) {
-                            bestHp = (int)e.currentHp;
-                            target = e;
-                        }
-                    }
-                }
-            }
-            
-            if (target != null) {
-                startCombat(currentAiUnit, target);
-            }
-            currentAiUnit.hasActed = true;
-            aiState = 5;
-            aiTimer = 30; // Wait before next unit
-        }
-        else if (aiState == 5) {
-            // Check if battle is still active
-            if (!isBattleActive) {
-                aiState = 0;
-            }
-        }
-    }
 
     /**
      * Smoothly interpolates the camera viewport toward the target position.
@@ -3653,6 +3709,12 @@ public class VersusGameplayScreen extends BaseScreen {
         if (u == null || u.stats == null || u.stats.subUnitType == null) return false;
         String st = u.stats.subUnitType.trim().toLowerCase();
         return st.equals("siege");
+    }
+
+    private boolean isShipSubtype(MapUnit u) {
+        if (u == null || u.stats == null || u.stats.subUnitType == null) return false;
+        String st = u.stats.subUnitType.trim().toLowerCase();
+        return st.equals("ship");
     }
 
     private boolean isMountedSubtype(MapUnit u) {

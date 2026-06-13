@@ -33,14 +33,9 @@ public class UnitStats implements Serializable {
     public int luck = 5;
     public int defense = 5;
     public int resistance = 5;
-    public String affinity = "Fire"; // Fire, Thunder, Wind, Water, Ice, Light, Anima, Dark
 
     // Personal Data
     public int move = 5;
-    public int con = 5;
-    public int aid = 4;
-    public int trv = 0; // Index or Name of rescued unit
-    public String cond = "Healthy";
 
     // Battle Record (B/W/L)
     public int battles = 0;
@@ -55,11 +50,15 @@ public class UnitStats implements Serializable {
      */
     public static UnitStats load(String category, String unitName) {
         try {
-            File f = new File(ANIMS_BASE + "/" + category + "/" + unitName + "/stats.json");
-            if (!f.exists()) {
-                f = new File(ANIMS_BASE + "/" + unitName + "/stats.json");
+            File f = null;
+            for (String root : game.core.util.GamePaths.battleAssetSearchRoots()) {
+                f = new File(root + category + "/" + unitName + "/stats.json");
+                if (f.exists()) break;
+                f = new File(root + unitName + "/stats.json");
+                if (f.exists()) break;
             }
-            if (!f.exists()) {
+            
+            if (f == null || !f.exists()) {
                 UnitStats defaults = new UnitStats();
                 defaults.unitName = unitName;
                 return defaults;
@@ -100,12 +99,7 @@ public class UnitStats implements Serializable {
                "  \"lck\": " + luck + ",\n" +
                "  \"def\": " + defense + ",\n" +
                "  \"res\": " + resistance + ",\n" +
-               "  \"aff\": \"" + affinity + "\",\n" +
                "  \"mov\": " + move + ",\n" +
-               "  \"con\": " + con + ",\n" +
-               "  \"aid\": " + aid + ",\n" +
-               "  \"trv\": " + trv + ",\n" +
-               "  \"cond\": \"" + cond + "\",\n" +
                "  \"bwl\": { \"b\":" + battles + ",\"w\":" + wins + ",\"l\":" + losses + " }\n" +
                "}";
     }
@@ -126,12 +120,7 @@ public class UnitStats implements Serializable {
         stats.luck = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "lck"), 5);
         stats.defense = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "def"), 5);
         stats.resistance = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "res"), 5);
-        stats.affinity = JsonUtil.extractJsonVal(json, "aff");
         stats.move = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "mov"), 5);
-        stats.con = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "con"), 5);
-        stats.aid = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "aid"), 4);
-        stats.trv = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "trv"), 0);
-        stats.cond = JsonUtil.extractJsonVal(json, "cond");
         
         // BWL
         stats.battles = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "b"), 0);

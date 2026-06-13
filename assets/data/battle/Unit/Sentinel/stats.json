@@ -12,11 +12,6 @@
   "lck": 3,
   "def": 16,
   "res": 9,
-  "aff": "Fire",
   "mov": 5,
-  "con": 5,
-  "aid": 4,
-  "trv": 0,
-  "cond": "None",
   "bwl": { "b":0,"w":0,"l":0 }
 }

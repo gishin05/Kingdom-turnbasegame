@@ -28,6 +28,7 @@ public class VersusSaveData {
         public boolean hasActed;
         public boolean hasMoved;
         public boolean isDead;
+        public List<UnitData> loadedUnits = new ArrayList<>();
     }
 
     public String mapPath;
@@ -74,6 +75,16 @@ public class VersusSaveData {
             p.setProperty("units." + i + ".hasActed", String.valueOf(u.hasActed));
             p.setProperty("units." + i + ".hasMoved", String.valueOf(u.hasMoved));
             p.setProperty("units." + i + ".isDead", String.valueOf(u.isDead));
+            
+            p.setProperty("units." + i + ".loaded.count", String.valueOf(u.loadedUnits.size()));
+            for (int j = 0; j < u.loadedUnits.size(); j++) {
+                UnitData lu = u.loadedUnits.get(j);
+                p.setProperty("units." + i + ".loaded." + j + ".category", enc(lu.category));
+                p.setProperty("units." + i + ".loaded." + j + ".unitName", enc(lu.unitName));
+                p.setProperty("units." + i + ".loaded." + j + ".ownerIndex", String.valueOf(lu.ownerIndex));
+                p.setProperty("units." + i + ".loaded." + j + ".currentHp", String.valueOf(lu.currentHp));
+                p.setProperty("units." + i + ".loaded." + j + ".maxHp", String.valueOf(lu.maxHp));
+            }
         }
 
         file.getParentFile().mkdirs();
@@ -117,6 +128,18 @@ public class VersusSaveData {
             u.hasActed = Boolean.parseBoolean(p.getProperty("units." + i + ".hasActed", "false"));
             u.hasMoved = Boolean.parseBoolean(p.getProperty("units." + i + ".hasMoved", "false"));
             u.isDead = Boolean.parseBoolean(p.getProperty("units." + i + ".isDead", "false"));
+            
+            int lc = parseInt(p.getProperty("units." + i + ".loaded.count", "0"), 0);
+            for (int j = 0; j < lc; j++) {
+                UnitData lu = new UnitData();
+                lu.category = dec(p.getProperty("units." + i + ".loaded." + j + ".category", ""));
+                lu.unitName = dec(p.getProperty("units." + i + ".loaded." + j + ".unitName", ""));
+                lu.ownerIndex = parseInt(p.getProperty("units." + i + ".loaded." + j + ".ownerIndex", "0"), 0);
+                lu.currentHp = parseInt(p.getProperty("units." + i + ".loaded." + j + ".currentHp", "1"), 1);
+                lu.maxHp = parseInt(p.getProperty("units." + i + ".loaded." + j + ".maxHp", "1"), 1);
+                u.loadedUnits.add(lu);
+            }
+            
             d.units.add(u);
         }
 

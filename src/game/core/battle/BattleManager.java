@@ -48,7 +48,7 @@ public class BattleManager {
         public MapUnit mapUnit;
         public String name;
         public int hp, maxHp;
-        public int attack, defense, speed, skill, luck, magic, con;
+        public int attack, defense, speed, skill, luck, magic;
         public WeaponType weaponType;
         public int weaponWeight, weaponAtk, weaponHit, weaponCrit;
         public int weaponMinRange, weaponMaxRange;
@@ -113,7 +113,6 @@ public class BattleManager {
         c.speed    = u.stats.speed;
         c.skill    = u.stats.skill;
         c.luck     = u.stats.luck;
-        c.con      = u.stats.con;
 
         WeaponItem w = u.getEquipped();
         if (w != null && !w.isBroken()) {
@@ -150,8 +149,8 @@ public class BattleManager {
     // ── Stat computation (FE8 ComputeBattleUnitStats) ─────────
 
     private void computeStats(Combatant c, Combatant target) {
-        // Attack Speed = Speed - max(0, weight - CON)
-        c.atkSpeed = c.speed - Math.max(0, c.weaponWeight - c.con);
+        // Attack Speed = Speed - max(0, weight - Str)
+        c.atkSpeed = c.speed - Math.max(0, c.weaponWeight - c.attack);
 
         int effectiveBonus = 1;
         if (c.effectiveAgainst != null && !c.effectiveAgainst.isEmpty() && target.mapUnit != null) {

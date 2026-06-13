@@ -12,11 +12,6 @@
   "lck": 7,
   "def": 4,
   "res": 3,
-  "aff": "Fire",
   "mov": 6,
-  "con": 3,
-  "aid": 2,
-  "trv": 0,
-  "cond": "Healthy",
   "bwl": { "b":0,"w":0,"l":0 }
 }

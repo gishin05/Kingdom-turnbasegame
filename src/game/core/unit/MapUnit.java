@@ -37,10 +37,13 @@ public class MapUnit {
     public boolean hasActed  = false;         // used action this turn (attacked/waited)
     public boolean isDead    = false;
 
-    // ── Inventory ─────────────────────────────────────────────
+    // ── Inventory & Cargo ─────────────────────────────────────
     /** Up to 5 items — mirrors FE8's UNIT_ITEM_COUNT = 5 */
     public List<WeaponItem> inventory = new ArrayList<>();
     public int equippedSlot = 0;
+    
+    /** Units loaded inside this unit (e.g. for transports like Fleet) */
+    public List<MapUnit> loadedUnits = new ArrayList<>();
 
     /** Returns the equipped weapon, or null if inventory is empty */
     public WeaponItem getEquipped() {
@@ -97,11 +100,11 @@ public class MapUnit {
     }
 
     // ── Computed Battle Stats ─────────────────────────────────
-    /** Attack Speed = Speed - max(0, weapon.weight - CON) */
+    /** Attack Speed = Speed - max(0, weapon.weight - Str) */
     public int getAttackSpeed() {
         WeaponItem w = getEquipped();
         if (w == null) return stats.speed;
-        int penalty = Math.max(0, w.weight - stats.con);
+        int penalty = Math.max(0, w.weight - stats.strength);
         return stats.speed - penalty;
     }
 
