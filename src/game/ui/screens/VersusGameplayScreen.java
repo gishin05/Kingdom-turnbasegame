@@ -99,6 +99,23 @@ public class VersusGameplayScreen extends BaseScreen {
     private Map<MapUnit, Integer> healthBarTimers = new HashMap<>(); // Timed health bar display (frames remaining)
     private Map<MapUnit, Double> animatedHpMap = new HashMap<>();    // Smooth trailing HP bar animation
     private Map<MapUnit, Float> dyingUnitsMap = new HashMap<>();     // Fading out dead units on the map
+
+    // ── Deploy Overlay Fields ─────────────────────────────
+    private JPanel deployOverlay;
+    private JPanel deployListContainer;
+    private javax.swing.Timer deployAnimTimer;
+    private int deployAnimFrame = 0;
+    private EventInfo pendingDeployEvent = null;
+    private Map<String, List<BufferedImage>> deployPreviewCache = new HashMap<>();
+    
+    // ── Deploy Preview Fields ──
+    private JLabel previewNameLbl;
+    private JPanel previewSpritePanel;
+    private JLabel[] previewStatLbls;
+    private JPanel previewWeaponsBox;
+    private String previewCategory;
+    private String previewUnitName;
+    private UnitStats previewUnitStats;
     
     private void initWeatherOverlays() {
         if (rainOverlay != null) return;
@@ -475,6 +492,10 @@ public class VersusGameplayScreen extends BaseScreen {
         menuOverlay.setVisible(false);
         gameLayer.add(menuOverlay, JLayeredPane.MODAL_LAYER);
 
+        deployOverlay = buildDeployOverlay();
+        deployOverlay.setVisible(false);
+        gameLayer.add(deployOverlay, JLayeredPane.MODAL_LAYER);
+
         addComponentListener(new ComponentAdapter() {
             @Override public void componentResized(ComponentEvent e) {
                 layoutGameLayer();
@@ -585,6 +606,7 @@ public class VersusGameplayScreen extends BaseScreen {
             Dimension eSize = enemyPanel.getPreferredSize();
             enemyPanel.setBounds(w - eSize.width - 10, 10, eSize.width, eSize.height);
         }
+        if (deployOverlay != null) deployOverlay.setBounds(0, 0, w, h);
     }
 
     private JPanel buildMenuOverlay() {
@@ -1291,6 +1313,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 if (currentWeather == Weather.THUNDERSTORM && Math.random() < 0.02) {
                     g.setColor(new Color(255, 255, 255, 120));
                     g.fillRect(vx0, vy0, vx1 - vx0, vy1 - vy0);
+                    game.core.util.SoundManager.playThunder();
                 }
             } else if (currentWeather == Weather.SNOW || currentWeather == Weather.SNOWSTORM) {
                 int speed = (currentWeather == Weather.SNOWSTORM) ? 10 : 40;
@@ -2645,11 +2668,296 @@ public class VersusGameplayScreen extends BaseScreen {
         defenderActor.setMode(AnimationScript.MODE_STANDING);
     }
 
+    private JPanel buildDeployPreviewPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 10));
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        panel.setPreferredSize(new Dimension(300, 0));
+
+        // Name
+        previewNameLbl = new JLabel(" ");
+        previewNameLbl.setFont(Theme.getPixelFont(24f));
+        previewNameLbl.setForeground(new Color(255, 80, 80));
+        previewNameLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        previewNameLbl.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(255, 80, 80)));
+        panel.add(previewNameLbl, BorderLayout.NORTH);
+
+        // Center: Sprite
+        previewSpritePanel = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(new Color(40, 40, 40, 200));
+                g.fillRect(0, 0, getWidth(), getHeight());
+                g.setColor(Theme.GOLD);
+                g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+                
+                if (previewCategory != null && previewUnitName != null) {
+                    List<BufferedImage> frames = deployPreviewCache.get(previewCategory + "/" + previewUnitName);
+                    if (frames != null && !frames.isEmpty()) {
+                        int idx = (deployAnimFrame / 8) % frames.size();
+                        BufferedImage frame = frames.get(idx);
+                        Color teamColor = players.get(currentPlayerIdx).color;
+                        BufferedImage colored = SpriteColorer.recolor(frame, teamColor);
+                        int scale = 4;
+                        int dw = colored.getWidth() * scale;
+                        int dh = colored.getHeight() * scale;
+                        int dx = (getWidth() - dw) / 2;
+                        int dy = (getHeight() - dh) / 2;
+                        ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                        g.drawImage(colored, dx, dy, dw, dh, null);
+                    }
+                }
+            }
+        };
+        previewSpritePanel.setPreferredSize(new Dimension(200, 200));
+        previewSpritePanel.setOpaque(false);
+        
+        JPanel spriteWrap = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        spriteWrap.setOpaque(false);
+        spriteWrap.add(previewSpritePanel);
+        
+        // Stats in white box
+        JPanel statsBox = new JPanel(new GridLayout(0, 2, 10, 5));
+        statsBox.setOpaque(false);
+        statsBox.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.WHITE, 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        previewStatLbls = new JLabel[8];
+        String[] statNames = {"HP", "STR", "MAG", "SKL", "SPD", "DEF", "RES", "MOV"};
+        for (int i = 0; i < 8; i++) {
+            JPanel statRow = new JPanel(new BorderLayout());
+            statRow.setOpaque(false);
+            JLabel nameLbl = new JLabel(statNames[i]);
+            nameLbl.setForeground(Color.LIGHT_GRAY);
+            nameLbl.setFont(Theme.getPixelFont(14f));
+            
+            previewStatLbls[i] = new JLabel("-");
+            previewStatLbls[i].setForeground(Color.WHITE);
+            previewStatLbls[i].setFont(Theme.getPixelFont(16f));
+            
+            statRow.add(nameLbl, BorderLayout.WEST);
+            statRow.add(previewStatLbls[i], BorderLayout.EAST);
+            statsBox.add(statRow);
+        }
+
+        previewWeaponsBox = new JPanel();
+        previewWeaponsBox.setLayout(new BoxLayout(previewWeaponsBox, BoxLayout.Y_AXIS));
+        previewWeaponsBox.setOpaque(false);
+        javax.swing.border.TitledBorder tb = BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 1),
+            "WEAPONS",
+            javax.swing.border.TitledBorder.LEFT,
+            javax.swing.border.TitledBorder.TOP,
+            Theme.getPixelFont(12f),
+            Color.LIGHT_GRAY
+        );
+        previewWeaponsBox.setBorder(BorderFactory.createCompoundBorder(
+            tb,
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+
+        JPanel bottomStats = new JPanel(new BorderLayout(0, 10));
+        bottomStats.setOpaque(false);
+        bottomStats.add(statsBox, BorderLayout.NORTH);
+        bottomStats.add(previewWeaponsBox, BorderLayout.CENTER);
+
+        JPanel centerPanel = new JPanel(new BorderLayout(0, 15));
+        centerPanel.setOpaque(false);
+        centerPanel.add(spriteWrap, BorderLayout.NORTH);
+        centerPanel.add(bottomStats, BorderLayout.CENTER);
+
+        panel.add(centerPanel, BorderLayout.CENTER);
+        return panel;
+    }
+
+
+
+    private void updateDeployPreview(String cat, String name, UnitStats stats) {
+        previewCategory = cat;
+        previewUnitName = name;
+        previewUnitStats = stats;
+        
+        previewNameLbl.setText(name.toUpperCase());
+        
+        if (stats != null) {
+            previewStatLbls[0].setText(String.valueOf(stats.maxHp));
+            previewStatLbls[1].setText(String.valueOf(stats.strength));
+            previewStatLbls[2].setText(String.valueOf(stats.magic));
+            previewStatLbls[3].setText(String.valueOf(stats.skill));
+            previewStatLbls[4].setText(String.valueOf(stats.speed));
+            previewStatLbls[5].setText(String.valueOf(stats.defense));
+            previewStatLbls[6].setText(String.valueOf(stats.resistance));
+            previewStatLbls[7].setText(String.valueOf(stats.move));
+        }
+
+        if (previewWeaponsBox != null) {
+            previewWeaponsBox.removeAll();
+            List<WeaponItem> weapons = game.core.unit.UnitRegistry.getDefaultWeapons(cat, name);
+            for (WeaponItem w : weapons) {
+                String rangeStr = w.minRange == w.maxRange ? String.valueOf(w.minRange) : w.minRange + "-" + w.maxRange;
+                JPanel wRow = new JPanel(new BorderLayout());
+                wRow.setOpaque(false);
+                wRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+                JLabel wLbl = new JLabel("• " + w.name);
+                wLbl.setForeground(Color.WHITE);
+                wLbl.setFont(Theme.getPixelFont(12f));
+                JLabel rLbl = new JLabel(rangeStr);
+                rLbl.setForeground(Color.LIGHT_GRAY);
+                rLbl.setFont(Theme.getPixelFont(12f));
+                wRow.add(wLbl, BorderLayout.WEST);
+                wRow.add(rLbl, BorderLayout.EAST);
+                previewWeaponsBox.add(wRow);
+                previewWeaponsBox.add(Box.createVerticalStrut(4));
+            }
+            previewWeaponsBox.revalidate();
+            previewWeaponsBox.repaint();
+        }
+        
+        if (previewSpritePanel != null) previewSpritePanel.repaint();
+    }
+
+    private JPanel buildDeployOverlay() {
+        JPanel overlay = new JPanel(new BorderLayout()) {
+            @Override protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 210));
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        overlay.setOpaque(false);
+
+        // ── Title Bar ──
+        JPanel titleBar = new JPanel(new BorderLayout());
+        titleBar.setOpaque(false);
+        titleBar.setBorder(BorderFactory.createEmptyBorder(30, 50, 10, 50));
+
+        JLabel titleLbl = new JLabel("DEPLOY UNITS");
+        titleLbl.setFont(Theme.getTitleFont());
+        titleLbl.setForeground(Theme.GOLD);
+        titleLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        titleBar.add(titleLbl, BorderLayout.CENTER);
+
+        JButton closeBtn = new JButton("✕ CLOSE");
+        closeBtn.setFont(Theme.getPixelFont(18f));
+        closeBtn.setForeground(new Color(255, 120, 120));
+        closeBtn.setBackground(new Color(60, 30, 30));
+        closeBtn.setFocusPainted(false);
+        closeBtn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 100, 100, 150)),
+            BorderFactory.createEmptyBorder(8, 20, 8, 20)));
+        closeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        closeBtn.addActionListener(e -> hideDeployOverlay());
+        titleBar.add(closeBtn, BorderLayout.EAST);
+
+        overlay.add(titleBar, BorderLayout.NORTH);
+
+        // ── Main Content Split ──
+        JPanel splitPanel = new JPanel(new BorderLayout(20, 0));
+        splitPanel.setOpaque(false);
+        splitPanel.setBorder(BorderFactory.createEmptyBorder(10, 40, 10, 40));
+
+        // Left side preview
+        splitPanel.add(buildDeployPreviewPanel(), BorderLayout.WEST);
+
+        // Right side list
+        JPanel rightListPanel = new JPanel(new BorderLayout());
+        rightListPanel.setOpaque(false);
+
+        // ── Column Headers for Right List ──
+        JPanel headerRow = new JPanel(new GridBagLayout());
+        headerRow.setOpaque(false);
+        headerRow.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+        GridBagConstraints hgbc = new GridBagConstraints();
+        hgbc.fill = GridBagConstraints.HORIZONTAL;
+        hgbc.insets = new Insets(0, 5, 0, 5);
+        hgbc.gridy = 0;
+
+        Font headerFont = Theme.getPixelFont(14f);
+        Color headerColor = Theme.GOLD_TRANS;
+
+        Dimension dimName = new Dimension(200, 20);
+        Dimension dimCost = new Dimension(80, 20);
+        Dimension dimBtn  = new Dimension(120, 20);
+
+        hgbc.gridx = 0; hgbc.weightx = 1.0;
+        JLabel h1 = new JLabel("NAME", SwingConstants.LEFT); h1.setFont(headerFont); h1.setForeground(headerColor);
+        h1.setPreferredSize(dimName);
+        headerRow.add(h1, hgbc);
+
+        hgbc.gridx = 1; hgbc.weightx = 0.2;
+        JLabel h2 = new JLabel("COST", SwingConstants.CENTER); h2.setFont(headerFont); h2.setForeground(headerColor);
+        h2.setPreferredSize(dimCost);
+        headerRow.add(h2, hgbc);
+
+        hgbc.gridx = 2; hgbc.weightx = 0;
+        JLabel h3 = new JLabel("", SwingConstants.CENTER); h3.setFont(headerFont); h3.setForeground(headerColor);
+        h3.setPreferredSize(dimBtn);
+        headerRow.add(h3, hgbc);
+
+        rightListPanel.add(headerRow, BorderLayout.NORTH);
+
+        // ── Scrollable Unit List ──
+        deployListContainer = new JPanel();
+        deployListContainer.setLayout(new BoxLayout(deployListContainer, BoxLayout.Y_AXIS));
+        deployListContainer.setOpaque(false);
+
+        JScrollPane listScroll = new JScrollPane(deployListContainer);
+        listScroll.setOpaque(false);
+        listScroll.getViewport().setOpaque(false);
+        listScroll.setBorder(null);
+        listScroll.getVerticalScrollBar().setUnitIncrement(30);
+        listScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        rightListPanel.add(listScroll, BorderLayout.CENTER);
+
+        splitPanel.add(rightListPanel, BorderLayout.CENTER);
+        overlay.add(splitPanel, BorderLayout.CENTER);
+
+        // ── Gold Footer ──
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        footer.setOpaque(false);
+        footer.setBorder(BorderFactory.createEmptyBorder(5, 0, 25, 0));
+        overlay.add(footer, BorderLayout.SOUTH);
+
+        // Click outside list to close
+        overlay.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                if (e.getSource() == overlay) hideDeployOverlay();
+            }
+        });
+
+        return overlay;
+    }
+
+    private List<BufferedImage> loadDeployPreviewFrames(String category, String unitName) {
+        String key = category + "/" + unitName;
+        if (deployPreviewCache.containsKey(key)) return deployPreviewCache.get(key);
+
+        List<BufferedImage> frames = tryLoadMapUnitFrames(category, unitName, "Standing");
+        if (frames.isEmpty()) frames = tryLoadMapUnitFrames(category, unitName, "Walk_Down");
+
+        // Fallback names
+        if (frames.isEmpty()) {
+            String fallback = null;
+            if ("Knight".equalsIgnoreCase(unitName)) fallback = "Cavalier";
+            else if ("Sentinel".equalsIgnoreCase(unitName)) fallback = "Swordmaster";
+            else if ("Ephraim".equalsIgnoreCase(unitName)) fallback = "Ephraim_Lord";
+            else if ("Pegasus".equalsIgnoreCase(unitName)) fallback = "Pegasus Knight";
+            if (fallback != null) {
+                frames = tryLoadMapUnitFrames(category, fallback, "Standing");
+                if (frames.isEmpty()) frames = tryLoadMapUnitFrames(category, fallback, "Walk_Down");
+            }
+        }
+
+        deployPreviewCache.put(key, frames);
+        return frames;
+    }
+
     private void showDeployMenu(EventInfo ev) {
         // Refresh the UnitRegistry to capture any newly created unit directories
         game.core.unit.UnitRegistry.reload();
-        
-        JPopupMenu menu = createStyledMenu();
+
         final String targetCategory;
         if ("HQ".equals(ev.type)) {
             targetCategory = "Champion";
@@ -2659,90 +2967,179 @@ public class VersusGameplayScreen extends BaseScreen {
             return;
         }
 
-        File battleDir = new File(GamePaths.BATTLE, targetCategory);
-        File unitsDir = new File(GamePaths.UNITS, targetCategory);
+        pendingDeployEvent = ev;
+        deployListContainer.removeAll();
+        deployPreviewCache.clear();
+        deployAnimFrame = 0;
 
-        if (battleDir.exists() && battleDir.isDirectory() && unitsDir.exists() && unitsDir.isDirectory()) {
-            File[] battleSubs = battleDir.listFiles(File::isDirectory);
+        VersusScreen.PlayerSettings currentPlayer = players.get(currentPlayerIdx);
+        int playerGold = currentPlayer.gold;
+
+        // ── Build unit entry data ──
+        java.util.List<Object[]> unitEntries = new ArrayList<>();
+
+        File battleDirFile = new File(GamePaths.BATTLE, targetCategory);
+        File unitsDirFile = new File(GamePaths.UNITS, targetCategory);
+
+        if (battleDirFile.exists() && battleDirFile.isDirectory() && unitsDirFile.exists() && unitsDirFile.isDirectory()) {
+            File[] battleSubs = battleDirFile.listFiles(File::isDirectory);
             if (battleSubs != null) {
                 Arrays.sort(battleSubs, Comparator.comparing(File::getName));
                 for (File bs : battleSubs) {
                     String name = bs.getName();
-                    File us = new File(unitsDir, name);
+                    File us = new File(unitsDirFile, name);
                     if (us.exists() && us.isDirectory()) {
                         UnitStats stats = UnitRegistry.get(name);
-                        
-                        // Filter units by building type
                         if ("ARMORY".equals(ev.type) && !"Land Unit".equalsIgnoreCase(stats.unitType)) continue;
                         if ("AERIE".equals(ev.type) && !"Air Unit".equalsIgnoreCase(stats.unitType)) continue;
                         if ("FORT".equals(ev.type) && !"Ocean Unit".equalsIgnoreCase(stats.unitType)) continue;
-
                         int price = DeploymentEngine.calculatePrice(targetCategory, name);
-                        JMenuItem buyItem = createStyledMenuItem(name + " (" + price + ")");
-                        buyItem.addActionListener(e -> deployUnit(targetCategory, name, price, ev));
-                        menu.add(buyItem);
+                        unitEntries.add(new Object[]{targetCategory, name, stats, price});
                     }
                 }
             }
         }
 
-        // Fallbacks if no units found
-        if (menu.getComponentCount() == 0) {
-            if ("ARMORY".equals(ev.type)) {
-                JMenuItem buyKnight = createStyledMenuItem("Knight (500)");
-                buyKnight.addActionListener(e -> deployUnit("Unit", "Knight", 500, ev));
-                menu.add(buyKnight);
-            } else if ("HQ".equals(ev.type)) {
-                JMenuItem buyEphraim = createStyledMenuItem("Ephraim (1000)");
-                buyEphraim.addActionListener(e -> deployUnit("Champion", "Ephraim", 1000, ev));
-                menu.add(buyEphraim);
-            } else if ("FORT".equals(ev.type)) {
-                JMenuItem buyShip = createStyledMenuItem("Battleship (800)");
-                buyShip.addActionListener(e -> deployUnit("Ocean Unit", "Battleship", 800, ev));
-                menu.add(buyShip);
-            } else if ("AERIE".equals(ev.type)) {
-                JMenuItem buyPegasus = createStyledMenuItem("Pegasus (600)");
-                buyPegasus.addActionListener(e -> deployUnit("Air Unit", "Pegasus", 600, ev));
-                menu.add(buyPegasus);
+        // Fallbacks
+        if (unitEntries.isEmpty()) {
+            if ("ARMORY".equals(ev.type)) unitEntries.add(new Object[]{"Unit", "Knight", UnitRegistry.get("Knight"), 500});
+            else if ("HQ".equals(ev.type)) unitEntries.add(new Object[]{"Champion", "Ephraim", UnitRegistry.get("Ephraim"), 1000});
+            else if ("FORT".equals(ev.type)) unitEntries.add(new Object[]{"Ocean Unit", "Battleship", UnitRegistry.get("Battleship"), 800});
+            else if ("AERIE".equals(ev.type)) unitEntries.add(new Object[]{"Air Unit", "Pegasus", UnitRegistry.get("Pegasus"), 600});
+        }
+
+        // ── Build rows ──
+        Font nameFont = Theme.getPixelFont(20f);
+        Font costFont = Theme.getPixelFont(18f);
+        Font btnFont = Theme.getPixelFont(14f);
+        Color rowBg = new Color(25, 25, 40, 220);
+        Color rowBgHover = new Color(45, 45, 70, 230);
+        Color borderColor = new Color(255, 215, 0, 60);
+
+        boolean first = true;
+
+        for (Object[] entry : unitEntries) {
+            String cat = (String) entry[0];
+            String uName = (String) entry[1];
+            UnitStats uStats = (UnitStats) entry[2];
+            int price = (int) entry[3];
+            boolean canAfford = playerGold >= price;
+
+            // Pre-load animation frames
+            loadDeployPreviewFrames(cat, uName);
+
+            if (first) {
+                updateDeployPreview(cat, uName, uStats);
+                first = false;
             }
-        }
 
-        int tileX = (int)(ev.x * 16 * zoomScale);
-        int tileY = (int)(ev.y * 16 * zoomScale);
-        int menuX = tileX + (int)(24 * zoomScale);
-        int menuY = tileY - (int)(8 * zoomScale);
-        
-        Rectangle viewRect = scrollPane.getViewport().getViewRect();
-        if (menuX + 200 > viewRect.x + viewRect.width) {
-            menuX = tileX - 200;
-        }
-        
-        menu.show(canvasPanel, menuX, menuY);
-    }
-
-    private boolean hasRangedAnimation(File battleDir, String... folderNames) {
-        for (String fName : folderNames) {
-            File dir = new File(battleDir, fName);
-            if (!dir.exists()) continue;
-            File script = new File(dir, "script.txt");
-            if (!script.exists()) continue;
-            try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(script))) {
-                String line;
-                boolean inRangedMode = false;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.startsWith("/// - Mode 5") || line.startsWith("/// - Mode 6")) {
-                        inRangedMode = true;
-                    } else if (line.startsWith("/// - Mode")) {
-                        inRangedMode = false;
-                    } else if (inRangedMode && !line.isEmpty() && !line.startsWith("~") && !line.startsWith("//") && !line.startsWith("#")) {
-                        return true;
-                    }
+            JPanel row = new JPanel(new GridBagLayout()) {
+                @Override protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setColor(getBackground());
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                    g2.setColor(borderColor);
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
                 }
-            } catch (Exception e) {}
+            };
+            row.setOpaque(false);
+            row.setBackground(rowBg);
+            row.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+            row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+            row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            // Hover effect
+            row.addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) { 
+                    row.setBackground(rowBgHover); 
+                    row.repaint(); 
+                    updateDeployPreview(cat, uName, uStats);
+                }
+                @Override public void mouseExited(MouseEvent e) { 
+                    row.setBackground(rowBg); 
+                    row.repaint(); 
+                }
+            });
+
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.anchor = GridBagConstraints.CENTER;
+            gbc.insets = new Insets(0, 5, 0, 5);
+            gbc.gridy = 0;
+
+            // ── Name ──
+            gbc.gridx = 0; gbc.weightx = 1.0;
+            gbc.anchor = GridBagConstraints.WEST;
+            JLabel nameLbl = new JLabel(uName);
+            nameLbl.setFont(nameFont);
+            nameLbl.setForeground(Color.WHITE);
+            nameLbl.setHorizontalAlignment(SwingConstants.LEFT);
+            nameLbl.setPreferredSize(new Dimension(200, 20));
+            row.add(nameLbl, gbc);
+            gbc.anchor = GridBagConstraints.CENTER;
+
+            // ── Cost ──
+            gbc.gridx = 1; gbc.weightx = 0.2;
+            JLabel costLbl = new JLabel("🪙 " + price, SwingConstants.CENTER);
+            costLbl.setFont(costFont);
+            costLbl.setForeground(canAfford ? new Color(255, 230, 80) : new Color(180, 80, 80));
+            costLbl.setHorizontalAlignment(SwingConstants.CENTER);
+            costLbl.setPreferredSize(new Dimension(80, 20));
+            row.add(costLbl, gbc);
+
+            // ── Buy Button ──
+            gbc.gridx = 2; gbc.weightx = 0;
+            JButton buyBtn = new JButton(canAfford ? "RECRUIT" : "NO GOLD");
+            buyBtn.setFont(btnFont);
+            buyBtn.setForeground(canAfford ? new Color(200, 255, 200) : new Color(150, 100, 100));
+            buyBtn.setBackground(canAfford ? new Color(30, 80, 40) : new Color(50, 30, 30));
+            buyBtn.setFocusPainted(false);
+            buyBtn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(canAfford ? new Color(80, 200, 100, 150) : new Color(100, 50, 50, 150)),
+                BorderFactory.createEmptyBorder(6, 8, 6, 8)));
+            buyBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            buyBtn.setEnabled(canAfford);
+            buyBtn.addActionListener(e -> {
+                hideDeployOverlay();
+                deployUnit(cat, uName, price, ev);
+            });
+            row.add(buyBtn, gbc);
+
+            deployListContainer.add(row);
+            deployListContainer.add(Box.createVerticalStrut(6));
         }
-        return false;
+
+        // ── Update footer with gold display ──
+        JPanel footer = (JPanel) deployOverlay.getComponent(2); // SOUTH component
+        footer.removeAll();
+        JLabel goldInfo = new JLabel("YOUR GOLD: 🪙 " + playerGold);
+        goldInfo.setFont(Theme.getPixelFont(22f));
+        goldInfo.setForeground(Theme.GOLD);
+        footer.add(goldInfo);
+
+        deployListContainer.revalidate();
+        deployOverlay.setVisible(true);
+        isPaused = true;
+
+        // Start animation timer
+        if (deployAnimTimer != null) deployAnimTimer.stop();
+        deployAnimTimer = new javax.swing.Timer(16, e -> {
+            deployAnimFrame++;
+            if (deployListContainer != null) deployListContainer.repaint();
+            if (previewSpritePanel != null) previewSpritePanel.repaint();
+        });
+        deployAnimTimer.start();
     }
+
+    private void hideDeployOverlay() {
+        if (deployOverlay != null) deployOverlay.setVisible(false);
+        if (deployAnimTimer != null) { deployAnimTimer.stop(); deployAnimTimer = null; }
+        isPaused = false;
+        pendingDeployEvent = null;
+        canvasPanel.requestFocusInWindow();
+    }
+
+
 
     private void deployUnit(String cat, String name, int cost, EventInfo ev) {
         VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
@@ -2766,14 +3163,14 @@ public class VersusGameplayScreen extends BaseScreen {
                 } else {
                     WeaponItem w1 = WeaponItem.byName("Iron Lance"); w1.maxUses = 20; w1.currentUses = 20; u.addItem(w1);
                 }
-                if (hasRangedAnimation(battleDir, "Lance", "lance", "Spear", "spear")) {
+                if (UnitRegistry.hasRangedAnimation(battleDir, "Lance", "lance", "Spear", "spear")) {
                     WeaponItem w2 = WeaponItem.byName("Javelin"); w2.maxUses = 10; w2.currentUses = 10; u.addItem(w2);
                 }
                 hasWeapons = true;
             }
             if (new File(battleDir, "Axe").exists() || new File(battleDir, "axe").exists()) {
                 WeaponItem w1 = WeaponItem.byName("Iron Axe"); w1.maxUses = 20; w1.currentUses = 20; u.addItem(w1);
-                if (hasRangedAnimation(battleDir, "Axe", "axe")) {
+                if (UnitRegistry.hasRangedAnimation(battleDir, "Axe", "axe")) {
                     WeaponItem w2 = WeaponItem.byName("Hand Axe"); w2.maxUses = 10; w2.currentUses = 10; u.addItem(w2);
                 }
                 hasWeapons = true;

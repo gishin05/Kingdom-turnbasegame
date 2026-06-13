@@ -74,7 +74,7 @@ public class SoundManager {
         sfxWindow = loadAudioFile("window.wav");
         
         sfxRain = loadAudioFile("rain.wav");
-        sfxThunder = loadAudioFile("thunder.wav");
+        sfxThunder = loadAudioFile("thunder.aif");
         sfxWind = loadAudioFile("wind.wav");
     }
 
@@ -163,7 +163,32 @@ public class SoundManager {
     public static void playDecide() { play(sfxDecide); }
     public static void playCancel() { play(sfxCancel); }
     public static void playWindow() { play(sfxWindow); }
-    public static void playThunder() { play(sfxThunder); }
+    public static void playThunder() {
+        new Thread(() -> {
+            File file = new File(GamePaths.BUNDLED_ROOT, "audio/thunder.aif");
+            if (file.exists()) {
+                try {
+                    AudioInputStream stream = AudioSystem.getAudioInputStream(file);
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(stream);
+                    try {
+                        FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                        float dB = (sfxVolume <= 0f) ? gain.getMinimum() : (float) (20.0 * Math.log10(sfxVolume));
+                        dB = Math.max(gain.getMinimum(), Math.min(dB, gain.getMaximum()));
+                        gain.setValue(dB);
+                    } catch (Exception ignored) {}
+                    clip.addLineListener(event -> {
+                        if (event.getType() == LineEvent.Type.STOP) clip.close();
+                    });
+                    clip.start();
+                } catch (Exception e) {
+                    play(sfxThunder);
+                }
+            } else {
+                play(sfxThunder);
+            }
+        }).start();
+    }
 
     public static void setRainLoop(boolean active) {
         if (sfxRain == null) return;
@@ -367,6 +392,7 @@ public class SoundManager {
         String wpn = (weaponType != null) ? weaponType.toUpperCase() : "";
         switch (code) {
             case "C1B": playStepInfantry(); break;       // Infantry footstep / charge
+            case "C18": playStepHeavy(); break;          // Armored footstep / heavy step
             case "C1C":                                // Horse trot / step
             case "C1D":                                // Horse gallop
             case "C1E": playStepHorse(); break;        // Horse gallop alternate

@@ -1,17 +1,27 @@
 package game.core.engine;
 
-import game.core.unit.UnitRegistry;
-import game.core.unit.UnitStats;
-
 public class DeploymentEngine {
     public static int calculatePrice(String category, String name) {
-        UnitStats stats = UnitRegistry.get(name);
-        if (stats == null) return 500;
-        int statsSum = stats.maxHp + stats.strength + stats.magic + stats.skill + 
-                       stats.speed + stats.luck + stats.defense + stats.resistance + stats.move;
-        int basePrice = "Champion".equalsIgnoreCase(category) ? 500 : 0;
-        int statsCost = (statsSum * statsSum) / 6;
-        int rawPrice = basePrice + statsCost;
-        return ((rawPrice + 24) / 50) * 50;
+        // Static assignment of unit prices
+        switch (name) {
+            // Champions
+            case "Ephraim": return 1000;
+            
+            // Land Units
+            case "Knight": return 700;
+            case "Cavalier": return 600;
+            case "Assassin": return 300;
+            case "Sentinel": return 1100;
+            case "Soldier": return 200;
+            
+            // Air Units
+            case "Pegasus Knight": return 600;
+            
+            // Siege Units
+            case "Ballista": return 1300;
+            
+            // Fallback default prices based on category
+            default: return "Champion".equalsIgnoreCase(category) ? 1000 : 500;
+        }
     }
 }

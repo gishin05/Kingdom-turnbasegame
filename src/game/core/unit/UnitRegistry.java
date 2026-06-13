@@ -118,4 +118,77 @@ public class UnitRegistry {
             categoryMap.put(name, category);
         }
     }
+
+    public static List<WeaponItem> getDefaultWeapons(String cat, String name) {
+        List<WeaponItem> weapons = new ArrayList<>();
+        File battleDir = new File(game.core.util.GamePaths.BATTLE, cat + "/" + name);
+        if (!battleDir.exists()) battleDir = new File(game.core.util.GamePaths.BATTLE, name);
+        
+        boolean hasWeapons = false;
+        if (battleDir.exists()) {
+            if (new File(battleDir, "Sword").exists() || new File(battleDir, "sword").exists()) {
+                WeaponItem w = WeaponItem.byName("Iron Sword"); w.maxUses = 20; w.currentUses = 20; weapons.add(w); hasWeapons = true;
+            }
+            if (new File(battleDir, "Lance").exists() || new File(battleDir, "lance").exists() || new File(battleDir, "Spear").exists() || new File(battleDir, "spear").exists()) {
+                if ("Ephraim".equalsIgnoreCase(name)) {
+                    WeaponItem reginleif = WeaponItem.byName("Reginleif");
+                    reginleif.maxUses = 45; reginleif.currentUses = 45;
+                    weapons.add(reginleif);
+                } else {
+                    WeaponItem w1 = WeaponItem.byName("Iron Lance"); w1.maxUses = 20; w1.currentUses = 20; weapons.add(w1);
+                }
+                if (hasRangedAnimation(battleDir, "Lance", "lance", "Spear", "spear")) {
+                    WeaponItem w2 = WeaponItem.byName("Javelin"); w2.maxUses = 10; w2.currentUses = 10; weapons.add(w2);
+                }
+                hasWeapons = true;
+            }
+            if (new File(battleDir, "Axe").exists() || new File(battleDir, "axe").exists()) {
+                WeaponItem w1 = WeaponItem.byName("Iron Axe"); w1.maxUses = 20; w1.currentUses = 20; weapons.add(w1);
+                if (hasRangedAnimation(battleDir, "Axe", "axe")) {
+                    WeaponItem w2 = WeaponItem.byName("Hand Axe"); w2.maxUses = 10; w2.currentUses = 10; weapons.add(w2);
+                }
+                hasWeapons = true;
+            }
+            if (new File(battleDir, "Bow").exists() || new File(battleDir, "bow").exists()) {
+                if ("Ballista".equalsIgnoreCase(name)) {
+                    WeaponItem w = WeaponItem.byName("Ballista"); w.maxUses = 5; w.currentUses = 5; weapons.add(w); hasWeapons = true;
+                } else {
+                    WeaponItem w = WeaponItem.byName("Iron Bow"); w.maxUses = 20; w.currentUses = 20; weapons.add(w); hasWeapons = true;
+                }
+            }
+            if (new File(battleDir, "Magic").exists() || new File(battleDir, "magic").exists()) {
+                WeaponItem w = WeaponItem.byName("Fire"); w.maxUses = 20; w.currentUses = 20; weapons.add(w); hasWeapons = true;
+            }
+        }
+        
+        if (!hasWeapons) {
+            WeaponItem ironLance = WeaponItem.byName("Iron Lance"); ironLance.maxUses = 20; ironLance.currentUses = 20; weapons.add(ironLance);
+            WeaponItem javelin = WeaponItem.byName("Javelin"); javelin.maxUses = 10; javelin.currentUses = 10; weapons.add(javelin);
+        }
+        return weapons;
+    }
+
+    public static boolean hasRangedAnimation(File battleDir, String... folderNames) {
+        for (String fName : folderNames) {
+            File dir = new File(battleDir, fName);
+            if (!dir.exists()) continue;
+            File script = new File(dir, "script.txt");
+            if (!script.exists()) continue;
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(script))) {
+                String line;
+                boolean inRangedMode = false;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.startsWith("/// - Mode 5") || line.startsWith("/// - Mode 6")) {
+                        inRangedMode = true;
+                    } else if (line.startsWith("/// - Mode")) {
+                        inRangedMode = false;
+                    } else if (inRangedMode && !line.isEmpty() && !line.startsWith("~") && !line.startsWith("//") && !line.startsWith("#")) {
+                        return true;
+                    }
+                }
+            } catch (Exception e) {}
+        }
+        return false;
+    }
 }
