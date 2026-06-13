@@ -3151,51 +3151,51 @@
       }
     },
     "568": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "569": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "570": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "571": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "572": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
@@ -3261,101 +3261,101 @@
       }
     },
     "596": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "597": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "598": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "599": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "600": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "601": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "602": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "603": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "604": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "605": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
@@ -3431,91 +3431,91 @@
       }
     },
     "628": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "629": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "630": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "631": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "632": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "633": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "634": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "635": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "636": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
@@ -3621,61 +3621,61 @@
       }
     },
     "662": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "663": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "664": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "665": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "666": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "667": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
@@ -3781,61 +3781,61 @@
       }
     },
     "694": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "695": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "696": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "697": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "698": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }
     },
     "699": {
-      "type": "CLIFF",
+      "type": "RIVER",
       "def": 0,
       "avo": 0,
       "costs": {
-        "Land Unit": -1,
+        "Land Unit": 5,
         "Ocean Unit": -1,
         "Air Unit": 1
       }

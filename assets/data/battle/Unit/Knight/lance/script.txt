@@ -6,7 +6,7 @@ C07
 6 p- Lance_002.png
 6 p- Lance_003.png
 6 p- Lance_004.png
-C1B
+C13
 C15
 6 p- Lance_005.png
 C2B
@@ -16,7 +16,7 @@ C2B
 3 p- Lance_009.png
 C22
 2 p- Lance_010.png
-C1B
+C13
 C14
 C04
 C1A
@@ -31,7 +31,7 @@ C01
 6 p- Lance_016.png
 6 p- Lance_017.png
 6 p- Lance_018.png
-C1B
+C13
 C15
 6 p- Lance_019.png
 C2B
@@ -40,7 +40,7 @@ C2B
 3 p- Lance_022.png
 3 p- Lance_023.png
 6 p- Lance_024.png
-C1B
+C13
 C15
 6 p- Lance_025.png
 C2B
@@ -75,7 +75,7 @@ C38
 C38
 3 p- Lance_042.png
 3 p- Lance_043.png
-C1B
+C13
 C15
 3 p- Lance_044.png
 C38
@@ -88,7 +88,7 @@ C25
 3 p- Lance_049.png
 3 p- Lance_009.png
 2 p- Lance_010.png
-C1B
+C13
 C14
 C04
 C0C
@@ -103,7 +103,7 @@ C01
 6 p- Lance_016.png
 6 p- Lance_017.png
 6 p- Lance_018.png
-C1B
+C13
 C15
 6 p- Lance_019.png
 C2B
@@ -112,7 +112,7 @@ C2B
 3 p- Lance_022.png
 3 p- Lance_023.png
 6 p- Lance_024.png
-C1B
+C13
 C15
 6 p- Lance_025.png
 C2B
@@ -132,7 +132,7 @@ C07
 2 p- Lance_053.png
 2 p- Lance_054.png
 2 p- Lance_055.png
-C1B
+C13
 C15
 3 p- Lance_056.png
 C2B
@@ -153,7 +153,7 @@ C43
 4 p- Lance_069.png
 3 p- Lance_070.png
 C22
-C1B
+C13
 C15
 2 p- Lance_071.png
 C05
@@ -169,7 +169,7 @@ C01
 6 p- Lance_078.png
 6 p- Lance_079.png
 6 p- Lance_080.png
-C1B
+C13
 C15
 6 p- Lance_081.png
 C2B
@@ -188,7 +188,7 @@ C07
 2 p- Lance_053.png
 2 p- Lance_054.png
 2 p- Lance_055.png
-C1B
+C13
 C15
 3 p- Lance_056.png
 C2B
@@ -219,7 +219,7 @@ C37
 4 p- Lance_069.png
 3 p- Lance_070.png
 C22
-C1B
+C13
 C15
 2 p- Lance_071.png
 C05
@@ -235,7 +235,7 @@ C01
 6 p- Lance_078.png
 6 p- Lance_079.png
 6 p- Lance_080.png
-C1B
+C13
 C15
 6 p- Lance_081.png
 C2B
@@ -250,13 +250,13 @@ C02
 2 p- Lance_090.png
 2 p- Lance_091.png
 4 p- Lance_092.png
-C1B
+C13
 3 p- Lance_093.png
 2 p- Lance_094.png
 C01
 4 p- Lance_095.png
 4 p- Lance_096.png
-C1B
+C13
 6 p- Lance_097.png
 C2B
 5 p- Lance_000.png
@@ -269,13 +269,13 @@ C02
 2 p- Lance_090.png
 2 p- Lance_091.png
 4 p- Lance_092.png
-C1B
+C13
 3 p- Lance_093.png
 2 p- Lance_094.png
 C01
 4 p- Lance_095.png
 4 p- Lance_096.png
-C1B
+C13
 6 p- Lance_097.png
 C2B
 5 p- Lance_000.png
@@ -302,7 +302,7 @@ C07
 6 p- Lance_002.png
 6 p- Lance_003.png
 6 p- Lance_004.png
-C1B
+C13
 C15
 6 p- Lance_005.png
 C2B
@@ -312,7 +312,7 @@ C2B
 3 p- Lance_009.png
 C22
 2 p- Lance_098.png
-C1B
+C13
 C14
 C04
 4 p- Lance_099.png
@@ -325,7 +325,7 @@ C01
 6 p- Lance_104.png
 6 p- Lance_017.png
 6 p- Lance_018.png
-C1B
+C13
 C15
 6 p- Lance_019.png
 C2B
@@ -334,7 +334,7 @@ C2B
 3 p- Lance_022.png
 3 p- Lance_023.png
 6 p- Lance_024.png
-C1B
+C13
 C15
 6 p- Lance_025.png
 C2B

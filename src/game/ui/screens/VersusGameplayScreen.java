@@ -105,7 +105,6 @@ public class VersusGameplayScreen extends BaseScreen {
     private JPanel deployListContainer;
     private javax.swing.Timer deployAnimTimer;
     private int deployAnimFrame = 0;
-    private EventInfo pendingDeployEvent = null;
     private Map<String, List<BufferedImage>> deployPreviewCache = new HashMap<>();
     
     // ── Deploy Preview Fields ──
@@ -115,7 +114,12 @@ public class VersusGameplayScreen extends BaseScreen {
     private JPanel previewWeaponsBox;
     private String previewCategory;
     private String previewUnitName;
-    private UnitStats previewUnitStats;
+    
+    // ── AI State Fields ───────────────────────────────
+    private int aiState = 0;
+    private int aiTimer = 0;
+    private MapUnit currentAiUnit = null;
+    private List<MapUnit> aiUnactedUnits = new ArrayList<>();
     
     private void initWeatherOverlays() {
         if (rainOverlay != null) return;
@@ -244,7 +248,10 @@ public class VersusGameplayScreen extends BaseScreen {
             for (File f : files) {
                 if (f.isDirectory()) loadFramesRecursively(f);
                 else if (f.getName().endsWith(".png")) {
-                    try { allFrames.put(f.getName(), javax.imageio.ImageIO.read(f)); } catch (Exception e) {}
+                    try { 
+                        java.awt.image.BufferedImage img = game.core.util.AssetManager.getImage(f.getAbsolutePath());
+                        if (img != null) allFrames.put(f.getName(), img);
+                    } catch (Exception e) {}
                 }
             }
         }
@@ -468,7 +475,9 @@ public class VersusGameplayScreen extends BaseScreen {
         canvasPanel = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                renderGame((Graphics2D) g);
+                if (!isBattleActive) {
+                    renderGame((Graphics2D) g);
+                }
             }
             @Override public Dimension getPreferredSize() {
                 return new Dimension((int)(mapW * TILE_SIZE * zoomScale), (int)(mapH * TILE_SIZE * zoomScale));
@@ -534,7 +543,10 @@ public class VersusGameplayScreen extends BaseScreen {
         try {
             File pf = new File(GamePaths.BATTLE_PLATFORMS, "Grass.png");
             if (pf.exists()) battlePlatform = javax.imageio.ImageIO.read(pf);
-            File bg = new File(GamePaths.BATTLE_BACKGROUNDS, "Grass.png");
+            File bg = new File(GamePaths.DATA_ROOT, "battle/BG/BG.png");
+            if (!bg.exists()) {
+                bg = new File(GamePaths.BATTLE_BACKGROUNDS, "Grass.png");
+            }
             if (bg.exists()) battleBg = javax.imageio.ImageIO.read(bg);
         } catch (Exception e) {}
     }
@@ -721,7 +733,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 VersusScreen.PlayerSettings p = players.get(i);
                 VersusSaveData.PlayerData pd = new VersusSaveData.PlayerData();
                 pd.index = p.index;
-                pd.factionIdx = p.factionIdx;
+                pd.isAI = p.isAI;
                 pd.gold = p.gold;
                 pd.color = p.color;
                 d.players.add(pd);
@@ -765,7 +777,7 @@ public class VersusGameplayScreen extends BaseScreen {
         for (int i = 0; i < save.players.size(); i++) {
             VersusSaveData.PlayerData pd = save.players.get(i);
             VersusScreen.PlayerSettings ps = new VersusScreen.PlayerSettings(pd.index, pd.color);
-            ps.factionIdx = pd.factionIdx;
+            ps.isAI = pd.isAI;
             ps.gold = pd.gold;
             rebuilt.add(ps);
         }
@@ -792,7 +804,15 @@ public class VersusGameplayScreen extends BaseScreen {
             loadAnims(u);
         }
 
-        startTurn();
+        VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
+        dayLabel.setText("DAY " + currentDay + " - PLAYER " + (currentPlayerIdx + 1));
+        dayLabel.setForeground(p.color);
+        goldLabel.setText("🪙 " + p.gold);
+        layoutGameLayer();
+        recolorCache.clear();
+        fogDirty = true;
+        unitOrderDirty = true;
+        needsRepaint = true;
         canvasPanel.revalidate();
         canvasPanel.repaint();
     }
@@ -804,6 +824,23 @@ public class VersusGameplayScreen extends BaseScreen {
         loadMap(path);
         startTurn();
         canvasPanel.revalidate();
+    }
+
+    private boolean isPlayerVisionActive(int ownerIndex) {
+        if (players == null || players.isEmpty() || ownerIndex < 0 || ownerIndex >= players.size()) {
+            return ownerIndex == currentPlayerIdx;
+        }
+        VersusScreen.PlayerSettings current = players.get(currentPlayerIdx);
+        if (current.isAI) {
+            boolean hasHuman = false;
+            for (VersusScreen.PlayerSettings p : players) {
+                if (!p.isAI) { hasHuman = true; break; }
+            }
+            if (!hasHuman) return true;
+            return !players.get(ownerIndex).isAI;
+        } else {
+            return ownerIndex == currentPlayerIdx;
+        }
     }
 
     public void updateFogOfWar() {
@@ -819,7 +856,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         for (MapUnit u : units) {
-            if (u.ownerIndex == currentPlayerIdx && !u.isDead) {
+            if (isPlayerVisionActive(u.ownerIndex) && !u.isDead) {
                 int r = 3;
                 for (int y = -r; y <= r; y++) {
                     for (int x = -r; x <= r; x++) {
@@ -836,7 +873,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         for (EventInfo ev : eventMap.values()) {
-            if (ev.owner == currentPlayerIdx) {
+            if (isPlayerVisionActive(ev.owner)) {
                 int r = 2;
                 for (int y = -r; y <= r; y++) {
                     for (int x = -r; x <= r; x++) {
@@ -901,7 +938,8 @@ public class VersusGameplayScreen extends BaseScreen {
                 Arrays.sort(files);
                 for (File f : files) {
                     try {
-                        frames.add(javax.imageio.ImageIO.read(f));
+                        java.awt.image.BufferedImage img = game.core.util.AssetManager.getImage(f.getAbsolutePath());
+                        if (img != null) frames.add(img);
                     } catch (Exception e) {}
                 }
             }
@@ -917,9 +955,12 @@ public class VersusGameplayScreen extends BaseScreen {
 
     private void startTurn() {
         VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
-        int income = 100;
-        for (EventInfo ev : eventMap.values()) if (ev.owner == currentPlayerIdx) {
-            if ("HQ".equals(ev.type)) income += 200; else if ("ARMORY".equals(ev.type)) income += 100; else if ("HOUSE".equals(ev.type)) income += 50; else if ("FORT".equals(ev.type)) income += 100; else if ("AERIE".equals(ev.type)) income += 100;
+        int income = 0;
+        if (currentDay > 1) {
+            income = 100;
+            for (EventInfo ev : eventMap.values()) if (ev.owner == currentPlayerIdx) {
+                if ("HQ".equals(ev.type)) income += 200; else if ("ARMORY".equals(ev.type)) income += 100; else if ("HOUSE".equals(ev.type)) income += 50; else if ("FORT".equals(ev.type)) income += 100; else if ("AERIE".equals(ev.type)) income += 100;
+            }
         }
         p.gold += income;
         dayLabel.setText("DAY " + currentDay + " - PLAYER " + (currentPlayerIdx + 1));
@@ -1195,7 +1236,7 @@ public class VersusGameplayScreen extends BaseScreen {
         for (MapUnit u : sortedRenderUnits) {
             if (fogOfWarEnabled && visibleTiles != null) {
                 if (u.position.y >= 0 && u.position.y < mapH && u.position.x >= 0 && u.position.x < mapW) {
-                    if (!visibleTiles[u.position.y][u.position.x] && u.ownerIndex != currentPlayerIdx) {
+                    if (!visibleTiles[u.position.y][u.position.x] && !isPlayerVisionActive(u.ownerIndex)) {
                         continue;
                     }
                 }
@@ -1805,6 +1846,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 if (isBattleActive) return;
                 for (MapUnit u : units) if (!u.movePath.isEmpty()) return;
                 lastMousePos = e.getPoint();
+                if (players.get(currentPlayerIdx).isAI) return;
                 int tx = (int)(e.getX()/(16*zoomScale)), ty = (int)(e.getY()/(16*zoomScale)); Point p = new Point(tx, ty);
                 if (selectedUnit != null && selectedUnit.hasMoved && !selectedUnit.hasActed) { cancelMove(); return; }
                 if (moveRange.contains(p) && selectedUnit != null && !selectedUnit.hasMoved) { 
@@ -2777,7 +2819,6 @@ public class VersusGameplayScreen extends BaseScreen {
     private void updateDeployPreview(String cat, String name, UnitStats stats) {
         previewCategory = cat;
         previewUnitName = name;
-        previewUnitStats = stats;
         
         previewNameLbl.setText(name.toUpperCase());
         
@@ -2966,8 +3007,6 @@ public class VersusGameplayScreen extends BaseScreen {
         } else {
             return;
         }
-
-        pendingDeployEvent = ev;
         deployListContainer.removeAll();
         deployPreviewCache.clear();
         deployAnimFrame = 0;
@@ -3004,8 +3043,8 @@ public class VersusGameplayScreen extends BaseScreen {
         if (unitEntries.isEmpty()) {
             if ("ARMORY".equals(ev.type)) unitEntries.add(new Object[]{"Unit", "Knight", UnitRegistry.get("Knight"), 500});
             else if ("HQ".equals(ev.type)) unitEntries.add(new Object[]{"Champion", "Ephraim", UnitRegistry.get("Ephraim"), 1000});
-            else if ("FORT".equals(ev.type)) unitEntries.add(new Object[]{"Ocean Unit", "Battleship", UnitRegistry.get("Battleship"), 800});
-            else if ("AERIE".equals(ev.type)) unitEntries.add(new Object[]{"Air Unit", "Pegasus", UnitRegistry.get("Pegasus"), 600});
+            else if ("FORT".equals(ev.type)) unitEntries.add(new Object[]{"Unit", "Battleship", UnitRegistry.get("Battleship"), 800});
+            else if ("AERIE".equals(ev.type)) unitEntries.add(new Object[]{"Unit", "Pegasus Knight", UnitRegistry.get("Pegasus Knight"), 600});
         }
 
         // ── Build rows ──
@@ -3135,7 +3174,6 @@ public class VersusGameplayScreen extends BaseScreen {
         if (deployOverlay != null) deployOverlay.setVisible(false);
         if (deployAnimTimer != null) { deployAnimTimer.stop(); deployAnimTimer = null; }
         isPaused = false;
-        pendingDeployEvent = null;
         canvasPanel.requestFocusInWindow();
     }
 
@@ -3224,12 +3262,14 @@ public class VersusGameplayScreen extends BaseScreen {
             repaint();
             return;
         }
-        if (isBattleActive) { updateBattle(); canvasPanel.repaint(); repaint(); return; }
+        if (isBattleActive) { updateBattle(); repaint(); return; }
         if (isCaptureAnimActive) { updateCaptureAnim(); canvasPanel.repaint(); repaint(); return; }
         if (phaseBannerTimer > 0) {
             phaseBannerTimer--;
             needsRepaint = true;
             repaint();
+        } else if (players != null && !players.isEmpty() && players.get(currentPlayerIdx).isAI) {
+            updateAI();
         }
         // ── Decrement health bar display timers ──
         if (!healthBarTimers.isEmpty()) {
@@ -3316,7 +3356,13 @@ public class VersusGameplayScreen extends BaseScreen {
                     else if (isSiegeSubtype(u)) SoundManager.playStepSiege();
                     else if (isInfantrySubtype(u)) SoundManager.playStepInfantry();
                     else SoundManager.playFootstep();
-                    if (u.movePath.isEmpty()) { u.position = new Point(target); fogDirty = true; showActionMenu(u); }
+                    if (u.movePath.isEmpty()) { 
+                        u.position = new Point(target); 
+                        fogDirty = true; 
+                        if (players != null && !players.isEmpty() && !players.get(u.ownerIndex).isAI) {
+                            showActionMenu(u); 
+                        }
+                    }
                 }
             }
         }
@@ -3389,6 +3435,162 @@ public class VersusGameplayScreen extends BaseScreen {
         if (anyMoving || anyAnimated || currentWeather != Weather.NONE || needsRepaint) {
             canvasPanel.repaint();
             needsRepaint = false;
+        }
+    }
+
+    private void updateAI() {
+        if (aiTimer > 0) { aiTimer--; return; }
+
+        if (aiState == 0) { // Init Turn
+            VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
+            
+            for (Map.Entry<Point, EventInfo> entry : eventMap.entrySet()) {
+                EventInfo ev = entry.getValue();
+                if (ev.owner == currentPlayerIdx && ("BASE".equalsIgnoreCase(ev.type) || "ARMORY".equalsIgnoreCase(ev.type) || "HQ".equalsIgnoreCase(ev.type) || "FORT".equalsIgnoreCase(ev.type) || "AERIE".equalsIgnoreCase(ev.type))) {
+                    boolean occupied = false;
+                    for (MapUnit u : units) {
+                        if (!u.isDead && u.position.equals(entry.getKey())) {
+                            occupied = true; break;
+                        }
+                    }
+                    if (!occupied) {
+                        String cat = "Unit";
+                        List<String> aiUnitChoices = new ArrayList<>();
+                        
+                        if ("HQ".equalsIgnoreCase(ev.type)) {
+                            cat = "Champion";
+                            aiUnitChoices.add("Ephraim");
+                        } else if ("AERIE".equalsIgnoreCase(ev.type)) {
+                            cat = "Unit";
+                            aiUnitChoices.add("Pegasus Knight");
+                        } else if ("FORT".equalsIgnoreCase(ev.type)) {
+                            cat = "Unit";
+                            aiUnitChoices.add("Battleship");
+                        } else {
+                            cat = "Unit";
+                            aiUnitChoices.addAll(Arrays.asList("Soldier", "Assassin", "Cavalier", "Knight", "Sentinel"));
+                        }
+                        
+                        java.util.Collections.shuffle(aiUnitChoices);
+                        for (String uName : aiUnitChoices) {
+                            int cost = game.core.engine.DeploymentEngine.calculatePrice(cat, uName);
+                            if (p.gold >= cost) {
+                                deployUnit(cat, uName, cost, ev);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            aiUnactedUnits.clear();
+            for (MapUnit u : units) {
+                if (!u.isDead && u.ownerIndex == currentPlayerIdx && !u.hasActed) {
+                    aiUnactedUnits.add(u);
+                }
+            }
+            if (aiUnactedUnits.isEmpty()) {
+                nextTurn();
+                return;
+            }
+            currentAiUnit = aiUnactedUnits.get(0);
+            aiState = 1;
+            aiTimer = 30; // Wait before acting
+        }
+        else if (aiState == 1) { // Camera focus
+            cameraTargetX = currentAiUnit.renderPos.x * TILE_SIZE * zoomScale;
+            cameraTargetY = currentAiUnit.renderPos.y * TILE_SIZE * zoomScale;
+            aiState = 2;
+            aiTimer = 15;
+        }
+        else if (aiState == 2) { // Decide Move & Attack
+            calculateMoveRange(currentAiUnit);
+            WeaponItem equipped = currentAiUnit.getEquipped();
+            int minR = equipped != null ? equipped.minRange : 1;
+            int maxR = equipped != null ? equipped.maxRange : 1;
+            
+            // Find target enemy
+            double bestScore = -9999;
+            Point bestMovePos = currentAiUnit.position;
+            
+            for (Point p : moveRange) {
+                // If there's another unit here, we can't end our turn here (unless it's us)
+                boolean occupied = false;
+                for (MapUnit u : units) {
+                    if (u != currentAiUnit && !u.isDead && u.position.equals(p)) {
+                        occupied = true; break;
+                    }
+                }
+                if (occupied) continue;
+                
+                // Score this position
+                double score = 0;
+                for (MapUnit e : units) {
+                    if (e.ownerIndex != currentPlayerIdx && !e.isDead) {
+                        int dist = Math.abs(e.position.x - p.x) + Math.abs(e.position.y - p.y);
+                        // If we can attack from here, huge score!
+                        if (dist >= minR && dist <= maxR) {
+                            score += 1000 - e.currentHp; // prefer low HP targets
+                        } else {
+                            // Otherwise, prefer getting closer to enemies
+                            score -= dist * 5;
+                        }
+                    }
+                }
+                // Tiebreaker: prefer tiles closer to our current position
+                score -= (Math.abs(p.x - currentAiUnit.position.x) + Math.abs(p.y - currentAiUnit.position.y));
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMovePos = p;
+                }
+            }
+            
+            // Reconstruct path
+            reconstructPath(bestMovePos, currentAiUnit);
+            currentAiUnit.hasMoved = true;
+            moveRange.clear();
+            attackRange.clear();
+            aiState = 3;
+        }
+        else if (aiState == 3) { // Wait for movement to finish
+            if (currentAiUnit.movePath.isEmpty()) {
+                aiState = 4;
+                aiTimer = 15;
+            }
+        }
+        else if (aiState == 4) { // Combat
+            // Check if we can attack someone
+            MapUnit target = null;
+            int bestHp = 9999;
+            WeaponItem equipped = currentAiUnit.getEquipped();
+            int minR = equipped != null ? equipped.minRange : 1;
+            int maxR = equipped != null ? equipped.maxRange : 1;
+            
+            for (MapUnit e : units) {
+                if (e.ownerIndex != currentPlayerIdx && !e.isDead) {
+                    int dist = Math.abs(e.position.x - currentAiUnit.position.x) + Math.abs(e.position.y - currentAiUnit.position.y);
+                    if (dist >= minR && dist <= maxR) {
+                        if (e.currentHp < bestHp) {
+                            bestHp = (int)e.currentHp;
+                            target = e;
+                        }
+                    }
+                }
+            }
+            
+            if (target != null) {
+                startCombat(currentAiUnit, target);
+            }
+            currentAiUnit.hasActed = true;
+            aiState = 5;
+            aiTimer = 30; // Wait before next unit
+        }
+        else if (aiState == 5) {
+            // Check if battle is still active
+            if (!isBattleActive) {
+                aiState = 0;
+            }
         }
     }
 

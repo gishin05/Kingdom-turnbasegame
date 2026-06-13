@@ -571,6 +571,8 @@
         <div class="header-actions">
             <span class="nav-hint">Click a tile to edit · Arrow keys to navigate</span>
             <button class="btn" onclick="clearAll()">Clear All</button>
+            <button class="btn btn-primary" onclick="document.getElementById('importInput').click()">📥 Import JSON</button>
+            <input type="file" id="importInput" accept=".json" style="display: none" onchange="importData(event)">
             <button class="btn btn-primary" onclick="exportData()">📦 Export JSON</button>
         </div>
     </div>
@@ -988,6 +990,42 @@
         }
 
         // ── EXPORT ──
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.tiles) {
+                        tileData = {};
+                        for (const [idStr, d] of Object.entries(data.tiles)) {
+                            const id = parseInt(idStr, 10);
+                            tileData[id] = {
+                                name: d.type || "",
+                                landCost: d.costs && d.costs["Land Unit"] !== undefined ? d.costs["Land Unit"] : 1,
+                                oceanCost: d.costs && d.costs["Ocean Unit"] !== undefined ? d.costs["Ocean Unit"] : -1,
+                                airCost: d.costs && d.costs["Air Unit"] !== undefined ? d.costs["Air Unit"] : 1,
+                                def: d.def || 0,
+                                avo: d.avo || 0
+                            };
+                        }
+                        saveToLocalStorage();
+                        buildGrid();
+                        alert("Tileset imported successfully!");
+                    } else {
+                        alert("Invalid JSON format. Missing 'tiles' object.");
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert("Failed to parse JSON file.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
         function exportData() {
             const result = { tiles: {} };
             const sortedIds = Object.keys(tileData).map(Number).sort((a, b) => a - b);

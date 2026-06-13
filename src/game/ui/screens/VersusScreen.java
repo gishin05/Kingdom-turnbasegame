@@ -40,7 +40,6 @@ public class VersusScreen extends BaseScreen {
     private JPanel playersContainer;
     private JLabel mapValLabel;
     
-    private static final String[] factions = {"Kingdom", "Empire", "Alliance", "Undead"};
     private static final Color[] DEFAULT_COLORS = {new Color(0, 162, 232), new Color(240, 60, 60), new Color(60, 200, 100), new Color(250, 210, 50), new Color(210, 80, 210), new Color(255, 140, 0)};
     private static final String[] colorNames = {"Blue", "Red", "Green", "Yellow", "Purple", "Orange"};
     
@@ -410,10 +409,14 @@ public class VersusScreen extends BaseScreen {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         gbc.gridx = 0; gbc.gridy = 0;
-        JLabel lbl = new JLabel("PLAYER " + (ps.index + 1));
-        lbl.setFont(Theme.getSmallFont().deriveFont(Font.BOLD));
-        lbl.setForeground(ps.color);
-        p.add(lbl, gbc);
+        JButton typeBtn = styledBtn(ps.isAI ? "◀ AI " + (ps.index + 1) + " ▶" : "◀ PLAYER " + (ps.index + 1) + " ▶");
+        typeBtn.setFont(Theme.getSmallFont().deriveFont(Font.BOLD));
+        typeBtn.setForeground(ps.color);
+        typeBtn.addActionListener(e -> {
+            ps.isAI = !ps.isAI;
+            updatePlayerSettingsUI();
+        });
+        p.add(typeBtn, gbc);
         
         gbc.gridx = 1;
         JComboBox<String> colorBox = new JComboBox<>(colorNames);
@@ -438,27 +441,15 @@ public class VersusScreen extends BaseScreen {
         p.add(colorBox, gbc);
         
         gbc.gridy = 1; gbc.gridx = 0;
-        p.add(new JLabel("FACTION") {{ setFont(Theme.getSmallFont()); setForeground(Color.GRAY); }}, gbc);
-        
-        gbc.gridx = 1;
-        JComboBox<String> factionBox = new JComboBox<>(factions);
-        factionBox.setSelectedIndex(ps.factionIdx);
-        factionBox.setFont(Theme.getSmallFont());
-        factionBox.addActionListener(e -> ps.factionIdx = factionBox.getSelectedIndex());
-        p.add(factionBox, gbc);
-        
-        gbc.gridx = 2;
         p.add(new JLabel("GOLD") {{ setFont(Theme.getSmallFont()); setForeground(Color.GRAY); }}, gbc);
         
-        gbc.gridx = 3;
+        gbc.gridx = 1;
         JSpinner goldSpin = new JSpinner(new SpinnerNumberModel(ps.gold, 0, 10000, 100));
         goldSpin.setFont(Theme.getSmallFont());
         goldSpin.addChangeListener(e -> ps.gold = (int) goldSpin.getValue());
         p.add(goldSpin, gbc);
-
-
         
-        gbc.gridx = 4;
+        gbc.gridx = 2;
         JButton colorBtn = styledBtn("🎨");
         colorBtn.setMargin(new Insets(2, 6, 2, 6));
         colorBtn.addActionListener(e -> {
@@ -615,7 +606,7 @@ public class VersusScreen extends BaseScreen {
     
     public static class PlayerSettings {
         public int index;
-        public int factionIdx = 0;
+        public boolean isAI = false;
         public Color color;
         public int gold = 1000;
         PlayerSettings(int i) { this.index = i; this.color = DEFAULT_COLORS[i % DEFAULT_COLORS.length]; }

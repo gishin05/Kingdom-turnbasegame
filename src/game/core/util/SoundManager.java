@@ -392,7 +392,7 @@ public class SoundManager {
         String wpn = (weaponType != null) ? weaponType.toUpperCase() : "";
         switch (code) {
             case "C1B": playStepInfantry(); break;       // Infantry footstep / charge
-            case "C18": playStepHeavy(); break;          // Armored footstep / heavy step
+            case "C13": playStepHeavy(); break;          // Armor footstep / charge
             case "C1C":                                // Horse trot / step
             case "C1D":                                // Horse gallop
             case "C1E": playStepHorse(); break;        // Horse gallop alternate

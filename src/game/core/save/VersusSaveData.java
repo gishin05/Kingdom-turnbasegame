@@ -12,7 +12,7 @@ import java.util.Properties;
 public class VersusSaveData {
     public static class PlayerData {
         public int index;
-        public int factionIdx;
+        public boolean isAI;
         public int gold;
         public Color color;
     }
@@ -56,7 +56,7 @@ public class VersusSaveData {
         for (int i = 0; i < players.size(); i++) {
             PlayerData pd = players.get(i);
             p.setProperty("players." + i + ".index", String.valueOf(pd.index));
-            p.setProperty("players." + i + ".factionIdx", String.valueOf(pd.factionIdx));
+            p.setProperty("players." + i + ".isAI", String.valueOf(pd.isAI));
             p.setProperty("players." + i + ".gold", String.valueOf(pd.gold));
             p.setProperty("players." + i + ".colorRgb", String.valueOf(pd.color != null ? pd.color.getRGB() : Color.WHITE.getRGB()));
         }
@@ -97,7 +97,7 @@ public class VersusSaveData {
         for (int i = 0; i < pc; i++) {
             PlayerData pd = new PlayerData();
             pd.index = parseInt(p.getProperty("players." + i + ".index", String.valueOf(i)), i);
-            pd.factionIdx = parseInt(p.getProperty("players." + i + ".factionIdx", "0"), 0);
+            pd.isAI = Boolean.parseBoolean(p.getProperty("players." + i + ".isAI", "false"));
             pd.gold = parseInt(p.getProperty("players." + i + ".gold", "1000"), 1000);
             int rgb = parseInt(p.getProperty("players." + i + ".colorRgb", String.valueOf(Color.WHITE.getRGB())), Color.WHITE.getRGB());
             pd.color = new Color(rgb, true);
