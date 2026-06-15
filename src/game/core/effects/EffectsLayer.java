@@ -8,6 +8,13 @@ import java.util.List;
 import java.util.Random;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Topmost layer (Layer 5) for visual effects like Fog, Rain, Snow, and Night.
  * Fog logic hides enemy units beyond a certain radius from player units.
  */

@@ -3,6 +3,13 @@ package game.core.map;
 import java.io.Serializable;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Represents a single entry in a TSA-based map grid.
  * Matches the GBA 2-byte structure.
  */

@@ -11,6 +11,14 @@ import javafx.embed.swing.JFXPanel;
 
 import game.ui.screens.*;
 import game.ui.editors.*;
+import game.core.input.KeyboardController;
+
+/**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
 
 public class Main extends JFrame {
 
@@ -18,6 +26,7 @@ public class Main extends JFrame {
 	private JPanel contentPane;
 	private CardLayout cardLayout;
 	private SettingsScreen settingsScreen;
+	private KeyboardController keyboardController;
 
 	public static final String STARTUP = "STARTUP";
 	public static final String TITLE = "TITLE";
@@ -64,6 +73,20 @@ public class Main extends JFrame {
 		contentPane = new JPanel(cardLayout);
 		contentPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 		setContentPane(contentPane);
+
+		// Initialize KeyboardController globally
+		keyboardController = new KeyboardController();
+		java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new java.awt.KeyEventDispatcher() {
+			@Override
+			public boolean dispatchKeyEvent(java.awt.event.KeyEvent e) {
+				if (e.getID() == java.awt.event.KeyEvent.KEY_PRESSED) {
+					keyboardController.keyPressed(e);
+				} else if (e.getID() == java.awt.event.KeyEvent.KEY_RELEASED) {
+					keyboardController.keyReleased(e);
+				}
+				return false; // Let the event continue to be processed by other components
+			}
+		});
 
 		// Add screens
 		contentPane.add(new StartupScreen(this), STARTUP);
@@ -181,5 +204,9 @@ public class Main extends JFrame {
 
 	public SettingsScreen getSettingsScreen() {
 		return settingsScreen;
+	}
+
+	public KeyboardController getKeyboardController() {
+		return keyboardController;
 	}
 }

@@ -9,6 +9,13 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Centralized manager for loading and caching game assets.
  * Reduces disk I/O and prevents redundant object creation.
  */

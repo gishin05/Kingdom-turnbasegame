@@ -30,6 +30,13 @@ import javax.swing.*;
  */
 import game.core.engine.AiLogic;
 
+/**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
 public class VersusGameplayScreen extends BaseScreen {
     private static final long serialVersionUID = 1L;
     private static final int STATS_BOX_WIDTH = 380;
@@ -101,12 +108,16 @@ public class VersusGameplayScreen extends BaseScreen {
     private Map<MapUnit, Integer> healthBarTimers = new HashMap<>(); // Timed health bar display (frames remaining)
     private Map<MapUnit, Double> animatedHpMap = new HashMap<>();    // Smooth trailing HP bar animation
     private Map<MapUnit, Float> dyingUnitsMap = new HashMap<>();     // Fading out dead units on the map
+    private int keyCooldown = 0;                                     // Cooldown for grid movement
 
     // ── Deploy Overlay Fields ─────────────────────────────
     private JPanel deployOverlay;
     private JPanel deployListContainer;
     private javax.swing.Timer deployAnimTimer;
     private int deployAnimFrame = 0;
+    private int deploySelectedIndex = 0;
+    private java.util.List<Runnable> deployActions = new ArrayList<>();
+    private java.util.List<Runnable> deployHovers = new ArrayList<>();
     private Map<String, List<BufferedImage>> deployPreviewCache = new HashMap<>();
     
     // ── Deploy Preview Fields ──
@@ -613,13 +624,24 @@ public class VersusGameplayScreen extends BaseScreen {
         scrollPane.setBounds(0, 0, w, h);
         if (menuOverlay != null) menuOverlay.setBounds(0, 0, w, h);
         
+        int my = 0;
+        if (lastKnownMouseViewPos != null) {
+            my = lastKnownMouseViewPos.y;
+        } else if (hoveredTile != null) {
+            JViewport viewPort = scrollPane.getViewport();
+            my = (int)(hoveredTile.y * 16 * zoomScale) - viewPort.getViewPosition().y;
+        }
+        boolean shiftDown = (my < 150);
+        
         if (playerPanel != null) {
             Dimension pSize = playerPanel.getPreferredSize();
-            playerPanel.setBounds(10, 10, pSize.width, pSize.height);
+            int py = shiftDown ? (h - pSize.height - 10) : 10;
+            playerPanel.setBounds(10, py, pSize.width, pSize.height);
         }
         if (enemyPanel != null && enemyPanel.isVisible()) {
             Dimension eSize = enemyPanel.getPreferredSize();
-            enemyPanel.setBounds(w - eSize.width - 10, 10, eSize.width, eSize.height);
+            int ey = shiftDown ? (h - eSize.height - 10) : 10;
+            enemyPanel.setBounds(w - eSize.width - 10, ey, eSize.width, eSize.height);
         }
         if (deployOverlay != null) deployOverlay.setBounds(0, 0, w, h);
     }
@@ -1875,46 +1897,10 @@ public class VersusGameplayScreen extends BaseScreen {
     private void setupListeners() {
         canvasPanel.addMouseListener(new MouseAdapter() {
             @Override public void mousePressed(MouseEvent e) {
-                if (phaseBannerTimer > 0) phaseBannerTimer = 0;
-                if (isBattleActive) return;
-                for (MapUnit u : units) if (!u.movePath.isEmpty()) return;
                 lastMousePos = e.getPoint();
-                if (players.get(currentPlayerIdx).isAI) return;
-                int tx = (int)(e.getX()/(16*zoomScale)), ty = (int)(e.getY()/(16*zoomScale)); Point p = new Point(tx, ty);
-                if (selectedUnit != null && selectedUnit.hasMoved && !selectedUnit.hasActed) { cancelMove(); return; }
-                if (moveRange.contains(p) && selectedUnit != null && !selectedUnit.hasMoved) { 
-                    oldUnitPos = new Point(selectedUnit.position); reconstructPath(p, selectedUnit);
-                    selectedUnit.hasMoved = true; moveRange.clear(); attackRange.clear();
-                    previewPath.clear(); hoveredTile = null;
-                    if (selectedUnit.movePath.isEmpty()) showActionMenu(selectedUnit);
-                } else {
-                    selectedUnit = null; moveRange.clear(); attackRange.clear(); previewPath.clear(); hoveredTile = null; MapUnit clickedUnit = null;
-                    for (MapUnit u : units) if (u.position.equals(p)) { clickedUnit = u; break; }
-                    
-                    if (clickedUnit != null && clickedUnit.ownerIndex != currentPlayerIdx) {
-                        selectedEnemy = clickedUnit;
-                        updateEnemyPanel();
-                    } else {
-                        selectedEnemy = null;
-                        updateEnemyPanel();
-                    }
-
-                    if (clickedUnit != null && !clickedUnit.hasActed && !clickedUnit.hasMoved && clickedUnit.ownerIndex == currentPlayerIdx) {
-                        selectedUnit = clickedUnit; calculateMoveRange(clickedUnit);
-                    } else if (clickedUnit == null) {
-                        EventInfo ev = eventMap.get(p);
-                        if (ev != null && ev.owner == currentPlayerIdx) {
-                            boolean occupied = false; for (MapUnit u : units) if (u.position.equals(p)) { occupied = true; break; }
-                            if (!occupied) showDeployMenu(ev);
-                            else showGlobalMenu(e.getX(), e.getY());
-                        } else {
-                            showGlobalMenu(e.getX(), e.getY());
-                        }
-                    } else {
-                        showGlobalMenu(e.getX(), e.getY());
-                    }
-                }
-                canvasPanel.repaint();
+                int tx = (int)(e.getX()/(16*zoomScale));
+                int ty = (int)(e.getY()/(16*zoomScale));
+                simulateGridClick(tx, ty, e.getX(), e.getY());
             }
         });
         canvasPanel.addMouseMotionListener(new MouseAdapter() {
@@ -1952,9 +1938,11 @@ public class VersusGameplayScreen extends BaseScreen {
                 Point newHover = new Point(tx, ty);
                 if (!newHover.equals(hoveredTile)) {
                     hoveredTile = newHover;
+                    game.core.util.SoundManager.playCursor();
                     updatePreviewPath();
                     needsRepaint = true;
                 }
+                layoutGameLayer();
             }
         });
         canvasPanel.addMouseListener(new MouseAdapter() {
@@ -2220,9 +2208,170 @@ public class VersusGameplayScreen extends BaseScreen {
         if (selectedUnit != null && oldUnitPos != null) {
             selectedUnit.position = new Point(oldUnitPos); selectedUnit.renderPos.x = oldUnitPos.x; selectedUnit.renderPos.y = oldUnitPos.y;
             selectedUnit.hasMoved = false; selectedUnit.movePath.clear(); selectedUnit = null; oldUnitPos = null; 
-            previewPath.clear(); hoveredTile = null;
+            previewPath.clear();
             fogDirty = true; unitOrderDirty = true; needsRepaint = true;
             canvasPanel.repaint();
+        }
+    }
+
+    public void simulateGridClick(int tx, int ty, int mouseX, int mouseY) {
+        if (phaseBannerTimer > 0) phaseBannerTimer = 0;
+        if (isBattleActive) return;
+        for (MapUnit u : units) if (!u.movePath.isEmpty()) return;
+        if (players == null || players.isEmpty() || players.get(currentPlayerIdx).isAI) return;
+        
+        Point p = new Point(tx, ty);
+        if (selectedUnit != null && selectedUnit.hasMoved && !selectedUnit.hasActed) { cancelMove(); return; }
+        if (moveRange.contains(p) && selectedUnit != null && !selectedUnit.hasMoved) { 
+            oldUnitPos = new Point(selectedUnit.position); reconstructPath(p, selectedUnit);
+            selectedUnit.hasMoved = true; moveRange.clear(); attackRange.clear();
+            previewPath.clear(); hoveredTile = new Point(tx, ty);
+            if (selectedUnit.movePath.isEmpty()) showActionMenu(selectedUnit);
+        } else {
+            selectedUnit = null; moveRange.clear(); attackRange.clear(); previewPath.clear(); hoveredTile = new Point(tx, ty); MapUnit clickedUnit = null;
+            for (MapUnit u : units) if (u.position.equals(p)) { clickedUnit = u; break; }
+            
+            if (clickedUnit != null && clickedUnit.ownerIndex != currentPlayerIdx) {
+                selectedEnemy = clickedUnit;
+                updateEnemyPanel();
+            } else {
+                selectedEnemy = null;
+                updateEnemyPanel();
+            }
+
+            if (clickedUnit != null && !clickedUnit.hasActed && !clickedUnit.hasMoved && clickedUnit.ownerIndex == currentPlayerIdx) {
+                selectedUnit = clickedUnit; calculateMoveRange(clickedUnit);
+            } else if (clickedUnit == null) {
+                EventInfo ev = eventMap.get(p);
+                if (ev != null && ev.owner == currentPlayerIdx) {
+                    showDeployMenu(ev);
+                } else {
+                    showGlobalMenu(mouseX, mouseY);
+                }
+            } else {
+                // Do nothing if clicking a unit that has already acted, or an enemy unit
+            }
+        }
+        canvasPanel.repaint();
+    }
+
+    private void handleKeyboardInput(game.core.input.KeyboardController input) {
+        if (deployOverlay != null && deployOverlay.isVisible()) {
+            if (deployActions.isEmpty() || deployHovers.isEmpty()) return;
+            
+            if (keyCooldown > 0) {
+                keyCooldown--;
+            } else {
+                if (input.upPressed) {
+                    deploySelectedIndex = (deploySelectedIndex - 1 + deployHovers.size()) % deployHovers.size();
+                    game.core.util.SoundManager.playCursor();
+                    deployHovers.get(deploySelectedIndex).run();
+                    keyCooldown = 8;
+                } else if (input.downPressed) {
+                    deploySelectedIndex = (deploySelectedIndex + 1) % deployHovers.size();
+                    game.core.util.SoundManager.playCursor();
+                    deployHovers.get(deploySelectedIndex).run();
+                    keyCooldown = 8;
+                }
+            }
+            
+            if (input.consumeEnter()) {
+                deployActions.get(deploySelectedIndex).run();
+            }
+            if (input.consumeEsc()) {
+                hideDeployOverlay();
+            }
+            return;
+        }
+        if (players == null || players.isEmpty()) return;
+        if (isPaused) return;
+        // If a popup menu (like the Global Action Menu or Unit Action Menu) is currently open
+        if (activePopupMenu != null && activePopupMenu.isVisible()) {
+            // Check if the user pressed the ESC key to back out
+            if (input.consumeEsc()) {
+                activePopupMenu.setVisible(false);
+                activePopupMenu = null;
+                javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+                game.core.util.SoundManager.playCancel();
+                
+                // If a unit was in the middle of moving when the menu was opened, cancel its move and return it to its start position
+                if (selectedUnit != null && selectedUnit.hasMoved && !selectedUnit.hasActed) {
+                    cancelMove();
+                }
+            }
+            // Ignore all other game controls (like arrow keys) while the menu is open, so the cursor doesn't move behind the menu
+            return;
+        }
+
+        if (keyCooldown > 0) {
+            keyCooldown--;
+        } else {
+            if (hoveredTile == null) {
+                if (!units.isEmpty()) hoveredTile = new Point(units.get(0).position);
+                else hoveredTile = new Point(mapW/2, mapH/2);
+            }
+            
+            int dx = 0, dy = 0;
+            if (input.upPressed) dy = -1;
+            else if (input.downPressed) dy = 1;
+            else if (input.leftPressed) dx = -1;
+            else if (input.rightPressed) dx = 1;
+            
+            if (dx != 0 || dy != 0) {
+                lastKnownMouseViewPos = null; // Keyboard takes priority
+                int newX = Math.max(0, Math.min(mapW - 1, hoveredTile.x + dx));
+                int newY = Math.max(0, Math.min(mapH - 1, hoveredTile.y + dy));
+                Point newHover = new Point(newX, newY);
+                if (!newHover.equals(hoveredTile)) {
+                    hoveredTile = newHover;
+                    game.core.util.SoundManager.playCursor();
+                    updatePreviewPath();
+                    
+                    // Find if there's any MapUnit located exactly at the newly hovered tile
+                    MapUnit hoverUnit = null;
+                    for (MapUnit u : units) {
+                        if (u.position.equals(hoveredTile)) {
+                            hoverUnit = u;
+                            break;
+                        }
+                    }
+                    
+                    // If we hovered over an enemy unit, update the selectedEnemy reference so the Enemy Info Panel pops up
+                    if (hoverUnit != null && hoverUnit.ownerIndex != currentPlayerIdx) {
+                        selectedEnemy = hoverUnit;
+                    } else {
+                        selectedEnemy = null;
+                    }
+                    updateEnemyPanel();
+                    
+                    cameraTargetX = newX * 16 * zoomScale;
+                    cameraTargetY = newY * 16 * zoomScale;
+                    needsRepaint = true;
+                    
+                    // Immediately re-layout the UI (like Day/Gold and Enemy Info panels) so they dodge out of the way of the new cursor position
+                    layoutGameLayer();
+                }
+                keyCooldown = 6;
+            }
+        }
+        
+        if (input.consumeEnter()) {
+            if (hoveredTile == null) {
+                if (!units.isEmpty()) hoveredTile = new Point(units.get(0).position);
+                else hoveredTile = new Point(mapW/2, mapH/2);
+            }
+            int mouseX = (int)(hoveredTile.x * 16 * zoomScale) + 8;
+            int mouseY = (int)(hoveredTile.y * 16 * zoomScale) + 8;
+            simulateGridClick(hoveredTile.x, hoveredTile.y, mouseX, mouseY);
+        }
+        
+        if (input.consumeEsc()) {
+            if (selectedUnit != null && selectedUnit.hasMoved && !selectedUnit.hasActed) {
+                cancelMove();
+            } else if (selectedUnit != null) {
+                selectedUnit = null; moveRange.clear(); attackRange.clear(); previewPath.clear();
+                needsRepaint = true; canvasPanel.repaint();
+            }
         }
     }
 
@@ -2289,6 +2438,8 @@ public class VersusGameplayScreen extends BaseScreen {
         return ev != null && ev.owner != u.ownerIndex;
     }
 
+    private JPopupMenu activePopupMenu = null;
+
     private JPopupMenu createStyledMenu() {
         JPopupMenu menu = new JPopupMenu();
         menu.setBackground(new Color(40, 40, 50));
@@ -2296,6 +2447,7 @@ public class VersusGameplayScreen extends BaseScreen {
             BorderFactory.createLineBorder(new Color(255, 215, 0, 180), 2),
             BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
+        activePopupMenu = menu;
         return menu;
     }
 
@@ -3233,6 +3385,7 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private void showDeployMenu(EventInfo ev) {
+        game.core.util.SoundManager.playDecide();
         // Refresh the UnitRegistry to capture any newly created unit directories
         game.core.unit.UnitRegistry.reload();
 
@@ -3247,6 +3400,9 @@ public class VersusGameplayScreen extends BaseScreen {
         deployListContainer.removeAll();
         deployPreviewCache.clear();
         deployAnimFrame = 0;
+        deploySelectedIndex = 0;
+        deployActions.clear();
+        deployHovers.clear();
 
         VersusScreen.PlayerSettings currentPlayer = players.get(currentPlayerIdx);
         int playerGold = currentPlayer.gold;
@@ -3376,10 +3532,30 @@ public class VersusGameplayScreen extends BaseScreen {
             buyBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             buyBtn.setEnabled(canAfford);
             buyBtn.addActionListener(e -> {
+                game.core.util.SoundManager.playDecide();
                 hideDeployOverlay();
                 deployUnit(cat, uName, price, ev);
             });
             row.add(buyBtn, gbc);
+
+            int thisIndex = deployActions.size();
+            deployActions.add(() -> {
+                if (canAfford) {
+                    game.core.util.SoundManager.playDecide();
+                    hideDeployOverlay();
+                    deployUnit(cat, uName, price, ev);
+                } else {
+                    game.core.util.SoundManager.playCancel();
+                }
+            });
+            deployHovers.add(() -> {
+                for (java.awt.Component c : deployListContainer.getComponents()) {
+                    if (c instanceof JPanel) c.setBackground(rowBg);
+                }
+                row.setBackground(rowBgHover);
+                updateDeployPreview(cat, uName, uStats);
+                deployListContainer.repaint();
+            });
 
             deployListContainer.add(row);
             deployListContainer.add(Box.createVerticalStrut(6));
@@ -3394,6 +3570,9 @@ public class VersusGameplayScreen extends BaseScreen {
         footer.add(goldInfo);
 
         deployListContainer.revalidate();
+        if (!deployHovers.isEmpty()) {
+            deployHovers.get(deploySelectedIndex).run();
+        }
         deployOverlay.setVisible(true);
         isPaused = true;
 
@@ -3445,7 +3624,13 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     @Override public void update() {
+        game.core.input.KeyboardController input = main.getKeyboardController();
+        if (input != null) {
+            handleKeyboardInput(input);
+        }
+
         if (isPaused) return;
+
         if (weatherTransitionTimer > 0) {
             weatherTransitionTimer--;
             if (weatherTransitionTimer == 0 && pendingWeather != null) {
@@ -3619,6 +3804,7 @@ public class VersusGameplayScreen extends BaseScreen {
                     updatePreviewPath();
                 }
                 needsRepaint = true;
+                layoutGameLayer();
                 
                 // Clear camera target so edge panning doesn't fight smooth camera
                 cameraTargetX = -1;
@@ -3640,6 +3826,7 @@ public class VersusGameplayScreen extends BaseScreen {
             panVelocityX *= 0.88; // Friction damping
             panVelocityY *= 0.88;
             needsRepaint = true;
+            layoutGameLayer();
         }
 
         // Only repaint when something actually changed
@@ -3683,6 +3870,8 @@ public class VersusGameplayScreen extends BaseScreen {
         if (newX != vPos.x || newY != vPos.y) {
             viewPort.setViewPosition(new Point(newX, newY));
             needsRepaint = true;
+            // Update UI element positions (dodging) dynamically as the camera smoothly scrolls over the map
+            layoutGameLayer();
         }
 
         // Stop tracking once we've settled close enough and unit is done moving

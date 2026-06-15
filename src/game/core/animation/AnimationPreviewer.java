@@ -8,6 +8,13 @@ import java.util.List;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+/**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
 public class AnimationPreviewer extends JPanel {
     private static final long serialVersionUID = 1L;
     

@@ -19,6 +19,13 @@ import game.ui.BaseScreen;
 import game.ui.Theme;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
+/**
  * The initial landing screen of the game.
  * Uses a multi-layered approach:
  * - A background looping video (handled by BaseScreen)
@@ -73,7 +80,7 @@ public class TitleScreen extends BaseScreen {
         layeredPane.add(uiPanel, JLayeredPane.PALETTE_LAYER);
 
         // Click to Start Label
-        JLabel lblPressStart = new JLabel("Click to Start");
+        JLabel lblPressStart = new JLabel("Press Enter or Click to Start");
         lblPressStart.setForeground(Color.YELLOW);
         lblPressStart.setFont(Theme.getPixelFont(24f));
         lblPressStart.setHorizontalAlignment(SwingConstants.CENTER);
@@ -107,5 +114,17 @@ public class TitleScreen extends BaseScreen {
                 lblPressStart.setBounds(0, h - 200, w, 100);
             }
         });
+    }
+
+    @Override protected boolean useGameLoop() { return true; }
+
+    @Override public void update() {
+        game.core.input.KeyboardController input = main.getKeyboardController();
+        if (input == null) return;
+        
+        if (input.consumeEnter()) {
+            game.core.util.SoundManager.playButtonSound();
+            main.showScreen(Main.MENU);
+        }
     }
 }

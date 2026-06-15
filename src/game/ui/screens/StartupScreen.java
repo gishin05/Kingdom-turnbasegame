@@ -13,6 +13,13 @@ import game.ui.Theme;
 import game.core.util.AssetManager;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
+/**
  * The initial loading screen displayed when the game launches.
  * Responsible for preloading essential assets in a background thread
  * while displaying a status message to the user.

@@ -8,6 +8,13 @@ import java.util.List;
 import java.util.Random;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Core battle engine.
  * Implements FE8-accurate combat formulas from bmbattle.h / ComputeBattleUnitStats.
  *

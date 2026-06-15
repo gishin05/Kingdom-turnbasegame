@@ -1,8 +1,14 @@
 package game.core.unit;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.*;
+
+/**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
 
 /**
  * Singleton registry that caches UnitStats for all units.

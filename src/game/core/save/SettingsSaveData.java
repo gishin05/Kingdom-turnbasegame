@@ -3,6 +3,13 @@ package game.core.save;
 import java.io.*;
 import java.util.Properties;
 
+/**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
 public class SettingsSaveData {
     public double bgmVolume = 1.0;
     public float sfxVolume = 1.0f;

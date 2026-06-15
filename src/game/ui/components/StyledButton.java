@@ -12,6 +12,13 @@ import javax.swing.JButton;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
+/**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
 public class StyledButton extends JButton {
     private static final long serialVersionUID = 1L;
     private float hoverAlpha = 0f;

@@ -6,6 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Runtime palette-swap utility for team coloring.
  * Detects blue-hued pixels (the default "team color" in GBA-style sprites)
  * and shifts them to match the target player color while preserving

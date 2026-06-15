@@ -49,6 +49,14 @@ public class VersusScreen extends BaseScreen {
     private Map<String, game.core.map.Tileset> loadedTilesets = new HashMap<>();
     private Map<String, BufferedImage> mapPreviews = new HashMap<>();
     
+    private int virtualFocusIndex = 0;
+    private int keyCooldown = 0;
+    private List<Runnable> leftActions = new ArrayList<>();
+    private List<Runnable> rightActions = new ArrayList<>();
+    private List<Runnable> enterActions = new ArrayList<>();
+    private List<JPanel> focusablePanels = new ArrayList<>();
+    private JPanel startWrap;
+    
     public VersusScreen(Main main) {
         super(main);
         initVideoBackground(game.core.util.GamePaths.bundledResource("graphics/backgrounds/Menu_bg.mp4"));
@@ -210,12 +218,18 @@ public class VersusScreen extends BaseScreen {
         JButton startBtn = styledBtn("START BATTLE");
         startBtn.setFont(Theme.getMenuFont());
         startBtn.setPreferredSize(new Dimension(280, 50));
-        startBtn.addActionListener(e -> startBattle());
-        bottomBar.add(startBtn);
+        startBtn.addActionListener(e -> { game.core.util.SoundManager.playDecide(); startBattle(); });
+        
+        this.startWrap = new JPanel(new BorderLayout());
+        this.startWrap.setOpaque(false);
+        this.startWrap.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        this.startWrap.add(startBtn, BorderLayout.CENTER);
+        bottomBar.add(this.startWrap);
         
         uiPanel.add(bottomBar, BorderLayout.SOUTH);
         
         updatePlayerSettingsUI();
+        addFocusHighlight(0);
  
         addComponentListener(new ComponentAdapter() {
             @Override public void componentResized(ComponentEvent e) {
@@ -386,11 +400,27 @@ public class VersusScreen extends BaseScreen {
     private void updatePlayerSettingsCount() { updatePlayerSettingsUI(); }
     
     private void updatePlayerSettingsUI() {
+        while (focusablePanels.size() > 4) focusablePanels.remove(4);
+        while (leftActions.size() > 4) leftActions.remove(4);
+        while (rightActions.size() > 4) rightActions.remove(4);
+        while (enterActions.size() > 4) enterActions.remove(4);
+        
         playersContainer.removeAll();
         for (int i = 0; i < numPlayers; i++) {
             playersContainer.add(createPlayerPanel(playerSettings.get(i)));
             playersContainer.add(Box.createVerticalStrut(10));
         }
+        
+        if (startWrap != null) {
+            focusablePanels.add(startWrap);
+            leftActions.add(() -> {});
+            rightActions.add(() -> {});
+            enterActions.add(() -> { game.core.util.SoundManager.playDecide(); startBattle(); });
+        }
+        
+        if (virtualFocusIndex >= focusablePanels.size()) virtualFocusIndex = focusablePanels.size() - 1;
+        addFocusHighlight(virtualFocusIndex);
+        
         playersContainer.revalidate();
         playersContainer.repaint();
     }
@@ -402,7 +432,7 @@ public class VersusScreen extends BaseScreen {
             BorderFactory.createLineBorder(ps.color, 1),
             new EmptyBorder(10, 15, 10, 15)
         ));
-        p.setMaximumSize(new Dimension(500, 120));
+        p.setMaximumSize(new Dimension(500, 160));
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(2, 5, 2, 5);
@@ -412,19 +442,19 @@ public class VersusScreen extends BaseScreen {
         JButton typeBtn = styledBtn(ps.isAI ? "◀ AI " + (ps.index + 1) + " ▶" : "◀ PLAYER " + (ps.index + 1) + " ▶");
         typeBtn.setFont(Theme.getSmallFont().deriveFont(Font.BOLD));
         typeBtn.setForeground(ps.color);
-        typeBtn.addActionListener(e -> {
-            ps.isAI = !ps.isAI;
-            updatePlayerSettingsUI();
-        });
-        p.add(typeBtn, gbc);
+        Runnable toggleType = () -> { ps.isAI = !ps.isAI; updatePlayerSettingsUI(); };
+        typeBtn.addActionListener(e -> toggleType.run());
+        JPanel typeWrap = new JPanel(new BorderLayout());
+        typeWrap.setOpaque(false); typeWrap.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2)); typeWrap.add(typeBtn);
+        focusablePanels.add(typeWrap); leftActions.add(toggleType); rightActions.add(toggleType); enterActions.add(toggleType);
+        p.add(typeWrap, gbc);
         
         gbc.gridx = 1;
         JComboBox<String> colorBox = new JComboBox<>(colorNames);
         colorBox.setFont(Theme.getSmallFont());
         colorBox.setSelectedIndex(findColorIndex(ps.color));
         colorBox.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel l = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 int idx = index >= 0 ? index : colorBox.getSelectedIndex();
                 if (idx >= 0 && idx < DEFAULT_COLORS.length) l.setForeground(DEFAULT_COLORS[idx]);
@@ -433,12 +463,20 @@ public class VersusScreen extends BaseScreen {
         });
         colorBox.addActionListener(e -> {
             int idx = colorBox.getSelectedIndex();
-            if (idx >= 0 && idx < DEFAULT_COLORS.length) {
-                ps.color = DEFAULT_COLORS[idx];
-                updatePlayerSettingsUI();
-            }
+            if (idx >= 0 && idx < DEFAULT_COLORS.length) { ps.color = DEFAULT_COLORS[idx]; updatePlayerSettingsUI(); }
         });
-        p.add(colorBox, gbc);
+        Runnable leftColor = () -> { 
+            int idx = (findColorIndex(ps.color) - 1 + DEFAULT_COLORS.length) % DEFAULT_COLORS.length;
+            ps.color = DEFAULT_COLORS[idx]; updatePlayerSettingsUI(); 
+        };
+        Runnable rightColor = () -> { 
+            int idx = (findColorIndex(ps.color) + 1) % DEFAULT_COLORS.length;
+            ps.color = DEFAULT_COLORS[idx]; updatePlayerSettingsUI(); 
+        };
+        JPanel colorWrap = new JPanel(new BorderLayout());
+        colorWrap.setOpaque(false); colorWrap.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2)); colorWrap.add(colorBox);
+        focusablePanels.add(colorWrap); leftActions.add(leftColor); rightActions.add(rightColor); enterActions.add(() -> {});
+        p.add(colorWrap, gbc);
         
         gbc.gridy = 1; gbc.gridx = 0;
         p.add(new JLabel("GOLD") {{ setFont(Theme.getSmallFont()); setForeground(Color.GRAY); }}, gbc);
@@ -447,16 +485,34 @@ public class VersusScreen extends BaseScreen {
         JSpinner goldSpin = new JSpinner(new SpinnerNumberModel(ps.gold, 0, 10000, 100));
         goldSpin.setFont(Theme.getSmallFont());
         goldSpin.addChangeListener(e -> ps.gold = (int) goldSpin.getValue());
-        p.add(goldSpin, gbc);
+        Runnable leftGold = () -> { ps.gold = Math.max(0, ps.gold - 100); updatePlayerSettingsUI(); };
+        Runnable rightGold = () -> { ps.gold = Math.min(10000, ps.gold + 100); updatePlayerSettingsUI(); };
+        JPanel goldWrap = new JPanel(new BorderLayout());
+        goldWrap.setOpaque(false); goldWrap.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2)); goldWrap.add(goldSpin);
+        focusablePanels.add(goldWrap); leftActions.add(leftGold); rightActions.add(rightGold); enterActions.add(() -> {});
+        p.add(goldWrap, gbc);
         
         gbc.gridx = 2;
         JButton colorBtn = styledBtn("🎨");
         colorBtn.setMargin(new Insets(2, 6, 2, 6));
-        colorBtn.addActionListener(e -> {
-            ps.color = DEFAULT_COLORS[(ps.index + 1) % DEFAULT_COLORS.length];
-            updatePlayerSettingsUI();
-        });
+        colorBtn.addActionListener(e -> { ps.color = DEFAULT_COLORS[(ps.index + 1) % DEFAULT_COLORS.length]; updatePlayerSettingsUI(); });
         p.add(colorBtn, gbc);
+        
+        gbc.gridy = 2; gbc.gridx = 0;
+        p.add(new JLabel("TEAM") {{ setFont(Theme.getSmallFont()); setForeground(Color.GRAY); }}, gbc);
+        
+        gbc.gridx = 1;
+        String[] teamOptions = {"None", "Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6"};
+        JComboBox<String> teamBox = new JComboBox<>(teamOptions);
+        teamBox.setFont(Theme.getSmallFont());
+        teamBox.setSelectedIndex(ps.team);
+        teamBox.addActionListener(e -> { ps.team = teamBox.getSelectedIndex(); });
+        Runnable leftTeam = () -> { ps.team = (ps.team - 1 + 7) % 7; updatePlayerSettingsUI(); };
+        Runnable rightTeam = () -> { ps.team = (ps.team + 1) % 7; updatePlayerSettingsUI(); };
+        JPanel teamWrap = new JPanel(new BorderLayout());
+        teamWrap.setOpaque(false); teamWrap.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2)); teamWrap.add(teamBox);
+        focusablePanels.add(teamWrap); leftActions.add(leftTeam); rightActions.add(rightTeam); enterActions.add(() -> {});
+        p.add(teamWrap, gbc);
         
         return p;
     }
@@ -482,19 +538,28 @@ public class VersusScreen extends BaseScreen {
         mapValLabel.setForeground(Color.WHITE);
         mapValLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
-        l.addActionListener(e -> {
+        Runnable leftAction = () -> {
             if (filteredMaps.isEmpty()) return;
             mapIdx = (mapIdx - 1 + filteredMaps.size()) % filteredMaps.size();
             mapValLabel.setText(filteredMaps.get(mapIdx).name);
             repaint();
-        });
+        };
         
-        r.addActionListener(e -> {
+        Runnable rightAction = () -> {
             if (filteredMaps.isEmpty()) return;
             mapIdx = (mapIdx + 1) % filteredMaps.size();
             mapValLabel.setText(filteredMaps.get(mapIdx).name);
             repaint();
-        });
+        };
+        
+        l.addActionListener(e -> { game.core.util.SoundManager.playCursor(); leftAction.run(); });
+        r.addActionListener(e -> { game.core.util.SoundManager.playCursor(); rightAction.run(); });
+        
+        wrap.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        focusablePanels.add(wrap);
+        leftActions.add(leftAction);
+        rightActions.add(rightAction);
+        enterActions.add(() -> {});
         
         ctr.add(l, BorderLayout.WEST);
         ctr.add(mapValLabel, BorderLayout.CENTER);
@@ -525,23 +590,32 @@ public class VersusScreen extends BaseScreen {
         val.setForeground(Color.WHITE);
         val.setHorizontalAlignment(SwingConstants.CENTER);
         
-        l.addActionListener(e -> {
+        Runnable leftAction = () -> {
             int idx = 0;
             for(int i=0; i<options.length; i++) if(options[i].equals(val.getText())) idx = i;
             int next = (idx - 1 + options.length) % options.length;
             callback.accept(next);
             val.setText(options[next]);
             repaint();
-        });
+        };
         
-        r.addActionListener(e -> {
+        Runnable rightAction = () -> {
             int idx = 0;
             for(int i=0; i<options.length; i++) if(options[i].equals(val.getText())) idx = i;
             int next = (idx + 1) % options.length;
             callback.accept(next);
             val.setText(options[next]);
             repaint();
-        });
+        };
+        
+        l.addActionListener(e -> { game.core.util.SoundManager.playCursor(); leftAction.run(); });
+        r.addActionListener(e -> { game.core.util.SoundManager.playCursor(); rightAction.run(); });
+        
+        wrap.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        focusablePanels.add(wrap);
+        leftActions.add(leftAction);
+        rightActions.add(rightAction);
+        enterActions.add(() -> {});
         
         ctr.add(l, BorderLayout.WEST);
         ctr.add(val, BorderLayout.CENTER);
@@ -609,6 +683,7 @@ public class VersusScreen extends BaseScreen {
         public boolean isAI = false;
         public Color color;
         public int gold = 1000;
+        public int team = 0;
         PlayerSettings(int i) { this.index = i; this.color = DEFAULT_COLORS[i % DEFAULT_COLORS.length]; }
         public PlayerSettings(int i, Color c) { this.index = i; this.color = (c != null ? c : DEFAULT_COLORS[i % DEFAULT_COLORS.length]); }
     }
@@ -625,5 +700,57 @@ public class VersusScreen extends BaseScreen {
             if (DEFAULT_COLORS[i].getRGB() == c.getRGB()) return i;
         }
         return 0;
+    }
+
+    private void addFocusHighlight(int index) {
+        for (int i = 0; i < focusablePanels.size(); i++) {
+            JPanel p = focusablePanels.get(i);
+            if (i == index) {
+                p.setBorder(BorderFactory.createLineBorder(Theme.HIGHLIGHT, 2));
+            } else {
+                p.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+            }
+        }
+    }
+
+    @Override protected boolean useGameLoop() { return true; }
+
+    @Override public void update() {
+        if (loadingOverlay != null && loadingOverlay.isVisible()) return;
+
+        game.core.input.KeyboardController input = main.getKeyboardController();
+        if (input == null) return;
+        
+        if (keyCooldown > 0) keyCooldown--;
+        
+        if (keyCooldown == 0) {
+            if (input.upPressed) {
+                virtualFocusIndex = (virtualFocusIndex - 1 + focusablePanels.size()) % focusablePanels.size();
+                game.core.util.SoundManager.playCursor();
+                addFocusHighlight(virtualFocusIndex);
+                keyCooldown = 8;
+            } else if (input.downPressed) {
+                virtualFocusIndex = (virtualFocusIndex + 1) % focusablePanels.size();
+                game.core.util.SoundManager.playCursor();
+                addFocusHighlight(virtualFocusIndex);
+                keyCooldown = 8;
+            } else if (input.leftPressed) {
+                leftActions.get(virtualFocusIndex).run();
+                game.core.util.SoundManager.playCursor();
+                keyCooldown = 8;
+            } else if (input.rightPressed) {
+                rightActions.get(virtualFocusIndex).run();
+                game.core.util.SoundManager.playCursor();
+                keyCooldown = 8;
+            }
+        }
+        
+        if (input.consumeEnter()) {
+            enterActions.get(virtualFocusIndex).run();
+        }
+        
+        if (input.consumeEsc()) {
+            main.showScreen(Main.MENU);
+        }
     }
 }

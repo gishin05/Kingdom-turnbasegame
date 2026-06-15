@@ -4,6 +4,13 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
+/**
  * A reusable progress dialog for import/load operations.
  * Runs the work on a background thread via SwingWorker so the UI stays responsive.
  */

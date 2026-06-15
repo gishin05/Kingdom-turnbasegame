@@ -15,6 +15,13 @@ import game.ui.Theme;
 import game.core.save.SaveManager;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
+/**
  * The primary navigation menu.
  * Features a dark translucent overlay over a video background,
  * and a left-aligned vertical menu column with animated hover states and sub-menus.
@@ -36,6 +43,9 @@ public class MenuScreen extends BaseScreen {
     private JLabel[] menuArrows;
     private JPopupMenu versusPopup;
     private JPanel[] versusPopupItems;
+    private Runnable[] versusPopupActions;
+    private int popupSelectedIndex = -1;
+    private int keyCooldown = 0;
 
     public MenuScreen(Main main) {
         super(main);
@@ -236,11 +246,11 @@ public class MenuScreen extends BaseScreen {
         versusPopup.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
         versusPopup.addPopupMenuListener(new PopupMenuListener() {
             @Override public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
-            @Override public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { clearVersusForcedHover(); }
-            @Override public void popupMenuCanceled(PopupMenuEvent e) { clearVersusForcedHover(); }
+            @Override public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { clearVersusForcedHover(); popupSelectedIndex = -1; }
+            @Override public void popupMenuCanceled(PopupMenuEvent e) { clearVersusForcedHover(); popupSelectedIndex = -1; }
         });
 
-        JPanel continueItem = createPopupMenuItemPanel("CONTINUE", () -> {
+        Runnable continueAction = () -> {
             if (!SaveManager.hasVersusSave()) {
                 JOptionPane.showMessageDialog(this, "No saved Versus game found.");
                 return;
@@ -263,9 +273,10 @@ public class MenuScreen extends BaseScreen {
                 JOptionPane.showMessageDialog(this, "Failed to load Versus save.");
                 ex.printStackTrace();
             }
-        });
+        };
+        JPanel continueItem = createPopupMenuItemPanel("CONTINUE", continueAction);
 
-        JPanel newItem = createPopupMenuItemPanel("NEW", () -> {
+        Runnable newAction = () -> {
             if (SaveManager.hasVersusSave()) {
                 int choice = JOptionPane.showConfirmDialog(
                     this,
@@ -277,9 +288,11 @@ public class MenuScreen extends BaseScreen {
                 SaveManager.deleteVersusSave();
             }
             main.showScreen(Main.VERSUS);
-        });
+        };
+        JPanel newItem = createPopupMenuItemPanel("NEW", newAction);
 
         versusPopupItems = new JPanel[] { continueItem, newItem };
+        versusPopupActions = new Runnable[] { continueAction, newAction };
 
         versusPopup.add(continueItem);
         versusPopup.add(Box.createVerticalStrut(6));
@@ -370,5 +383,96 @@ public class MenuScreen extends BaseScreen {
         arrow.addMouseListener(hover);
         lbl.addMouseListener(hover);
         return item;
+    }
+
+    private void setMenuHover(int index) {
+        for (int i = 0; i < menuItems.length; i++) {
+            if (i == index) {
+                menuLabels[i].setForeground(Theme.HIGHLIGHT);
+                menuArrows[i].setVisible(true);
+            } else {
+                menuLabels[i].setForeground(new Color(190, 190, 210));
+                menuArrows[i].setVisible(false);
+            }
+            menuItems[i].repaint();
+        }
+    }
+
+    private void setPopupHover(int index) {
+        for (int i = 0; i < versusPopupItems.length; i++) {
+            JPanel p = versusPopupItems[i];
+            JLabel arrow = (JLabel) p.getComponent(0);
+            JLabel lbl = (JLabel) p.getComponent(1);
+            if (i == index) {
+                p.putClientProperty("hover", Boolean.TRUE);
+                lbl.setForeground(Theme.HIGHLIGHT);
+                arrow.setVisible(true);
+            } else {
+                p.putClientProperty("hover", Boolean.FALSE);
+                lbl.setForeground(new Color(190, 190, 210));
+                arrow.setVisible(false);
+            }
+            p.repaint();
+        }
+    }
+
+    @Override protected boolean useGameLoop() { return true; }
+
+    @Override public void update() {
+        game.core.input.KeyboardController input = main.getKeyboardController();
+        if (input == null) return;
+
+        if (keyCooldown > 0) keyCooldown--;
+
+        if (versusPopup != null && versusPopup.isVisible()) {
+            if (popupSelectedIndex == -1) {
+                popupSelectedIndex = 0;
+                setPopupHover(0);
+            }
+            if (keyCooldown == 0) {
+                if (input.upPressed) {
+                    popupSelectedIndex = (popupSelectedIndex - 1 + versusPopupItems.length) % versusPopupItems.length;
+                    setPopupHover(popupSelectedIndex);
+                    game.core.util.SoundManager.playCursor();
+                    keyCooldown = 8;
+                } else if (input.downPressed) {
+                    popupSelectedIndex = (popupSelectedIndex + 1) % versusPopupItems.length;
+                    setPopupHover(popupSelectedIndex);
+                    game.core.util.SoundManager.playCursor();
+                    keyCooldown = 8;
+                }
+            }
+            if (input.consumeEnter()) {
+                game.core.util.SoundManager.playButtonSound();
+                versusPopupActions[popupSelectedIndex].run();
+                versusPopup.setVisible(false);
+            }
+            if (input.consumeEsc()) {
+                versusPopup.setVisible(false);
+                clearVersusForcedHover();
+            }
+        } else {
+            if (hoveredIndex == -1 && menuItems != null && menuItems.length > 0) {
+                hoveredIndex = 0;
+                setMenuHover(0);
+            }
+            if (keyCooldown == 0) {
+                if (input.upPressed) {
+                    hoveredIndex = (hoveredIndex - 1 + menuItems.length) % menuItems.length;
+                    setMenuHover(hoveredIndex);
+                    game.core.util.SoundManager.playCursor();
+                    keyCooldown = 8;
+                } else if (input.downPressed) {
+                    hoveredIndex = (hoveredIndex + 1) % menuItems.length;
+                    setMenuHover(hoveredIndex);
+                    game.core.util.SoundManager.playCursor();
+                    keyCooldown = 8;
+                }
+            }
+            if (input.consumeEnter()) {
+                game.core.util.SoundManager.playButtonSound();
+                handleMenuAction(hoveredIndex);
+            }
+        }
     }
 }

@@ -10,6 +10,13 @@ import game.ui.BaseScreen;
 import game.ui.Theme;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
+/**
  * Hub screen for accessing the various creative editors in the game.
  * Currently serves as a portal to the MapDesignScreen, utilizing an animated 
  * card-based layout to showcase available editors.

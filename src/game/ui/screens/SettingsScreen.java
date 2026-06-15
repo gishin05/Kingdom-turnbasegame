@@ -11,6 +11,13 @@ import game.ui.BaseScreen;
 import game.ui.Theme;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
+/**
  * Settings screen for adjusting BGM volume, SFX volume, and window resolution.
  */
 public class SettingsScreen extends BaseScreen {

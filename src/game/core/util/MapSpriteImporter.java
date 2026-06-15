@@ -7,6 +7,13 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Standalone utility to auto-import GBA FE8 Map Sprites from the decomp ROM graphics
  * and slice them into the TurnBasedGame moving animation directory structure.
  */

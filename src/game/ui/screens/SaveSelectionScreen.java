@@ -11,6 +11,13 @@ import game.ui.Theme;
 import game.ui.components.StyledButton;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
+/**
  * Screen that handles selecting, creating, and overwriting save slots.
  * Displays three available save slots and tracks whether they are occupied or empty.
  */

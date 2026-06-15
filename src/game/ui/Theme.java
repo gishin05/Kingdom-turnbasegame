@@ -5,6 +5,13 @@ import java.awt.Font;
 
 import game.core.util.AssetManager;
 import game.core.util.GamePaths;
+
+/**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
 /**
  * Centralized design system and theme configuration for the game UI.
  * Defines all standard colors, fonts, and typographic scales to ensure 

@@ -5,6 +5,13 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Emulates GBA OAM rendering for map units.
  * Supports horizontal mirroring for efficient directional animations.
  */

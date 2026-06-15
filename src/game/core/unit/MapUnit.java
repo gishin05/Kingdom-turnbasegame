@@ -5,6 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * A runtime unit placed on the tactical map.
  * Wraps UnitStats + live position + inventory + HP.
  * Resets each time Test Mode is opened (not saved to map JSON).

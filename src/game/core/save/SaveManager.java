@@ -5,6 +5,13 @@ import java.io.IOException;
 
 import game.core.util.GamePaths;
 
+/**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
 public class SaveManager {
     private static final int MAX_SLOTS = 3;
     private static final String VERSUS_SAVE_FILE = "versus.dat";

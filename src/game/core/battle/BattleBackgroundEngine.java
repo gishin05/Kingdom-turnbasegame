@@ -5,6 +5,13 @@ import java.awt.Graphics2D;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
 public class BattleBackgroundEngine {
     
     private Map<String, BattleTerrain> loadedTerrains = new HashMap<>();

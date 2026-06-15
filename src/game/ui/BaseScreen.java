@@ -19,6 +19,13 @@ import game.core.util.GameLoop;
 import game.core.util.GamePaths;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This component is part of the pixelated game UI approach.
+ * It integrates with the layered architecture, utilizing dynamic backgrounds
+ * and semi-transparent panels to maintain a visually rich, modern aesthetic.
+ */
+
+/**
  * Base class for all full-screen views with optional video backgrounds.
  */
 public abstract class BaseScreen extends JPanel implements Refreshable, GameLoop.Updateable {

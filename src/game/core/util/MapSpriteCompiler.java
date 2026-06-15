@@ -5,6 +5,13 @@ import java.awt.image.IndexColorModel;
 import java.io.ByteArrayOutputStream;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Utility to compile images into GBA-compatible map sprite data.
  * Handles 4bpp tile conversion and LZ77 compression.
  */

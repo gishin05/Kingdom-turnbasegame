@@ -4,6 +4,13 @@ import java.io.File;
 import java.nio.file.Files;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Weapon / item data.
  * Directly mirrors FE8's struct ItemData from bmitem.h.
  * Real stat values taken from constants/items.h + FE8 data tables.

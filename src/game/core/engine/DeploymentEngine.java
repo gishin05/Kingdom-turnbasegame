@@ -1,5 +1,12 @@
 package game.core.engine;
 
+/**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
 public class DeploymentEngine {
     public static int calculatePrice(String category, String name) {
         // Static assignment of unit prices

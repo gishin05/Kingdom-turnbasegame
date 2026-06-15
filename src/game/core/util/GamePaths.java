@@ -3,6 +3,13 @@ package game.core.util;
 import java.io.File;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Central paths for game content. All loaders and editors should use this class.
  */
 public final class GamePaths {

@@ -1,6 +1,13 @@
 package game.core.util;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Centrally manages custom lightweight JSON value extraction and safe integer parsing.
  */
 public class JsonUtil {

@@ -3,6 +3,13 @@ package game.core.util;
 import javax.swing.SwingUtilities;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * A dedicated game loop thread that separates game logic (updates) from rendering.
  * Uses a fixed time-step for updates and a variable time-step for rendering.
  */

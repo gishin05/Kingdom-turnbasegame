@@ -10,6 +10,13 @@ import game.core.util.AssetManager;
 import game.core.util.JsonUtil;
 
 /**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+/**
  * Manages a GBA-style tileset, providing 8x8 tile extraction and terrain metadata.
  */
 public class Tileset {
