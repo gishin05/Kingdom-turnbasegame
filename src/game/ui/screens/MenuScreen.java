@@ -419,6 +419,7 @@ public class MenuScreen extends BaseScreen {
     @Override protected boolean useGameLoop() { return true; }
 
     @Override public void update() {
+        // [KEYBOARD_CONTROL_MARKER] - Menu navigation logic
         game.core.input.KeyboardController input = main.getKeyboardController();
         if (input == null) return;
 

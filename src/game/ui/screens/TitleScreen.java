@@ -40,9 +40,10 @@ public class TitleScreen extends BaseScreen {
 
     public TitleScreen(Main main) {
         super(main);
-        
+
         try {
-            logoImage = new ImageIcon(getClass().getResource(GamePaths.bundledResource("graphics/ui/logo.png"))).getImage();
+            logoImage = new ImageIcon(getClass().getResource(GamePaths.bundledResource("graphics/ui/logo.png")))
+                    .getImage();
         } catch (Exception e) {
             System.err.println("Could not load logo asset");
         }
@@ -53,10 +54,11 @@ public class TitleScreen extends BaseScreen {
         JLayeredPane layeredPane = new JLayeredPane();
         add(layeredPane, BorderLayout.CENTER);
 
-        // Z-Index 0: Base Video background 
+        // Z-Index 0: Base Video background
         layeredPane.add(jfxPanel, JLayeredPane.DEFAULT_LAYER);
 
-        // Z-Index 1: Transparent UI Overlay panel holding the Logo and "Press Start" text.
+        // Z-Index 1: Transparent UI Overlay panel holding the Logo and "Press Start"
+        // text.
         // Uses null layout to allow precise absolute positioning during window resizes.
         JPanel uiPanel = new JPanel(null) {
             @Override
@@ -80,7 +82,7 @@ public class TitleScreen extends BaseScreen {
         layeredPane.add(uiPanel, JLayeredPane.PALETTE_LAYER);
 
         // Click to Start Label
-        JLabel lblPressStart = new JLabel("Press Enter or Click to Start");
+        JLabel lblPressStart = new JLabel("Press Enter");
         lblPressStart.setForeground(Color.YELLOW);
         lblPressStart.setFont(Theme.getPixelFont(24f));
         lblPressStart.setHorizontalAlignment(SwingConstants.CENTER);
@@ -94,7 +96,8 @@ public class TitleScreen extends BaseScreen {
         });
         blinkTimer.start();
 
-        // Global screen click listener: anywhere the user clicks transitions to the Main Menu
+        // Global screen click listener: anywhere the user clicks transitions to the
+        // Main Menu
         uiPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -116,12 +119,18 @@ public class TitleScreen extends BaseScreen {
         });
     }
 
-    @Override protected boolean useGameLoop() { return true; }
+    @Override
+    protected boolean useGameLoop() {
+        return true;
+    }
 
-    @Override public void update() {
+    @Override
+    public void update() {
+        // [KEYBOARD_CONTROL_MARKER] - Start game navigation logic
         game.core.input.KeyboardController input = main.getKeyboardController();
-        if (input == null) return;
-        
+        if (input == null)
+            return;
+
         if (input.consumeEnter()) {
             game.core.util.SoundManager.playButtonSound();
             main.showScreen(Main.MENU);

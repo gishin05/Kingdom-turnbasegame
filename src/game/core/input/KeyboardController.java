@@ -7,6 +7,8 @@ import java.awt.event.KeyListener;
  * KeyboardController manages global keyboard input for the game.
  * It tracks the state of movement keys (Arrows and WASD), selection (Enter),
  * and cancellation/back (Escape).
+ * 
+ * // [KEYBOARD_CONTROL_MARKER] - Core Input State Manager
  */
 public class KeyboardController implements KeyListener {
 

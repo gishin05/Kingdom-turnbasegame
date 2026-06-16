@@ -718,6 +718,7 @@ public class VersusScreen extends BaseScreen {
     @Override public void update() {
         if (loadingOverlay != null && loadingOverlay.isVisible()) return;
 
+        // [KEYBOARD_CONTROL_MARKER] - Versus setup navigation
         game.core.input.KeyboardController input = main.getKeyboardController();
         if (input == null) return;
         

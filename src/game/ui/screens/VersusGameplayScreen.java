@@ -120,6 +120,10 @@ public class VersusGameplayScreen extends BaseScreen {
     private java.util.List<Runnable> deployHovers = new ArrayList<>();
     private Map<String, List<BufferedImage>> deployPreviewCache = new HashMap<>();
     
+    // ── Settings Overlay Fields ───────────────────────────
+    private int settingsSelectedIndex = 0;
+    private java.util.List<JButton> settingsButtons = new ArrayList<>();
+    
     // ── Deploy Preview Fields ──
     private JLabel previewNameLbl;
     private JPanel previewSpritePanel;
@@ -697,6 +701,23 @@ public class VersusGameplayScreen extends BaseScreen {
         panel.add(Box.createVerticalStrut(25));
         panel.add(exit);
 
+        settingsButtons.clear();
+        settingsButtons.add(resume);
+        settingsButtons.add(settings);
+        settingsButtons.add(exit);
+        
+        for (int i = 0; i < settingsButtons.size(); i++) {
+            final int idx = i;
+            JButton btn = settingsButtons.get(i);
+            btn.addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) {
+                    settingsSelectedIndex = idx;
+                    updateSettingsHover();
+                }
+            });
+        }
+        updateSettingsHover();
+
         overlay.add(panel, BorderLayout.WEST);
 
         overlay.addMouseListener(new MouseAdapter() {
@@ -709,10 +730,25 @@ public class VersusGameplayScreen extends BaseScreen {
         return overlay;
     }
 
+    private void updateSettingsHover() {
+        for (int i = 0; i < settingsButtons.size(); i++) {
+            JButton btn = settingsButtons.get(i);
+            if (i == settingsSelectedIndex) {
+                btn.setForeground(Theme.HIGHLIGHT);
+            } else {
+                btn.setForeground(UIManager.getColor("Button.foreground"));
+            }
+        }
+    }
+
     private void toggleMenu() { setMenuOpen(menuOverlay == null || !menuOverlay.isVisible()); }
 
     private void setMenuOpen(boolean open) {
         if (menuOverlay == null) return;
+        if (open) {
+            settingsSelectedIndex = 0;
+            updateSettingsHover();
+        }
         menuOverlay.setVisible(open);
         isPaused = open;
         if (!open) canvasPanel.requestFocusInWindow();
@@ -2255,6 +2291,13 @@ public class VersusGameplayScreen extends BaseScreen {
         canvasPanel.repaint();
     }
 
+    /**
+     * Processes keyboard inputs forwarded from the global KeyboardController.
+     * Handles navigating menus, moving the map cursor, and triggering actions
+     * (like selecting a unit or tile).
+     * 
+     * // [KEYBOARD_CONTROL_MARKER]
+     */
     private void handleKeyboardInput(game.core.input.KeyboardController input) {
         if (deployOverlay != null && deployOverlay.isVisible()) {
             if (deployActions.isEmpty() || deployHovers.isEmpty()) return;
@@ -2284,7 +2327,34 @@ public class VersusGameplayScreen extends BaseScreen {
             return;
         }
         if (players == null || players.isEmpty()) return;
-        if (isPaused) return;
+        if (isPaused) {
+            if (menuOverlay != null && menuOverlay.isVisible()) {
+                if (keyCooldown > 0) {
+                    keyCooldown--;
+                } else {
+                    if (input.upPressed) {
+                        settingsSelectedIndex = (settingsSelectedIndex - 1 + settingsButtons.size()) % settingsButtons.size();
+                        game.core.util.SoundManager.playCursor();
+                        updateSettingsHover();
+                        keyCooldown = 8;
+                    } else if (input.downPressed) {
+                        settingsSelectedIndex = (settingsSelectedIndex + 1) % settingsButtons.size();
+                        game.core.util.SoundManager.playCursor();
+                        updateSettingsHover();
+                        keyCooldown = 8;
+                    }
+                }
+                
+                if (input.consumeEnter()) {
+                    game.core.util.SoundManager.playButtonSound();
+                    settingsButtons.get(settingsSelectedIndex).doClick();
+                }
+                if (input.consumeEsc()) {
+                    setMenuOpen(false);
+                }
+            }
+            return;
+        }
         // If a popup menu (like the Global Action Menu or Unit Action Menu) is currently open
         if (activePopupMenu != null && activePopupMenu.isVisible()) {
             // Check if the user pressed the ESC key to back out
@@ -2447,8 +2517,74 @@ public class VersusGameplayScreen extends BaseScreen {
             BorderFactory.createLineBorder(new Color(255, 215, 0, 180), 2),
             BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
+        
+        // Use a MenuKeyListener to properly intercept W, A, S, D within the popup menu
+        // [KEYBOARD_CONTROL_MARKER] - Action Menu Keyboard Navigation
+        menu.addMenuKeyListener(new javax.swing.event.MenuKeyListener() {
+            @Override
+            public void menuKeyPressed(javax.swing.event.MenuKeyEvent e) {
+                int code = e.getKeyCode();
+                if (code == java.awt.event.KeyEvent.VK_W || code == java.awt.event.KeyEvent.VK_UP) {
+                    navigateMenu(menu, -1);
+                    e.consume();
+                } else if (code == java.awt.event.KeyEvent.VK_S || code == java.awt.event.KeyEvent.VK_DOWN) {
+                    navigateMenu(menu, 1);
+                    e.consume();
+                } else if (code == java.awt.event.KeyEvent.VK_ENTER || code == java.awt.event.KeyEvent.VK_SPACE) {
+                    javax.swing.MenuElement[] path = javax.swing.MenuSelectionManager.defaultManager().getSelectedPath();
+                    if (path != null && path.length > 0) {
+                        javax.swing.MenuElement item = path[path.length - 1];
+                        if (item instanceof JMenuItem) {
+                            ((JMenuItem) item).doClick();
+                            menu.setVisible(false);
+                            if (activePopupMenu == menu) {
+                                activePopupMenu = null;
+                            }
+                            javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+                            if (main != null && main.getKeyboardController() != null) {
+                                main.getKeyboardController().consumeEnter();
+                            }
+                        }
+                    }
+                    e.consume();
+                }
+            }
+            @Override public void menuKeyReleased(javax.swing.event.MenuKeyEvent e) {}
+            @Override public void menuKeyTyped(javax.swing.event.MenuKeyEvent e) {}
+        });
+        
         activePopupMenu = menu;
         return menu;
+    }
+
+    private void navigateMenu(JPopupMenu menu, int direction) {
+        javax.swing.MenuElement[] path = javax.swing.MenuSelectionManager.defaultManager().getSelectedPath();
+        if (path == null || path.length == 0) return;
+        
+        java.awt.Component[] comps = menu.getComponents();
+        java.util.List<JMenuItem> items = new java.util.ArrayList<>();
+        for (java.awt.Component c : comps) {
+            if (c instanceof JMenuItem && c.isVisible() && c.isEnabled()) {
+                items.add((JMenuItem) c);
+            }
+        }
+        if (items.isEmpty()) return;
+        
+        int currentIndex = -1;
+        javax.swing.MenuElement currentElement = path[path.length - 1];
+        if (currentElement instanceof JMenuItem) {
+            currentIndex = items.indexOf(currentElement);
+        }
+        
+        int nextIndex = currentIndex + direction;
+        if (nextIndex < 0) nextIndex = items.size() - 1;
+        if (nextIndex >= items.size()) nextIndex = 0;
+        
+        javax.swing.MenuElement[] newPath = new javax.swing.MenuElement[2];
+        newPath[0] = menu;
+        newPath[1] = items.get(nextIndex);
+        javax.swing.MenuSelectionManager.defaultManager().setSelectedPath(newPath);
+        game.core.util.SoundManager.playCursor();
     }
 
     private JMenuItem createStyledMenuItem(String text) {
@@ -3624,6 +3760,7 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     @Override public void update() {
+        // Fetch the global keyboard controller state and pass it to our local handler
         game.core.input.KeyboardController input = main.getKeyboardController();
         if (input != null) {
             handleKeyboardInput(input);

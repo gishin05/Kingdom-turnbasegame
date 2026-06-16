@@ -75,10 +75,14 @@ public class Main extends JFrame {
 		setContentPane(contentPane);
 
 		// Initialize KeyboardController globally
+		// We attach it to the KeyboardFocusManager so that it can intercept 
+		// key events system-wide, regardless of which Swing component has focus.
+		// [KEYBOARD_CONTROL_MARKER] - Global Key Event Dispatcher
 		keyboardController = new KeyboardController();
 		java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new java.awt.KeyEventDispatcher() {
 			@Override
 			public boolean dispatchKeyEvent(java.awt.event.KeyEvent e) {
+				// Forward pressed and released events to our custom controller
 				if (e.getID() == java.awt.event.KeyEvent.KEY_PRESSED) {
 					keyboardController.keyPressed(e);
 				} else if (e.getID() == java.awt.event.KeyEvent.KEY_RELEASED) {
