@@ -815,6 +815,13 @@ public class VersusGameplayScreen extends BaseScreen {
             ud.hasActed = u.hasActed;
             ud.hasMoved = u.hasMoved;
             ud.isDead = u.isDead;
+            ud.equippedSlot = u.equippedSlot;
+            if (u.inventory != null) {
+                for (game.core.unit.WeaponItem item : u.inventory) {
+                    ud.inventoryNames.add(item.name);
+                    ud.inventoryUses.add(item.currentUses);
+                }
+            }
             if (u.loadedUnits != null) {
                 for (MapUnit lu : u.loadedUnits) {
                     VersusSaveData.UnitData lud = new VersusSaveData.UnitData();
@@ -823,6 +830,13 @@ public class VersusGameplayScreen extends BaseScreen {
                     lud.ownerIndex = lu.ownerIndex;
                     lud.currentHp = lu.currentHp;
                     lud.maxHp = (lu.stats != null ? lu.stats.maxHp : lu.currentHp);
+                    lud.equippedSlot = lu.equippedSlot;
+                    if (lu.inventory != null) {
+                        for (game.core.unit.WeaponItem item : lu.inventory) {
+                            lud.inventoryNames.add(item.name);
+                            lud.inventoryUses.add(item.currentUses);
+                        }
+                    }
                     ud.loadedUnits.add(lud);
                 }
             }
@@ -872,12 +886,32 @@ public class VersusGameplayScreen extends BaseScreen {
             u.hasActed = ud.hasActed;
             u.hasMoved = ud.hasMoved;
             u.isDead = ud.isDead;
+            u.equippedSlot = ud.equippedSlot;
+            if (ud.inventoryNames != null) {
+                for (int j = 0; j < ud.inventoryNames.size(); j++) {
+                    game.core.unit.WeaponItem w = game.core.unit.WeaponItem.byName(ud.inventoryNames.get(j));
+                    if (ud.inventoryUses != null && j < ud.inventoryUses.size()) {
+                        w.currentUses = ud.inventoryUses.get(j);
+                    }
+                    u.inventory.add(w);
+                }
+            }
             if (ud.loadedUnits != null) {
                 for (VersusSaveData.UnitData lud : ud.loadedUnits) {
                     MapUnit lu = new MapUnit(lud.category, lud.unitName, MapUnit.Faction.PLAYER, new Point(-1, -1));
                     lu.ownerIndex = lud.ownerIndex;
                     lu.currentHp = lud.currentHp;
                     lu.stats.maxHp = lud.maxHp;
+                    lu.equippedSlot = lud.equippedSlot;
+                    if (lud.inventoryNames != null) {
+                        for (int k = 0; k < lud.inventoryNames.size(); k++) {
+                            game.core.unit.WeaponItem w = game.core.unit.WeaponItem.byName(lud.inventoryNames.get(k));
+                            if (lud.inventoryUses != null && k < lud.inventoryUses.size()) {
+                                w.currentUses = lud.inventoryUses.get(k);
+                            }
+                            lu.inventory.add(w);
+                        }
+                    }
                     u.loadedUnits.add(lu);
                 }
             }

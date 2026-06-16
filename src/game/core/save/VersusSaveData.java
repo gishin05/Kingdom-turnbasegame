@@ -35,6 +35,9 @@ public class VersusSaveData {
         public boolean hasActed;
         public boolean hasMoved;
         public boolean isDead;
+        public int equippedSlot;
+        public List<String> inventoryNames = new ArrayList<>();
+        public List<Integer> inventoryUses = new ArrayList<>();
         public List<UnitData> loadedUnits = new ArrayList<>();
     }
 
@@ -82,6 +85,13 @@ public class VersusSaveData {
             p.setProperty("units." + i + ".hasActed", String.valueOf(u.hasActed));
             p.setProperty("units." + i + ".hasMoved", String.valueOf(u.hasMoved));
             p.setProperty("units." + i + ".isDead", String.valueOf(u.isDead));
+            p.setProperty("units." + i + ".equippedSlot", String.valueOf(u.equippedSlot));
+            
+            p.setProperty("units." + i + ".inventory.count", String.valueOf(u.inventoryNames.size()));
+            for (int k = 0; k < u.inventoryNames.size(); k++) {
+                p.setProperty("units." + i + ".inventory." + k + ".name", enc(u.inventoryNames.get(k)));
+                p.setProperty("units." + i + ".inventory." + k + ".uses", String.valueOf(u.inventoryUses.get(k)));
+            }
             
             p.setProperty("units." + i + ".loaded.count", String.valueOf(u.loadedUnits.size()));
             for (int j = 0; j < u.loadedUnits.size(); j++) {
@@ -91,6 +101,12 @@ public class VersusSaveData {
                 p.setProperty("units." + i + ".loaded." + j + ".ownerIndex", String.valueOf(lu.ownerIndex));
                 p.setProperty("units." + i + ".loaded." + j + ".currentHp", String.valueOf(lu.currentHp));
                 p.setProperty("units." + i + ".loaded." + j + ".maxHp", String.valueOf(lu.maxHp));
+                p.setProperty("units." + i + ".loaded." + j + ".equippedSlot", String.valueOf(lu.equippedSlot));
+                p.setProperty("units." + i + ".loaded." + j + ".inventory.count", String.valueOf(lu.inventoryNames.size()));
+                for (int k = 0; k < lu.inventoryNames.size(); k++) {
+                    p.setProperty("units." + i + ".loaded." + j + ".inventory." + k + ".name", enc(lu.inventoryNames.get(k)));
+                    p.setProperty("units." + i + ".loaded." + j + ".inventory." + k + ".uses", String.valueOf(lu.inventoryUses.get(k)));
+                }
             }
         }
 
@@ -135,6 +151,13 @@ public class VersusSaveData {
             u.hasActed = Boolean.parseBoolean(p.getProperty("units." + i + ".hasActed", "false"));
             u.hasMoved = Boolean.parseBoolean(p.getProperty("units." + i + ".hasMoved", "false"));
             u.isDead = Boolean.parseBoolean(p.getProperty("units." + i + ".isDead", "false"));
+            u.equippedSlot = parseInt(p.getProperty("units." + i + ".equippedSlot", "0"), 0);
+            
+            int invCount = parseInt(p.getProperty("units." + i + ".inventory.count", "0"), 0);
+            for (int k = 0; k < invCount; k++) {
+                u.inventoryNames.add(dec(p.getProperty("units." + i + ".inventory." + k + ".name", "")));
+                u.inventoryUses.add(parseInt(p.getProperty("units." + i + ".inventory." + k + ".uses", "0"), 0));
+            }
             
             int lc = parseInt(p.getProperty("units." + i + ".loaded.count", "0"), 0);
             for (int j = 0; j < lc; j++) {
@@ -144,6 +167,12 @@ public class VersusSaveData {
                 lu.ownerIndex = parseInt(p.getProperty("units." + i + ".loaded." + j + ".ownerIndex", "0"), 0);
                 lu.currentHp = parseInt(p.getProperty("units." + i + ".loaded." + j + ".currentHp", "1"), 1);
                 lu.maxHp = parseInt(p.getProperty("units." + i + ".loaded." + j + ".maxHp", "1"), 1);
+                lu.equippedSlot = parseInt(p.getProperty("units." + i + ".loaded." + j + ".equippedSlot", "0"), 0);
+                int lInvCount = parseInt(p.getProperty("units." + i + ".loaded." + j + ".inventory.count", "0"), 0);
+                for (int k = 0; k < lInvCount; k++) {
+                    lu.inventoryNames.add(dec(p.getProperty("units." + i + ".loaded." + j + ".inventory." + k + ".name", "")));
+                    lu.inventoryUses.add(parseInt(p.getProperty("units." + i + ".loaded." + j + ".inventory." + k + ".uses", "0"), 0));
+                }
                 u.loadedUnits.add(lu);
             }
             
