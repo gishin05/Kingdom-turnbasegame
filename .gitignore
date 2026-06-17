@@ -1,5 +1,5 @@
 # Eclipse build output and settings
-bin/
+/bin/
 .settings/
 
 # Local execution / runtimes
