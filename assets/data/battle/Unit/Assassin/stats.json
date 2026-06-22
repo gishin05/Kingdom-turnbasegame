@@ -1,0 +1,17 @@
+{
+  "name": "Assassin",
+  "type": "Land Unit",
+  "subType": "Infantry",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 18,
+  "str": 4,
+  "mag": 0,
+  "skl": 9,
+  "spd": 8,
+  "lck": 7,
+  "def": 4,
+  "res": 3,
+  "mov": 6,
+  "bwl": { "b":0,"w":0,"l":0 }
+}

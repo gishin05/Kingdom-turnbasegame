@@ -1,0 +1,8584 @@
+{
+  "tiles": {
+    "1": {
+      "type": "CHEST",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "2": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "3": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "4": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "5": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "6": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "7": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "8": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "9": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "10": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "11": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "12": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "13": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "14": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "15": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "16": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "17": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "18": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "19": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "20": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "21": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "22": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "23": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "24": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "25": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "26": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "27": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "28": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "29": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "30": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "31": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "33": {
+      "type": "CHEST",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "34": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "36": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "37": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "38": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "39": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "40": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "41": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "42": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "43": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "44": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "45": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "46": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "47": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "48": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "49": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "50": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "51": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "52": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "53": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "54": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "55": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "56": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "57": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "58": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "59": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "60": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "61": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "62": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "63": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "64": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "65": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "66": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "67": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "70": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "71": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "72": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "73": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "74": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "75": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "76": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "77": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "78": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "79": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "80": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "81": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "82": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "83": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "84": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "85": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "86": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "87": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "88": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "89": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "90": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "91": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "92": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "93": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "96": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "97": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "98": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "99": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "100": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "102": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "103": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "104": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "105": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "106": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "107": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "108": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "109": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "110": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "111": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "112": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "113": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "114": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "115": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "116": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "117": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "118": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "119": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "120": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "121": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "122": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "123": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "124": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "125": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "126": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "127": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "128": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "129": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "130": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "131": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "132": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "133": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "134": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "135": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "136": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "137": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "138": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "139": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "140": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "141": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "142": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "143": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "144": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "145": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "146": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "147": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "148": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "149": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "150": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "151": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "152": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "153": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "154": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "155": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "156": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "157": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "158": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "159": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "160": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "161": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "162": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "163": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "164": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "165": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "166": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "167": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "168": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "169": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "170": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "171": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "172": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "173": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "174": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "175": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "176": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "177": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "178": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "179": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "180": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "181": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "182": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "183": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "184": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "185": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "186": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "187": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "188": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "189": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "190": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "191": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "192": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "193": {
+      "type": "VILLAGE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "198": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "199": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "200": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "201": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "202": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "203": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "204": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "205": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "206": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "207": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "208": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "209": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "210": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "211": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "212": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "213": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "214": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "215": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "216": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "217": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "218": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "219": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "220": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "221": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "222": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "223": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "224": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "225": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "226": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "230": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "231": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "232": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "233": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "234": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "235": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "236": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "237": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "238": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "239": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "240": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "241": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "242": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "243": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "244": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "245": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "246": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "247": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "248": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "249": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "250": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "251": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "252": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "253": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "254": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "255": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "257": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "260": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "261": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "262": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "263": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "264": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "265": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "266": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "267": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "268": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "269": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "270": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "271": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "272": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "273": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "274": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "275": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "276": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "277": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "278": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "279": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "280": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "281": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "282": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "283": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "284": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "285": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "286": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "287": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "292": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "293": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "294": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "295": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "296": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "297": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "298": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "299": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "300": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "301": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "302": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "303": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "304": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "305": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "306": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "307": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "308": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "309": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "310": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "311": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "312": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "313": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "314": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "315": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "316": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "317": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "318": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "319": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "324": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "325": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "326": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "327": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "328": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "329": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "330": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "331": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "332": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "333": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "334": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "335": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "336": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "337": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "338": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "339": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "340": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "341": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "342": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "343": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "344": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "345": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "346": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "347": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "348": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "349": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "350": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "351": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "356": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "358": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "359": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "360": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "361": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "362": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "363": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "364": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "365": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "366": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "367": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "368": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "369": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "370": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "371": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "373": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "374": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "375": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "376": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "377": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "378": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "379": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "380": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "381": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "382": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "383": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "388": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "389": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "390": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "391": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "392": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "393": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "394": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "395": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "396": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "397": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "398": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "399": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "400": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "401": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "406": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "407": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "408": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "409": {
+      "type": "BRIDGE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "410": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "411": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "412": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "413": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "414": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "415": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "416": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "417": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "418": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "419": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "420": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "421": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "422": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "423": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "424": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "425": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "426": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "427": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "428": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "429": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "430": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "431": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "432": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "433": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "436": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "437": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "438": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "439": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "441": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "442": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "443": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "444": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "445": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "446": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "447": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "448": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "449": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "450": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "451": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "452": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "453": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "454": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "455": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "456": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "457": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "458": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "459": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "460": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "461": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "462": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "463": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "464": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "466": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "467": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "468": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "469": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "470": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "471": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "474": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "475": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "476": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "477": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "478": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "479": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "482": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "483": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "484": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "485": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "486": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "487": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "488": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "489": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "490": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "491": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "492": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "493": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "494": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "495": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "496": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "497": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "498": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "499": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "500": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "501": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "502": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "503": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "512": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "513": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "514": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 4,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "515": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "516": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "517": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "518": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "519": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "520": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "521": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "522": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "523": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "524": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "525": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "526": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "527": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "528": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "529": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "530": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "531": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "532": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "533": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "534": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "535": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "536": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "537": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "538": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "539": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "540": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "541": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "542": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "543": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "544": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "545": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "546": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "547": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "548": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "549": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "550": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "551": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "552": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "553": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "554": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "555": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "556": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "557": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "558": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "559": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "560": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "561": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "562": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "563": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "564": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "565": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "566": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "567": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "568": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "569": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "570": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "571": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "572": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "573": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "574": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "576": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "577": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "578": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 4,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "579": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "580": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "581": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "582": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "583": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "584": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "585": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "586": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "587": {
+      "type": "MOUNTAINMOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "588": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "589": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "590": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "591": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "592": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "593": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "594": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "595": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "596": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "597": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "598": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "599": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "600": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "601": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "602": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "603": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "604": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "605": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "606": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "608": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "609": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "610": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "611": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "612": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "613": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "614": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "615": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "616": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "617": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "618": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "619": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "620": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "621": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "622": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "623": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "624": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "625": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "626": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "627": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "628": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "629": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "630": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "631": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "632": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "633": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "634": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "635": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "636": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "637": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "638": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "640": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "641": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "642": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "643": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "644": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "645": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "646": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "647": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "648": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "649": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "650": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "651": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "652": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "653": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "654": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "655": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "656": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "657": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "658": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "659": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "660": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "661": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "662": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "663": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "664": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "665": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "666": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "667": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "668": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "672": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "673": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "674": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "675": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "676": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "677": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "678": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "679": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "680": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "681": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "682": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "683": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "684": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "685": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "686": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "687": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 4,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "688": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "689": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "690": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "691": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "692": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "693": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "694": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "695": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "696": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "697": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "698": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "699": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "700": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "704": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "705": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "706": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "707": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "708": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "709": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "710": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "711": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "712": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "713": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "714": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "715": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "716": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "717": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "718": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "719": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "720": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "723": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "724": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "725": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "726": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "727": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "728": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "729": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "730": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "736": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "737": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "738": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "739": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "740": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "741": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "742": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "743": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "744": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "745": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "746": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "747": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "748": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "749": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "750": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "751": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "752": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "755": {
+      "type": "GATE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "756": {
+      "type": "GATE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "757": {
+      "type": "GATE",
+      "def": 1,
+      "avo": 1,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "758": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "759": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "760": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "768": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "769": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "770": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "771": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "772": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "773": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "774": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "775": {
+      "type": "PINE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "776": {
+      "type": "PINE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "790": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "791": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "793": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "794": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "795": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "796": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "797": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "798": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "800": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "801": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "802": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "803": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "804": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "805": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "806": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "807": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "808": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "809": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "810": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "811": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "812": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "813": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "820": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "821": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "822": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "823": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "824": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "825": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "826": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "827": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "828": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "829": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "830": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "832": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "833": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "834": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "835": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "836": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "837": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "838": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "839": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "840": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "841": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "842": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "843": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "844": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "845": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "846": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "847": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "851": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "852": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "853": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "854": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "855": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "856": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "857": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "858": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "859": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "860": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "861": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "862": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "864": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "865": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "866": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "867": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "868": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "869": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "870": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "871": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "872": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "873": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "874": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "875": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "876": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "877": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "878": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "879": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "883": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "884": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "885": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "886": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "887": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "888": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "889": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "892": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "893": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "894": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "896": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "897": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "898": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "899": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "900": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "901": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "902": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "903": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "904": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "905": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "906": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "907": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "908": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "909": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "910": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "911": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "915": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "916": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "917": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "918": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "919": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "921": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 5,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "924": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "925": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "926": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "928": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "929": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "930": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "931": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "932": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "933": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "934": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "935": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "936": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "938": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "939": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "941": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "942": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "943": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "947": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "948": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "949": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "953": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "954": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "955": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "956": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "957": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "958": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "960": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "961": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "962": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "963": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "964": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "965": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "966": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "970": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "971": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "973": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "974": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "979": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "980": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "981": {
+      "type": "MOUNTAIN",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 3,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "985": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "986": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "987": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "989": {
+      "type": "ICE",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 2,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "990": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "992": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "993": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "994": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "995": {
+      "type": "SNOW",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": 1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "997": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "999": {
+      "type": "CLIFF",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": 1
+      }
+    },
+    "1002": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    },
+    "1003": {
+      "type": "WALL",
+      "def": 0,
+      "avo": 0,
+      "costs": {
+        "Land Unit": -1,
+        "Ocean Unit": -1,
+        "Air Unit": -1
+      }
+    }
+  }
+}

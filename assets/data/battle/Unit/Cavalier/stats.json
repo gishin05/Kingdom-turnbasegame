@@ -1,0 +1,17 @@
+{
+  "name": "Cavalier",
+  "type": "Land Unit",
+  "subType": "Mounted",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 17,
+  "str": 6,
+  "mag": 0,
+  "skl": 9,
+  "spd": 8,
+  "lck": 3,
+  "def": 6,
+  "res": 3,
+  "mov": 6,
+  "bwl": { "b":0,"w":0,"l":0 }
+}

@@ -1,0 +1,9 @@
+{
+  "frames": [
+    {"file": "frame_0.png", "duration": 5},
+    {"file": "frame_1.png", "duration": 5},
+    {"file": "frame_2.png", "duration": 5},
+    {"file": "frame_3.png", "duration": 5},
+    {"file": "frame_0.png", "duration": 5}
+  ]
+}

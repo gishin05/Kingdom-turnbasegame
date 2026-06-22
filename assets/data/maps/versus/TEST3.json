@@ -1,0 +1,30 @@
+{
+  "name": "TEST3",
+  "description": "",
+  "players": 2,
+  "events": [
+    {"x":12, "y":3, "type":"HQ", "owner":1},
+    {"x":3, "y":3, "type":"HOUSE", "owner":0},
+    {"x":3, "y":5, "type":"ARMORY", "owner":0},
+    {"x":10, "y":2, "type":"ARMORY", "owner":1},
+    {"x":10, "y":4, "type":"HOUSE", "owner":1},
+    {"x":1, "y":3, "type":"HQ", "owner":0},
+    {"x":3, "y":2, "type":"ARMORY", "owner":0},
+    {"x":10, "y":5, "type":"ARMORY", "owner":1},
+    {"x":3, "y":4, "type":"HOUSE", "owner":0},
+    {"x":10, "y":3, "type":"HOUSE", "owner":1}
+  ],
+  "tileset": "Plain",
+  "data": [
+    [{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":559,"ts":"Plain"},{"id":560,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"}],
+    [{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":711,"ts":"Plain"},{"id":751,"ts":"Plain"},{"id":721,"ts":"Plain"},{"id":754,"ts":"Plain"},{"id":784,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"}],
+    [{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":901,"ts":"Plain"},{"id":784,"ts":"Plain"},{"id":721,"ts":"Plain"},{"id":754,"ts":"Plain"},{"id":754,"ts":"Plain"},{"id":784,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":901,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"}],
+    [{"id":99,"ts":"Plain"},{"id":932,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":804,"ts":"Plain"},{"id":721,"ts":"Plain"},{"id":784,"ts":"Plain"},{"id":784,"ts":"Plain"},{"id":754,"ts":"Plain"},{"id":721,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":804,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":932,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"}],
+    [{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":804,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":784,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":720,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":804,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"}],
+    [{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":901,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":784,"ts":"Plain"},{"id":784,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":901,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"}],
+    [{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":146,"ts":"Plain"},{"id":273,"ts":"Plain"},{"id":205,"ts":"Plain"}],
+    [{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":210,"ts":"Plain"},{"id":272,"ts":"Plain"},{"id":272,"ts":"Plain"},{"id":203,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":204,"ts":"Plain"},{"id":176,"ts":"Plain"},{"id":466,"ts":"Plain"},{"id":185,"ts":"Plain"}],
+    [{"id":344,"ts":"Plain"},{"id":56,"ts":"Plain"},{"id":59,"ts":"Plain"},{"id":310,"ts":"Plain"},{"id":316,"ts":"Plain"},{"id":205,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":99,"ts":"Plain"},{"id":236,"ts":"Plain"},{"id":316,"ts":"Plain"},{"id":59,"ts":"Plain"},{"id":824,"ts":"Plain"}],
+    [{"id":245,"ts":"Plain"},{"id":245,"ts":"Plain"},{"id":245,"ts":"Plain"},{"id":245,"ts":"Plain"},{"id":379,"ts":"Plain"},{"id":346,"ts":"Plain"},{"id":346,"ts":"Plain"},{"id":346,"ts":"Plain"},{"id":346,"ts":"Plain"},{"id":346,"ts":"Plain"},{"id":346,"ts":"Plain"},{"id":381,"ts":"Plain"},{"id":382,"ts":"Plain"},{"id":245,"ts":"Plain"},{"id":824,"ts":"Plain"}]
+  ]
+}

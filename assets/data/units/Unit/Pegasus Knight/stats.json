@@ -1,0 +1,18 @@
+{
+  "name": "Pegasus Knight",
+  "type": "Air Unit",
+  "subType": "Mounted",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 20,
+  "str": 5,
+  "mag": 0,
+  "skl": 6,
+  "spd": 8,
+  "lck": 4,
+  "def": 3,
+  "res": 5,
+  "mov": 7,
+  "con": 5,
+  "cost": 1000
+}
