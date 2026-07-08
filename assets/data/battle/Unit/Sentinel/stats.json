@@ -1,0 +1,17 @@
+{
+  "name": "Sentinel",
+  "type": "Land Unit",
+  "subType": "Armored",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 27,
+  "str": 9,
+  "mag": 0,
+  "skl": 7,
+  "spd": 5,
+  "lck": 3,
+  "def": 16,
+  "res": 9,
+  "mov": 5,
+  "bwl": { "b":0,"w":0,"l":0 }
+}

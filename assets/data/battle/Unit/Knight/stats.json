@@ -1,0 +1,21 @@
+{
+  "name": "Knight",
+  "type": "Land Unit",
+  "subType": "Armored",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 20,
+  "str": 8,
+  "mag": 0,
+  "skl": 4,
+  "spd": 5,
+  "lck": 2,
+  "def": 12,
+  "res": 3,
+  "mov": 4,
+  "bwl": {
+    "b": 0,
+    "w": 0,
+    "l": 0
+  }
+}

@@ -1,0 +1,295 @@
+package game.core.engine;
+
+import game.core.map.Tileset;
+import game.core.unit.MapUnit;
+import game.core.unit.WeaponItem;
+import java.awt.Point;
+import java.util.*;
+
+/**
+ * UI DESIGN OVERVIEW:
+ * This backend/core component provides the underlying logic and data 
+ * structures that support the pixelated game UI approach, ensuring 
+ * seamless integration between gameplay mechanics and visual presentation.
+ */
+
+public class MovementEngine {
+
+    /**
+     * Encapsulates the result of a movement calculation, providing the reachable tiles,
+     * attackable tiles from those reachable positions, and the optimal pathing map.
+     */
+    public static class MovementResult {
+        public final Set<Point> moveRange = new HashSet<>();
+        public final Set<Point> attackRange = new HashSet<>();
+        public final Map<Point, Point> pathParent = new HashMap<>();
+    }
+
+    private static class Node {
+        Point pos;
+        int cost;
+        Node(Point p, int c) { this.pos = p; this.cost = c; }
+    }
+
+    /**
+     * Performs a breadth-first/Dijkstra search to determine all reachable tiles for a specific unit
+     * given its movement constraints and the map's terrain costs. It also identifies tiles that 
+     * can be attacked from the reachable positions.
+     * 
+     * @param u              The unit whose movement range is being calculated
+     * @param units          List of all active units on the map (used for collision/blocking logic)
+     * @param mapData        2D array of tile IDs representing the map grid
+     * @param mapTSData      2D array of tileset names mapped to the grid
+     * @param loadedTilesets Available loaded tilesets holding terrain traversal costs
+     * @param mapW           Width of the map in tiles
+     * @param mapH           Height of the map in tiles
+     * @param effectiveMove  The maximum movement range (cost points) the unit can expend
+     * @return A complete MovementResult containing valid move destinations, attack targets, and path reconstruction data
+     */
+    public static MovementResult calculateMovement(
+        MapUnit u, 
+        List<MapUnit> units, 
+        int[][] mapData, 
+        String[][] mapTSData, 
+        Map<String, Tileset> loadedTilesets, 
+        int mapW, 
+        int mapH,
+        int effectiveMove
+    ) {
+        MovementResult result = new MovementResult();
+        if (u == null) return result;
+
+        // Pre-build enemy position set for O(1) blockage checks instead of O(units) per neighbor
+        Set<Point> enemyPositions = new HashSet<>();
+        for (MapUnit other : units) {
+            if (isEnemy(u, other) && !other.isDead) {
+                enemyPositions.add(other.position);
+            }
+        }
+
+        PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingInt(n -> n.cost));
+        queue.add(new Node(u.position, 0));
+        
+        Map<Point, Integer> moveCosts = new HashMap<>();
+        moveCosts.put(u.position, 0);
+
+        // Pre-allocate neighbor array to reduce GC pressure in the hot loop
+        Point[] neighbors = new Point[4];
+
+        while (!queue.isEmpty()) {
+            Node current = queue.poll();
+            
+            if (current.cost > moveCosts.getOrDefault(current.pos, Integer.MAX_VALUE)) continue;
+            if (current.cost > effectiveMove) continue;
+            
+            result.moveRange.add(current.pos);
+
+            neighbors[0] = new Point(current.pos.x, current.pos.y - 1);
+            neighbors[1] = new Point(current.pos.x, current.pos.y + 1);
+            neighbors[2] = new Point(current.pos.x - 1, current.pos.y);
+            neighbors[3] = new Point(current.pos.x + 1, current.pos.y);
+
+            for (Point next : neighbors) {
+                if (next.x < 0 || next.x >= mapW || next.y < 0 || next.y >= mapH) continue;
+                
+                // O(1) enemy blockage check instead of iterating all units
+                if (enemyPositions.contains(next)) continue;
+
+                int cost = getTerrainCost(next.x, next.y, u.stats.unitType, mapData, mapTSData, loadedTilesets, mapW, mapH);
+                if (cost == -1) continue;
+
+                int newCost = current.cost + cost;
+                if (newCost <= effectiveMove && (!moveCosts.containsKey(next) || newCost < moveCosts.get(next))) {
+                    moveCosts.put(next, newCost);
+                    result.pathParent.put(next, current.pos);
+                    queue.add(new Node(next, newCost));
+                }
+            }
+        }
+
+        // Calculate attack ranges based on move range
+        calculateAttacks(u, result.moveRange, result.attackRange, mapW, mapH);
+
+        return result;
+    }
+
+    /**
+     * Determines whether two units are considered enemies.
+     * Uses ownership index if available, otherwise falls back to faction matching.
+     */
+    private static boolean isEnemy(MapUnit u, MapUnit other) {
+        if (u.ownerIndex >= 0 && other.ownerIndex >= 0) {
+            return u.ownerIndex != other.ownerIndex;
+        }
+        return u.faction != other.faction;
+    }
+
+    /**
+     * Calculates the movement point cost required for a specific unit type to traverse a single tile.
+     * Resolves the tileset, extracts the terrain properties, and matches the unit's mobility classification.
+     * 
+     * @param x              The x-coordinate of the tile
+     * @param y              The y-coordinate of the tile
+     * @param unitType       The mobility classification of the unit (e.g., "Land Unit", "Air Unit")
+     * @param mapData        2D array of tile IDs
+     * @param mapTSData      2D array of tileset string identifiers
+     * @param loadedTilesets Map of parsed tileset properties
+     * @param mapW           Map width
+     * @param mapH           Map height
+     * @return The movement cost. Returns -1 if the tile is strictly impassable.
+     */
+    public static int getTerrainCost(
+        int x, int y, 
+        String unitType, 
+        int[][] mapData, 
+        String[][] mapTSData, 
+        Map<String, Tileset> loadedTilesets, 
+        int mapW, int mapH
+    ) {
+        if (mapData == null || x < 0 || x >= mapW || y < 0 || y >= mapH) return -1;
+        int tileId = mapData[y][x];
+        String tsName = (mapTSData != null) ? mapTSData[y][x] : null;
+        
+        Tileset ts = null;
+        if (loadedTilesets != null && !loadedTilesets.isEmpty()) {
+            if (tsName != null) {
+                ts = loadedTilesets.get(tsName);
+                if (ts == null) {
+                    // Try case-insensitive lookup
+                    for (Map.Entry<String, Tileset> entry : loadedTilesets.entrySet()) {
+                        if (entry.getKey().equalsIgnoreCase(tsName)) {
+                            ts = entry.getValue();
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // If still null, fallback to "Plain", "Desert", or "Snow" case-insensitively
+            if (ts == null) {
+                for (String fallbackKey : new String[]{"Plain", "Desert", "Snow"}) {
+                    for (Map.Entry<String, Tileset> entry : loadedTilesets.entrySet()) {
+                        if (entry.getKey().equalsIgnoreCase(fallbackKey)) {
+                            ts = entry.getValue();
+                            break;
+                        }
+                    }
+                    if (ts != null) break;
+                }
+            }
+            
+            // If still null, just take the first available loaded tileset
+            if (ts == null) {
+                ts = loadedTilesets.values().iterator().next();
+            }
+        }
+
+        if (ts == null) return 1;
+        
+        // Robust unit type resolution (case-insensitive and handles abbreviations/substrings)
+        String normalizedUnitType = normalizeUnitType(unitType);
+        
+        // 1. Try direct lookup of terrain metadata for this tile ID
+        Tileset.TerrainProperty prop = ts.getTerrain(tileId);
+        
+        // 2. No metadata for this tile ID — default to cost 1 (walkable plain)
+        if (prop == null) return 1;
+        
+        // Look up cost for this unit type
+        Integer cost = prop.moveCosts.get(normalizedUnitType);
+        if (cost == null) {
+            // Case-insensitive key search on prop.moveCosts
+            for (Map.Entry<String, Integer> entry : prop.moveCosts.entrySet()) {
+                if (entry.getKey().equalsIgnoreCase(normalizedUnitType)) {
+                    cost = entry.getValue();
+                    break;
+                }
+            }
+        }
+        
+        return (cost == null) ? 1 : cost;
+    }
+
+    /**
+     * Normalizes a unit type string to one of the standard keys: "Land Unit", "Ocean Unit", "Air Unit".
+     */
+    private static String normalizeUnitType(String unitType) {
+        if (unitType == null) return "Land Unit";
+        String utUpper = unitType.toUpperCase();
+        if (utUpper.contains("LAND")) {
+            return "Land Unit";
+        } else if (utUpper.contains("OCEAN") || utUpper.contains("WATER") || utUpper.contains("SEA")) {
+            return "Ocean Unit";
+        } else if (utUpper.contains("AIR") || utUpper.contains("FLY") || utUpper.contains("SKY")) {
+            return "Air Unit";
+        } else {
+            return unitType;
+        }
+    }
+
+    /**
+     * Extrapolates the unit's attack range by iterating over all reachable move destinations
+     * and projecting the unit's weapon range outward.
+     * 
+     * @param u           The acting unit
+     * @param moveRange   The set of all tiles the unit can walk to
+     * @param attackRange The output set to be populated with tiles that can be attacked
+     * @param mapW        Map width (for boundary checking)
+     * @param mapH        Map height (for boundary checking)
+     */
+    private static void calculateAttacks(MapUnit u, Set<Point> moveRange, Set<Point> attackRange, int mapW, int mapH) {
+        int maxR = 0;
+        int minR = 99;
+        boolean hasWeapon = false;
+        
+        WeaponItem equipped = u.getEquipped();
+        if (equipped != null) {
+            hasWeapon = true;
+            maxR = equipped.maxRange;
+            minR = equipped.minRange;
+        } else {
+            for (WeaponItem wi : u.inventory) {
+                if (wi.isWeapon() && !wi.isBroken()) {
+                    hasWeapon = true;
+                    if (wi.maxRange > maxR) maxR = wi.maxRange;
+                    if (wi.minRange < minR) minR = wi.minRange;
+                }
+            }
+        }
+
+        if (hasWeapon) {
+            for (Point p : moveRange) {
+                for (int dy = -maxR; dy <= maxR; dy++) {
+                    for (int dx = -maxR; dx <= maxR; dx++) {
+                        int d = Math.abs(dx) + Math.abs(dy);
+                        if (d >= minR && d <= maxR) {
+                            Point ap = new Point(p.x + dx, p.y + dy);
+                            if (ap.x >= 0 && ap.x < mapW && ap.y >= 0 && ap.y < mapH && !moveRange.contains(ap)) {
+                                attackRange.add(ap);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Reconstructs the optimal movement path from the unit's starting position to the destination 
+     * by walking backward through the parent mapping generated during the movement calculation.
+     * 
+     * @param dest       The target tile coordinate
+     * @param start      The origin tile coordinate
+     * @param pathParent The map linking each visited tile to the tile that discovered it
+     * @return A list of points forming the path from start (exclusive) to destination (inclusive).
+     */
+    public static List<Point> reconstructPath(Point dest, Point start, Map<Point, Point> pathParent) {
+        List<Point> path = new ArrayList<>();
+        Point curr = dest;
+        while (curr != null && !curr.equals(start)) {
+            path.add(0, curr);
+            curr = pathParent.get(curr);
+        }
+        return path;
+    }
+}

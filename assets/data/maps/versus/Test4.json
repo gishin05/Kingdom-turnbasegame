@@ -1,0 +1,34 @@
+{
+  "name": "",
+  "description": "",
+  "players": 4,
+  "events": [
+    {"x":6, "y":3, "type":"ARMORY", "owner":-1},
+    {"x":1, "y":4, "type":"HQ", "owner":0},
+    {"x":7, "y":3, "type":"ARMORY", "owner":-1},
+    {"x":6, "y":4, "type":"HOUSE", "owner":-1},
+    {"x":7, "y":4, "type":"HOUSE", "owner":-1},
+    {"x":7, "y":5, "type":"ARMORY", "owner":-1},
+    {"x":2, "y":4, "type":"ARMORY", "owner":0},
+    {"x":6, "y":5, "type":"ARMORY", "owner":-1},
+    {"x":12, "y":4, "type":"ARMORY", "owner":1},
+    {"x":6, "y":8, "type":"HQ", "owner":2},
+    {"x":6, "y":0, "type":"HQ", "owner":3},
+    {"x":13, "y":4, "type":"HQ", "owner":1},
+    {"x":7, "y":8, "type":"ARMORY", "owner":2},
+    {"x":7, "y":0, "type":"ARMORY", "owner":3}
+  ],
+  "tileset": "Plain",
+  "data": [
+    [{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":932,"ts":"Plain"},{"id":900,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"}],
+    [{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"}],
+    [{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"}],
+    [{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":900,"ts":"Plain"},{"id":900,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"}],
+    [{"id":163,"ts":"Plain"},{"id":932,"ts":"Plain"},{"id":900,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":804,"ts":"Plain"},{"id":804,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":900,"ts":"Plain"},{"id":932,"ts":"Plain"},{"id":163,"ts":"Plain"}],
+    [{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":900,"ts":"Plain"},{"id":900,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"}],
+    [{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"}],
+    [{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"}],
+    [{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":932,"ts":"Plain"},{"id":900,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"}],
+    [{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"},{"id":163,"ts":"Plain"}]
+  ]
+}

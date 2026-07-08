@@ -1,0 +1,26 @@
+{
+  "name": "Fleet",
+  "type": "Ocean Unit",
+  "subType": "Ship",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 30,
+  "str": 10,
+  "mag": 0,
+  "skl": 5,
+  "spd": 4,
+  "lck": 3,
+  "def": 15,
+  "res": 5,
+  "aff": "Water",
+  "mov": 5,
+  "con": 10,
+  "aid": 0,
+  "trv": 0,
+  "cond": "None",
+  "bwl": {
+    "b": 0,
+    "w": 0,
+    "l": 0
+  }
+}

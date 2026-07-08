@@ -1,0 +1,17 @@
+{
+  "name": "Pegasus Knight",
+  "type": "Air Unit",
+  "subType": "Flier",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 18,
+  "str": 6,
+  "mag": 0,
+  "skl": 8,
+  "spd": 5,
+  "lck": 3,
+  "def": 5,
+  "res": 9,
+  "mov": 7,
+  "bwl": { "b":0,"w":0,"l":0 }
+}
