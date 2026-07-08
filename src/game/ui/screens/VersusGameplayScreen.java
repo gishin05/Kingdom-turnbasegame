@@ -533,6 +533,13 @@ public class VersusGameplayScreen extends BaseScreen {
 
     @Override
     public void paint(Graphics g) {
+        if (isBattleTransitioning && transitionBackground == null && getWidth() > 0 && getHeight() > 0) {
+            transitionBackground = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transitionBackground.createGraphics();
+            super.paint(g2);
+            g2.dispose();
+        }
+        
         super.paint(g);
         if (weatherTransitionTimer > 0) {
             g.setColor(Color.BLACK);
@@ -542,6 +549,56 @@ public class VersusGameplayScreen extends BaseScreen {
         } else if (phaseBannerTimer > 0) {
             drawPhaseBanner((Graphics2D) g);
         }
+        
+        if (isBattleTransitioning) {
+            drawBattleTransitionOverlay((Graphics2D) g);
+        }
+    }
+
+    private void drawBattleTransitionOverlay(Graphics2D g) {
+        if (transitionAttacker == null || transitionDefender == null || transitionBackground == null) return;
+        int sw = getWidth();
+        int sh = getHeight();
+        
+        // Progress from 0.0 (start) to 1.0 (end of transition)
+        double p = (6 - battleTransitionTimer) / 6.0;
+        double ease = p * p * (3 - 2 * p); // Smoothstep
+        
+        Composite oldComp = g.getComposite();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        
+        // Draw black background first so the map underneath is hidden
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, sw, sh);
+        
+        // Draw 2 translucent scaled layers of the captured screen to create a fast motion blur / zoom blur
+        int layers = 2;
+        for (int i = 0; i < layers; i++) {
+            // Delay the ease for each layer to create a "trailing" motion blur
+            double layerEase = Math.max(0, ease - (i * 0.15)); 
+            
+            // Zoom up to 3.0x magnification at the end of the transition
+            double S = 1.0 + (2.0 * layerEase); 
+            
+            int drawW = (int)(sw * S);
+            int drawH = (int)(sh * S);
+            
+            // Offset drawing so it scales directly around the focal point!
+            int drawX = (int)(transitionFocalX * (1 - S));
+            int drawY = (int)(transitionFocalY * (1 - S));
+            
+            // The first layer is opaque, trailing layers are highly translucent
+            float alpha = (i == 0) ? 1.0f : 0.2f; 
+            
+            // Fade the entire effect slightly to black at the very end to seamlessly blend into the battle cinematic
+            float fade = (float)(1.0 - (p * p * p));
+            alpha *= fade;
+            
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, Math.max(0f, Math.min(1f, alpha))));
+            g.drawImage(transitionBackground, drawX, drawY, drawW, drawH, null);
+        }
+        
+        g.setComposite(oldComp);
     }
 
     private void drawPhaseBanner(Graphics2D g) {
@@ -1240,6 +1297,28 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private void drawCursor(Graphics2D g, int tx, int ty) {
+        int px = tx * 16;
+        int py = ty * 16;
+        
+        if (Theme.MAP_CURSOR != null) {
+            long t = System.currentTimeMillis();
+            // Typical Fire Emblem cursors have 3 frames of animation
+            int frame = (int) ((t / 150) % 3); 
+            
+            // Assuming 32x32 frames in the spritesheet
+            int cw = 32;
+            int ch = 32;
+            int sx = frame * cw;
+            int sy = 0;
+            
+            // Center the 32x32 cursor over the 16x16 tile (-8px offset)
+            int dx = px - 8;
+            int dy = py - 8;
+            
+            g.drawImage(Theme.MAP_CURSOR, dx, dy, dx + cw, dy + ch, sx, sy, sx + cw, sy + ch, null);
+            return;
+        }
+
         long t = System.currentTimeMillis();
         int offset = (int)(Math.sin(t / 150.0) * 2); // Animate in and out by 2 pixels
         
@@ -1252,8 +1331,6 @@ public class VersusGameplayScreen extends BaseScreen {
         g.setStroke(new BasicStroke(2f));
         g.setColor(cursorColor);
         
-        int px = tx * 16;
-        int py = ty * 16;
         int size = 16;
         
         // Draw 4 corners moving in and out
@@ -1626,147 +1703,116 @@ public class VersusGameplayScreen extends BaseScreen {
             g.fillRect(drawX, drawY, scaledW, scaledH);
         }
 
-        // Draw unified glassmorphic bottom bar extending across the bottom of the Battle Screen
-        g.setPaint(new GradientPaint(
-            0, screenH - 140, new Color(12, 12, 22, 225),
-            0, screenH, new Color(6, 6, 12, 245)
-        ));
-        g.fillRect(0, screenH - 140, screenW, 140);
+        // The Fire Emblem BattleInfo panels will be drawn individually in drawAdvancedStats
+        // so we don't need the full-width glassmorphic bar anymore.
 
-        // Glowing gold top border
-        g.setStroke(new BasicStroke(3));
-        g.setColor(new Color(255, 215, 0, 180)); // Gold outer border color
-        g.drawLine(0, screenH - 140, screenW, screenH - 140);
+        // Calculate scaled dimensions for the UI boxes to perfectly overlay the pixel art
+        int boxNativeW = (Theme.BATTLE_INFO_BG != null) ? Theme.BATTLE_INFO_BG.getWidth() : 106;
+        int boxNativeH = (Theme.BATTLE_INFO_BG != null) ? Theme.BATTLE_INFO_BG.getHeight() : 42;
+        int scaledBoxW = (int) Math.ceil(boxNativeW * scale);
+        int scaledBoxH = (int) Math.ceil(boxNativeH * scale);
+        
+        // Align panels with the bottom corners of the scaled cinematic area
+        int defX = drawX;
+        int atkX = drawX + scaledW - scaledBoxW;
+        int statY = drawY + scaledH - scaledBoxH;
 
-        // Center vertical divider to clean up sections
-        g.setStroke(new BasicStroke(1.5f));
-        g.setColor(new Color(255, 215, 0, 50));
-        g.drawLine(screenW / 2, screenH - 130, screenW / 2, screenH - 10);
-
-        // Defender stats on the Left, Attacker stats on the Right (extended covering the bottom)
-        if (defenderActor != null) drawAdvancedStats(g, defenderActor, 40, screenH - 128);
-        if (attackerActor != null) drawAdvancedStats(g, attackerActor, screenW - STATS_BOX_WIDTH - 40, screenH - 128);
+        // Defender stats on the Left, Attacker stats on the Right
+        if (defenderActor != null) drawAdvancedStats(g, defenderActor, defX, statY, scale, scaledBoxW, scaledBoxH);
+        if (attackerActor != null) drawAdvancedStats(g, attackerActor, atkX, statY, scale, scaledBoxW, scaledBoxH);
     }
 
-    private void drawAdvancedStats(Graphics2D g, BattleActor actor, int x, int y) {
+    private void drawAdvancedStats(Graphics2D g, BattleActor actor, int x, int y, double scale, int boxW, int boxH) {
         if (actor == null || activeBattle == null) return;
         BattleManager.Combatant c = (actor == attackerActor) ? activeBattle.attacker : activeBattle.defender;
         BattleManager.Combatant enemy = (actor == attackerActor) ? activeBattle.defender : activeBattle.attacker;
         
-        // Double nested Player Team Color border for elegant framing
-        g.setStroke(new BasicStroke(1.5f));
-        g.setColor(players.get(c.mapUnit.ownerIndex).color); // Player team inner border
-        g.drawRoundRect(x, y, STATS_BOX_WIDTH, 115, 12, 12);
-        
-        g.setStroke(new BasicStroke(1f));
-        g.setColor(new Color(255, 215, 0, 80)); // Subtle nested gold outline
-        g.drawRoundRect(x + 3, y + 3, STATS_BOX_WIDTH - 6, 109, 9, 9);
-        
-        // Name display on top row
-        g.setColor(Theme.HIGHLIGHT);
-        g.setFont(Theme.getPixelFont(18f));
-        g.drawString(c.name, x + 15, y + 25);
-        
-        // Subtype Icons: Silver Shield (Armored), Brown Horse (Mounted), Pegasus (Flier), Dragon (Armored Flier), Catapult (Siege)
-        int nameW = g.getFontMetrics().stringWidth(c.name);
-        String subType = c.mapUnit.stats.subUnitType;
-        drawSubtypeIcons(g, subType, x + 15 + nameW + 8, y + 9);
-        
-        // Exact HP numbers under the name
-        g.setFont(Theme.getPixelFont(14f));
-        g.setColor(Color.WHITE);
-        String hpStr = (int)Math.round(actor.displayHp) + " / " + c.maxHp;
-        g.drawString(hpStr, x + 15, y + 41);
-        
-        // Equipped Weapon display aligned to the right of the top row
-        String wpnName = (c.mapUnit.getEquipped() != null) ? c.mapUnit.getEquipped().name : "Unarmed";
-        g.setFont(Theme.getPixelFont(11f));
-        g.setColor(Theme.TEXT_SECONDARY);
-        int wpnW = g.getFontMetrics().stringWidth(wpnName);
-        g.drawString(wpnName, x + STATS_BOX_WIDTH - 15 - wpnW, y + 25);
-        
-        // Modern Segmented Health Bar
-        int barX = x + 15;
-        int barY = y + 49;
-        int barW = STATS_BOX_WIDTH - 30;
-        int barH = 14;
-        
-        // Recessed track background
-        g.setColor(new Color(15, 15, 20));
-        g.fillRoundRect(barX, barY, barW, barH, 6, 6);
-        g.setColor(new Color(60, 60, 70));
-        g.drawRoundRect(barX, barY, barW, barH, 6, 6);
-        
-        double hpPct = Math.max(0.0, Math.min(1.0, actor.displayHp / c.maxHp));
-        int hpW = (int)Math.round((barW - 2) * hpPct);
-        if (hpW > 0) {
-            Color hpColorStart, hpColorEnd;
-            if (hpPct > 0.5) {
-                hpColorStart = new Color(46, 204, 113); // Green start
-                hpColorEnd = new Color(39, 174, 96);   // Green end
-            } else if (hpPct > 0.2) {
-                hpColorStart = new Color(241, 196, 15); // Yellow start
-                hpColorEnd = new Color(214, 137, 16);  // Yellow end
-            } else {
-                hpColorStart = new Color(231, 76, 60);  // Red start
-                hpColorEnd = new Color(192, 57, 43);   // Red end
-            }
-            GradientPaint hpGp = new GradientPaint(
-                barX + 1, barY + 1, hpColorStart,
-                barX + 1, barY + barH - 1, hpColorEnd
-            );
-            g.setPaint(hpGp);
-            g.fillRoundRect(barX + 1, barY + 1, hpW, barH - 2, 4, 4);
-            
-            // Glossy/Glass overlay
-            g.setColor(new Color(255, 255, 255, 50));
-            g.fillRoundRect(barX + 1, barY + 1, hpW, (barH - 2) / 2, 4, 4);
+        // Draw the classic Fire Emblem BattleInfo background panel scaled up
+        if (Theme.BATTLE_INFO_BG != null) {
+            g.drawImage(Theme.BATTLE_INFO_BG, x, y, boxW, boxH, null);
+        } else {
+            g.setColor(new Color(20, 20, 30, 200));
+            g.fillRect(x, y, boxW, boxH);
         }
         
-        // Effective Combat Metrics Columns (DMG, HIT%, CRT%)
-        // Check if combatant is defender and cannot counter
+        // Helper to get scaled offset
+        java.util.function.Function<Double, Integer> s = (val) -> (int)Math.round(val * scale);
+        
+        // Top Row: Name and Weapon
+        g.setColor(Color.WHITE);
+        g.setFont(Theme.getPixelFont((float)(6.5 * scale))); // Roughly 16f scaled down natively
+        g.drawString(c.name, x + s.apply(8.0), y + s.apply(12.0));
+        
+        String wpnName = (c.mapUnit.getEquipped() != null) ? c.mapUnit.getEquipped().name : "Unarmed";
+        g.setFont(Theme.getPixelFont((float)(5.0 * scale)));
+        g.setColor(Theme.HIGHLIGHT);
+        int wpnW = g.getFontMetrics().stringWidth(wpnName);
+        g.drawString(wpnName, x + boxW - s.apply(6.0) - wpnW, y + s.apply(11.0));
+        
+        // Middle Row: HP Bar and Number
+        int hpY = y + s.apply(17.0);
+        int barX = x + s.apply(28.0);
+        int barY = hpY;
+        
+        // Draw Health Bar Background Track scaled
+        if (Theme.HEALTH_BAR_BG != null) {
+            int bgW = (int)Math.round(Theme.HEALTH_BAR_BG.getWidth() * scale);
+            int bgH = (int)Math.round(Theme.HEALTH_BAR_BG.getHeight() * scale);
+            g.drawImage(Theme.HEALTH_BAR_BG, barX, barY, bgW, bgH, null);
+        }
+        
+        // Draw filled Health Bar (cropped based on percentage)
+        if (Theme.HEALTH_BAR != null) {
+            double hpPct = Math.max(0.0, Math.min(1.0, actor.displayHp / c.maxHp));
+            int nativeFillW = (int) Math.round(Theme.HEALTH_BAR.getWidth() * hpPct);
+            if (nativeFillW > 0) {
+                // Draw a sub-image to represent the current HP fill
+                java.awt.image.BufferedImage hpFill = Theme.HEALTH_BAR.getSubimage(0, 0, nativeFillW, Theme.HEALTH_BAR.getHeight());
+                int fillW = (int)Math.round(nativeFillW * scale);
+                int fillH = (int)Math.round(Theme.HEALTH_BAR.getHeight() * scale);
+                g.drawImage(hpFill, barX, barY, fillW, fillH, null);
+            }
+        }
+        
+        // Exact HP text positioned near the right side of the HP bar
+        g.setFont(Theme.getPixelFont((float)(5.5 * scale)));
+        g.setColor(Color.WHITE);
+        String hpStr = (int)Math.round(actor.displayHp) + "";
+        g.drawString(hpStr, x + boxW - s.apply(18.0), hpY + s.apply(6.0));
+        
+        // Bottom Row: DMG, HIT, CRT
         boolean canAttack = true;
         if (c == activeBattle.defender) {
             canAttack = (combatDistance >= c.weaponMinRange && combatDistance <= c.weaponMaxRange);
         }
-        
         int effDmg = Math.max(0, c.battleAtk - enemy.defense);
         int effHit = Math.max(0, Math.min(100, c.battleHit - enemy.battleAvoid));
         int effCrit = Math.max(0, Math.min(100, c.battleCrit - enemy.battleDodge));
         
         String dmgVal = canAttack ? String.valueOf(effDmg) : "--";
-        String hitVal = canAttack ? (effHit + "%") : "--";
-        String critVal = canAttack ? (effCrit + "%") : "--";
+        String hitVal = canAttack ? String.valueOf(effHit) : "--";
+        String critVal = canAttack ? String.valueOf(effCrit) : "--";
         
-        // Calculate dynamic columns positioning
-        int colSpacing = (STATS_BOX_WIDTH - 80) / 2; // Equal spacing for three columns with 40px left and right padding
-        int col1X = x + 40;
-        int col2X = x + 40 + colSpacing;
-        int col3X = x + 40 + colSpacing * 2;
+        // Column positions within the BattleInfo panel
+        int col1X = x + s.apply(23.0);
+        int col2X = x + s.apply(54.0);
+        int col3X = x + s.apply(84.0);
+        int labelY = y + s.apply(28.0);
+        int bottomY = y + s.apply(36.0);
         
-        // DMG Column
-        g.setFont(Theme.getPixelFont(10f));
-        g.setColor(Theme.TEXT_SECONDARY);
-        g.drawString("DMG", col1X, y + 80);
-        g.setFont(Theme.getPixelFont(18f));
+        // Draw Labels
+        g.setFont(Theme.getPixelFont((float)(4.5 * scale)));
+        g.setColor(Theme.HIGHLIGHT);
+        g.drawString("DMG", col1X, labelY);
+        g.drawString("HIT", col2X, labelY);
+        g.drawString("CRT", col3X, labelY);
+        
+        // Draw Numbers
+        g.setFont(Theme.getPixelFont((float)(6.5 * scale)));
         g.setColor(Color.WHITE);
-        g.drawString(dmgVal, col1X, y + 102);
-        
-        // HIT% Column
-        g.setFont(Theme.getPixelFont(10f));
-        g.setColor(Theme.TEXT_SECONDARY);
-        g.drawString("HIT", col2X, y + 80);
-        g.setFont(Theme.getPixelFont(18f));
-        g.setColor(new Color(100, 220, 255)); // Light cyan highlight
-        g.drawString(hitVal, col2X, y + 102);
-        
-        // CRT% Column
-        g.setFont(Theme.getPixelFont(10f));
-        g.setColor(Theme.TEXT_SECONDARY);
-        g.drawString("CRT", col3X, y + 80);
-        g.setFont(Theme.getPixelFont(18f));
-        g.setColor(new Color(255, 100, 100)); // Light red highlight
-        g.drawString(critVal, col3X, y + 102);
+        g.drawString(dmgVal, col1X, bottomY);
+        g.drawString(hitVal, col2X, bottomY);
+        g.drawString(critVal, col3X, bottomY);
     }
 
     private void drawSubtypeIcons(Graphics2D g, String subtype, int x, int y) {
@@ -2284,7 +2330,7 @@ public class VersusGameplayScreen extends BaseScreen {
 
     public void simulateGridClick(int tx, int ty, int mouseX, int mouseY) {
         if (phaseBannerTimer > 0) phaseBannerTimer = 0;
-        if (isBattleActive) return;
+        if (isBattleActive || isBattleTransitioning) return;
         for (MapUnit u : units) if (!u.movePath.isEmpty()) return;
         if (players == null || players.isEmpty() || players.get(currentPlayerIdx).isAI) return;
         
@@ -2359,6 +2405,7 @@ public class VersusGameplayScreen extends BaseScreen {
             return;
         }
         if (players == null || players.isEmpty()) return;
+        if (isBattleTransitioning) return;
         if (isPaused) {
             if (menuOverlay != null && menuOverlay.isVisible()) {
                 if (keyCooldown > 0) {
@@ -2543,12 +2590,20 @@ public class VersusGameplayScreen extends BaseScreen {
     private JPopupMenu activePopupMenu = null;
 
     private JPopupMenu createStyledMenu() {
-        JPopupMenu menu = new JPopupMenu();
-        menu.setBackground(new Color(40, 40, 50));
-        menu.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 215, 0, 180), 2),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
+        JPopupMenu menu = new JPopupMenu() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                // Draw 9-slice Fire Emblem menu background
+                if (Theme.MENU_BACKGROUND != null) {
+                    Theme.draw9Slice(g, Theme.MENU_BACKGROUND, 0, 0, getWidth(), getHeight());
+                } else {
+                    super.paintComponent(g);
+                }
+            }
+        };
+        menu.setOpaque(false); // crucial for the custom background to show properly
+        menu.setBackground(new Color(0, 0, 0, 0)); // transparent background
+        menu.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6)); // padding inside the borders
         
         // Use a MenuKeyListener to properly intercept W, A, S, D within the popup menu
         // [KEYBOARD_CONTROL_MARKER] - Action Menu Keyboard Navigation
@@ -2620,18 +2675,35 @@ public class VersusGameplayScreen extends BaseScreen {
     }
 
     private JMenuItem createStyledMenuItem(String text) {
-        JMenuItem item = new JMenuItem(text);
+        JMenuItem item = new JMenuItem(text) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                // Do not paint the default UI to avoid LookAndFeel transparency glitches
+                // super.paintComponent(g);
+                
+                // Draw hand cursor if selected/armed
+                if (getModel().isArmed() && Theme.MENU_HAND != null) {
+                    int handY = (getHeight() - Theme.MENU_HAND.getHeight()) / 2;
+                    g.drawImage(Theme.MENU_HAND, 4, handY, null);
+                }
+                
+                // Draw text manually
+                g.setColor(getForeground());
+                g.setFont(getFont());
+                java.awt.FontMetrics fm = g.getFontMetrics();
+                int textY = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g.drawString(getText(), 28, textY);
+            }
+        };
         item.setFont(Theme.getPixelFont(16f));
         item.setForeground(Color.WHITE);
-        item.setBackground(new Color(40, 40, 50));
-        item.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
-        item.setOpaque(true);
+        item.setBorder(BorderFactory.createEmptyBorder(6, 28, 6, 12));
+        item.setOpaque(false);
+        item.setBackground(new Color(0, 0, 0, 0));
+        
+        // Remove the old flat-color hover effect since we now use the hand cursor
         item.addChangeListener(e -> {
-            if (item.isArmed()) {
-                item.setBackground(new Color(100, 100, 120));
-            } else {
-                item.setBackground(new Color(40, 40, 50));
-            }
+            item.repaint();
         });
         return item;
     }
@@ -3005,8 +3077,8 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
                 u.weaponFolder = wi.animWeaponFolder;
                 
-                // Start combat cinematic
-                startCombat(u, target);
+                // Start combat cinematic transition
+                beginBattleTransition(u, target);
             });
             menu.add(targetOpt);
         }
@@ -3206,6 +3278,40 @@ public class VersusGameplayScreen extends BaseScreen {
         SoundManager.playBattleHitSfx(wpnType, hit.isCrit, hit.isMiss, hit.damage, isKill);
 
         if (!hit.isMiss) source.isWaitingForDamage = true;
+    }
+
+    // ── Pre-Battle Transition State ──
+    public boolean isBattleTransitioning = false;
+    private int battleTransitionTimer = 0;
+    private MapUnit transitionAttacker = null;
+    private MapUnit transitionDefender = null;
+    private BufferedImage transitionBackground = null;
+    private double transitionFocalX = 0;
+    private double transitionFocalY = 0;
+
+    public void beginBattleTransition(MapUnit a, MapUnit d) {
+        if ("Fleet".equalsIgnoreCase(a.unitName) || "Fleet".equalsIgnoreCase(d.unitName)) {
+            startCombat(a, d);
+            return;
+        }
+        
+        transitionBackground = null; // We will capture this safely on the EDT during the next paint()!
+        
+        isBattleTransitioning = true;
+        battleTransitionTimer = 6; // 0.10 seconds
+        transitionAttacker = a;
+        transitionDefender = d;
+        
+        double cx = (a.renderPos.x + d.renderPos.x) / 2.0;
+        double cy = (a.renderPos.y + d.renderPos.y) / 2.0;
+        cameraTargetX = cx * 16 * zoomScale + 8 * zoomScale;
+        cameraTargetY = cy * 16 * zoomScale + 8 * zoomScale;
+        
+        Point startVPos = scrollPane.getViewport().getViewPosition();
+        transitionFocalX = cameraTargetX - startVPos.x;
+        transitionFocalY = cameraTargetY - startVPos.y;
+        
+        game.core.util.SoundManager.playDecide();
     }
 
     public void startCombat(MapUnit a, MapUnit d) {
@@ -3813,13 +3919,24 @@ public class VersusGameplayScreen extends BaseScreen {
             repaint();
             return;
         }
+        if (isBattleTransitioning) {
+            battleTransitionTimer--;
+            // Zoom the map in smoothly, and then trigger combat
+            if (battleTransitionTimer <= 0) {
+                isBattleTransitioning = false;
+                startCombat(transitionAttacker, transitionDefender);
+            }
+            needsRepaint = true;
+            // DO NOT return here, otherwise updateSmoothCamera() is skipped and the camera won't pan!
+        }
+        
         if (isBattleActive) { updateBattle(); repaint(); return; }
         if (isCaptureAnimActive) { updateCaptureAnim(); canvasPanel.repaint(); repaint(); return; }
         if (phaseBannerTimer > 0) {
             phaseBannerTimer--;
             needsRepaint = true;
             repaint();
-        } else if (players != null && !players.isEmpty() && players.get(currentPlayerIdx).isAI) {
+        } else if (!isBattleTransitioning && players != null && !players.isEmpty() && players.get(currentPlayerIdx).isAI) {
             aiLogic.updateAI();
         }
         // ── Decrement health bar display timers ──
@@ -4001,6 +4118,7 @@ public class VersusGameplayScreen extends BaseScreen {
         // Only repaint when something actually changed
         if (anyMoving || anyAnimated || currentWeather != Weather.NONE || needsRepaint) {
             canvasPanel.repaint();
+            this.repaint(); // Crucial for calling our custom paint() method!
             needsRepaint = false;
         }
     }

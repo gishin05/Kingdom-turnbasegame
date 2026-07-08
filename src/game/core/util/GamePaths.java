@@ -18,6 +18,7 @@ public final class GamePaths {
 
     public static final File BUNDLED_ROOT = new File(PROJECT_ROOT, "assets/bundled");
     public static final File DATA_ROOT = new File(PROJECT_ROOT, "assets/data");
+    public static final File UI_ROOT = new File(PROJECT_ROOT, "assets/ui");
     public static final File RUNTIME_ROOT = new File(PROJECT_ROOT, "runtime");
 
     public static final File MAPS_VERSUS = new File(DATA_ROOT, "maps/versus");
@@ -46,6 +47,10 @@ public final class GamePaths {
 
     public static File dataFile(String relative) {
         return new File(DATA_ROOT, relative);
+    }
+
+    public static File uiFile(String relative) {
+        return new File(UI_ROOT, relative);
     }
 
     public static File mapVersusFile(String fileName) {

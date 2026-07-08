@@ -557,7 +557,7 @@ public class AiLogic {
                 }
                 
                 if (target != null) {
-                    screen.startCombat(currentAiUnit, target);
+                    screen.beginBattleTransition(currentAiUnit, target);
                     actionTaken = true;
                 }
             }

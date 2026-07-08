@@ -33,6 +33,27 @@ public class Theme {
     private static final String MAIN_FONT_PATH = GamePaths.bundledFile("fonts/pixel_font.ttf").getPath();
     private static final String ACCENT_FONT_PATH = GamePaths.bundledFile("fonts/pixel_font.ttf").getPath();
     
+    // --- UI Sprites ---
+    public static java.awt.image.BufferedImage MENU_BACKGROUND;
+    public static java.awt.image.BufferedImage MENU_HAND;
+    public static java.awt.image.BufferedImage BATTLE_INFO_BG;
+    public static java.awt.image.BufferedImage HEALTH_BAR;
+    public static java.awt.image.BufferedImage HEALTH_BAR_BG;
+    public static java.awt.image.BufferedImage MAP_CURSOR;
+    
+    static {
+        try {
+            MENU_BACKGROUND = javax.imageio.ImageIO.read(GamePaths.uiFile("BaseMenuBackground.png"));
+            MENU_HAND = javax.imageio.ImageIO.read(GamePaths.uiFile("menuHand.png"));
+            BATTLE_INFO_BG = javax.imageio.ImageIO.read(GamePaths.uiFile("BattleInfo.png"));
+            HEALTH_BAR = javax.imageio.ImageIO.read(GamePaths.uiFile("HealthBar.png"));
+            HEALTH_BAR_BG = javax.imageio.ImageIO.read(GamePaths.uiFile("HealthBarBG.png"));
+            MAP_CURSOR = javax.imageio.ImageIO.read(GamePaths.uiFile("Cursor.png"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
     /**
      * Retrieves the primary pixel font dynamically sized.
      * @param size The font size in points
@@ -49,4 +70,31 @@ public class Theme {
     public static Font getTitleFont() { return getAccentFont(48f); }
     public static Font getMenuFont()  { return getPixelFont(26f); }
     public static Font getSmallFont() { return getPixelFont(13f); }
+    
+    /**
+     * Draws a 9-sliced image.
+     * Assuming the image is a 3x3 grid (e.g. 24x24 where corners are 8x8).
+     */
+    public static void draw9Slice(java.awt.Graphics g, java.awt.image.BufferedImage img, int x, int y, int width, int height) {
+        if (img == null) return;
+        int w = img.getWidth();
+        int h = img.getHeight();
+        int cw = w / 3;
+        int ch = h / 3;
+        
+        // Draw corners
+        g.drawImage(img, x, y, x+cw, y+ch, 0, 0, cw, ch, null); // top-left
+        g.drawImage(img, x+width-cw, y, x+width, y+ch, w-cw, 0, w, ch, null); // top-right
+        g.drawImage(img, x, y+height-ch, x+cw, y+height, 0, h-ch, cw, h, null); // bottom-left
+        g.drawImage(img, x+width-cw, y+height-ch, x+width, y+height, w-cw, h-ch, w, h, null); // bottom-right
+        
+        // Draw edges
+        g.drawImage(img, x+cw, y, x+width-cw, y+ch, cw, 0, w-cw, ch, null); // top
+        g.drawImage(img, x+cw, y+height-ch, x+width-cw, y+height, cw, h-ch, w-cw, h, null); // bottom
+        g.drawImage(img, x, y+ch, x+cw, y+height-ch, 0, ch, cw, h-ch, null); // left
+        g.drawImage(img, x+width-cw, y+ch, x+width, y+height-ch, w-cw, ch, w, h-ch, null); // right
+        
+        // Draw center
+        g.drawImage(img, x+cw, y+ch, x+width-cw, y+height-ch, cw, ch, w-cw, h-ch, null);
+    }
 }
