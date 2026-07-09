@@ -1,0 +1,17 @@
+{
+  "name": "Swordmen",
+  "type": "Land Unit",
+  "subType": "Infantry",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 18,
+  "str": 6,
+  "mag": 0,
+  "skl": 4,
+  "spd": 6,
+  "lck": 3,
+  "def": 4,
+  "res": 1,
+  "mov": 5,
+  "bwl": { "b":0,"w":0,"l":0 }
+}

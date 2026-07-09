@@ -1,0 +1,17 @@
+{
+  "name": "Archer",
+  "type": "Land Unit",
+  "subType": "Infantry",
+  "lvl": 1,
+  "exp": 0,
+  "hp": 16,
+  "str": 4,
+  "mag": 0,
+  "skl": 4,
+  "spd": 4,
+  "lck": 4,
+  "def": 3,
+  "res": 0,
+  "mov": 5,
+  "bwl": { "b":0,"w":0,"l":0 }
+}
