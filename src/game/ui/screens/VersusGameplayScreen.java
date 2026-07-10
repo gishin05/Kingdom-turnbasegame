@@ -371,7 +371,7 @@ public class VersusGameplayScreen extends BaseScreen {
         }
 
         void takeHit(BattleManager.BattleHit hit) {
-            if (hit.isMiss) { 
+            if (hit.isMiss && !"Supplier".equalsIgnoreCase(mapUnit.unitName)) { 
                 setMode(AnimationScript.MODE_DODGE); 
             } else {
                 takeHitActual(hit);
@@ -381,8 +381,13 @@ public class VersusGameplayScreen extends BaseScreen {
 
         void takeHitActual(BattleManager.BattleHit hit) {
             this.targetHp = Math.max(0, (int)this.targetHp - hit.damage);
-            shakeTimer = hit.isCrit ? 15 : 6;
-            flashTimer = hit.isCrit ? 8 : 0;
+            if (hit.isMiss) {
+                shakeTimer = 0;
+                flashTimer = 0;
+            } else {
+                shakeTimer = hit.isCrit ? 15 : 6;
+                flashTimer = hit.isCrit ? 8 : 0;
+            }
 
             // Play death sound if unit is killed
             boolean isDead = (this.targetHp <= 0);
@@ -1467,11 +1472,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 if (action.equals("Walk_Up") || action.equals("Walk_Down")) {
                     mirror = false;
                 } else if (action.equals("Standing") || action.equals("Selected")) {
-                    if ("Fleet".equalsIgnoreCase(u.unitName) || "Ballista".equalsIgnoreCase(u.unitName)) {
-                        mirror = u.renderMirrorX;
-                    } else {
-                        mirror = !u.renderMirrorX;
-                    }
+                    mirror = u.renderMirrorX;
                 }
                 
                 Composite oldComp = g.getComposite();
@@ -2713,7 +2714,8 @@ public class VersusGameplayScreen extends BaseScreen {
         
         // --- 1. Attack Option ---
         boolean hasAttackOptions = false;
-        for (WeaponItem wi : u.inventory) {
+        if (!"Supplier".equalsIgnoreCase(u.unitName)) {
+            for (WeaponItem wi : u.inventory) {
             if (wi.isWeapon() && !wi.isBroken()) {
                 // Find all target enemies within this weapon's specific range
                 for (MapUnit other : units) {
@@ -2727,6 +2729,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
             }
             if (hasAttackOptions) break;
+        }
         }
         
         if (hasAttackOptions) {

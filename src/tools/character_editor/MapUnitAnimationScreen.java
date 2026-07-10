@@ -219,6 +219,7 @@ public class MapUnitAnimationScreen extends JPanel  {
             Graphics2D g = frame.createGraphics();
             g.drawImage(fullImg, (cw - fullImg.getWidth()) / 2, ch - fullImg.getHeight(), null);
             g.dispose();
+            frame = processGreenAndShadow(frame);
             addFrameToCache(frame, namePrefix);
             updateGallery();
             updatePreviewer();
@@ -244,6 +245,7 @@ public class MapUnitAnimationScreen extends JPanel  {
                                 sub = centered;
                             }
                             
+                            sub = processGreenAndShadow(sub);
                             final BufferedImage fSub = sub;
                             try {
                                 SwingUtilities.invokeAndWait(() -> addFrameToCache(fSub, namePrefix));
@@ -257,6 +259,35 @@ public class MapUnitAnimationScreen extends JPanel  {
                 updatePreviewer();
             });
         }
+    }
+
+    private BufferedImage processGreenAndShadow(BufferedImage src) {
+        int w = src.getWidth();
+        int h = src.getHeight();
+        BufferedImage dst = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int argb = src.getRGB(x, y);
+                int a = (argb >> 24) & 0xFF;
+                if (a == 0) continue;
+                
+                int r = (argb >> 16) & 0xFF;
+                int g = (argb >> 8) & 0xFF;
+                int b = argb & 0xFF;
+                
+                // Classic FE bright green -> Transparent
+                if (g > 200 && r < 150 && b < 150 && Math.abs(r - b) < 30) {
+                    dst.setRGB(x, y, 0x00000000);
+                } 
+                // Classic FE dark green -> Semi-transparent black shadow
+                else if (g > 100 && g < 180 && r < 120 && b < 120 && Math.abs(r - b) < 30) {
+                    dst.setRGB(x, y, new Color(0, 0, 0, 100).getRGB());
+                } else {
+                    dst.setRGB(x, y, argb);
+                }
+            }
+        }
+        return dst;
     }
 
     private void addFrameToCache(BufferedImage img, String namePrefix) {

@@ -20,6 +20,9 @@ public class DeploymentEngine {
             case "Assassin": return 300;
             case "Sentinel": return 1100;
             case "Soldier": return 200;
+            case "Archer": return 300;
+            case "Swordsmen": return 200;
+            case "Supplier": return 500;
             
             // Air Units
             case "Pegasus Knight": return 600;

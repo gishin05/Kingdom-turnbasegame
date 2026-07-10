@@ -62,7 +62,6 @@ C0D
 /// - Mode 5
 C03
 C07
-C53
 1 p- Bow_000.png
 2 p- Bow_001.png
 2 p- Bow_002.png
@@ -89,7 +88,6 @@ C0D
 /// - Mode 6
 C03
 C07
-C53
 1 p- Bow_000.png
 4 p- Bow_017.png
 3 p- Bow_018.png
@@ -109,7 +107,7 @@ C23
 2 p- Bow_024.png
 2 p- Bow_025.png
 2 p- Bow_010.png
-2 p- Bow_011.png
+4 p- Bow_011.png
 C19
 6 p- Bow_012.png
 25 p- Bow_013.png
@@ -154,7 +152,6 @@ C01
 C01
 ~~~
 /// - Mode 12
-C53
 C03
 C07
 1 p- Bow_000.png

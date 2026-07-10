@@ -1,0 +1,12 @@
+/// - Mode 1
+/// - Mode 3
+/// - Mode 5
+/// - Mode 6
+/// - Mode 7
+/// - Mode 8
+/// - Mode 9
+/// - Mode 11
+/// - Mode 12
+/// - Mode 9
+4 p- Unarmed_000.png
+/// - End of animation
