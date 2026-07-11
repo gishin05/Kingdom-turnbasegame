@@ -35,6 +35,10 @@ public class UnitStats implements Serializable {
     // Fighting Skill
     public int strength = 5;
     public int magic = 0;
+    
+    // Survival State
+    public int ration = 40;
+    public String status = UnitStatus.NONE;
     public int skill = 5;
     public int speed = 5;
     public int luck = 5;
@@ -99,6 +103,8 @@ public class UnitStats implements Serializable {
                "  \"lvl\": " + level + ",\n" +
                "  \"exp\": " + exp + ",\n" +
                "  \"hp\": " + maxHp + ",\n" +
+               "  \"ration\": " + ration + ",\n" +
+               "  \"status\": \"" + status + "\",\n" +
                "  \"str\": " + strength + ",\n" +
                "  \"mag\": " + magic + ",\n" +
                "  \"skl\": " + skill + ",\n" +
@@ -120,6 +126,9 @@ public class UnitStats implements Serializable {
         stats.level = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "lvl"), 1);
         stats.exp = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "exp"), 0);
         stats.maxHp = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "hp"), 20);
+        stats.ration = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "ration"), 40);
+        String parsedStatus = JsonUtil.extractJsonVal(json, "status");
+        if (parsedStatus != null && !parsedStatus.isEmpty()) stats.status = parsedStatus;
         stats.strength = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "str"), 5);
         stats.magic = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "mag"), 0);
         stats.skill = JsonUtil.parseInt(JsonUtil.extractJsonVal(json, "skl"), 5);

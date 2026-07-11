@@ -49,6 +49,8 @@ public class VersusGameplayScreen extends BaseScreen {
     public List<MapUnit> units = new ArrayList<>();
     private MapUnit selectedUnit = null;
     private Point oldUnitPos = null;
+    private int oldUnitRation = -1;
+    private String oldUnitStatus = null;
     public Set<Point> moveRange = new HashSet<>();
     public Set<Point> attackRange = new HashSet<>();
     private Map<Point, Point> pathParent = new HashMap<>();
@@ -113,6 +115,22 @@ public class VersusGameplayScreen extends BaseScreen {
     // ── Deploy Overlay Fields ─────────────────────────────
     private JPanel deployOverlay;
     private JPanel deployListContainer;
+    
+    // ── Status Overlay Fields ─────────────────────────────
+    private JPanel statusOverlay;
+    private JLabel statusNameLbl, statusClassLbl, statusLvlLbl, statusExpLbl, statusHpLbl;
+    private JLabel statusStrLbl, statusMagLbl, statusSklLbl, statusSpdLbl, statusLckLbl, statusDefLbl, statusResLbl, statusMovLbl;
+    private JLabel[] statusEquipLbls;
+    private JLabel statusConditionLbl, statusRationLbl;
+    private JPanel statusSpritePanel;
+    private MapUnit statusCurrentUnit;
+    
+    // ── Map Status Overlay Fields ─────────────────────────
+    private JPanel mapStatusOverlay;
+    private int mapStatusViewPlayerIdx = 0;
+    private JLabel mapStatusTurnLbl, mapStatusWeatherLbl;
+    private JLabel mapStatusPlayerNameLbl, mapStatusGoldLbl, mapStatusUnitsCountLbl;
+    private JPanel mapStatusUnitsListContainer;
     private javax.swing.Timer deployAnimTimer;
     private int deployAnimFrame = 0;
     private int deploySelectedIndex = 0;
@@ -204,9 +222,9 @@ public class VersusGameplayScreen extends BaseScreen {
             WeaponItem equipped = mapUnit.getEquipped();
             String[] weapons;
             if (equipped != null && equipped.animWeaponFolder != null) {
-                weapons = new String[]{equipped.animWeaponFolder, equipped.weaponType, "Lance", "Spear", "lance", "spear", "Sword", "sword", "Axe", "axe", "Bow", "bow", "Magic", "magic", "Attack"};
+                weapons = new String[]{equipped.animWeaponFolder, equipped.weaponType, "Lance", "Spear", "lance", "spear", "Sword", "sword", "Axe", "axe", "Bow", "bow", "Magic", "magic", "Attack", "Unarmed"};
             } else {
-                weapons = new String[]{"Lance", "Spear", "lance", "spear", "Sword", "sword", "Axe", "axe", "Bow", "bow", "Magic", "magic", "Attack"};
+                weapons = new String[]{"Lance", "Spear", "lance", "spear", "Sword", "sword", "Axe", "axe", "Bow", "bow", "Magic", "magic", "Attack", "Unarmed"};
             }
             
             File baseDir = null;
@@ -477,6 +495,17 @@ public class VersusGameplayScreen extends BaseScreen {
     private double captureBarTarget  = 40.0;  // Target HP after this capture action
     private int captureAnimTimer = 0;          // Delay counter before marking action complete
 
+    private boolean isTurnStartAnimActive = false;
+    private int turnStartAnimPhase = 0; // 0=Income, 1=PanToUnit, 2=ResupplyCountDown, 3=WaitPostResupply
+    private int turnStartTargetGold = 0;
+    private java.util.List<MapUnit> turnStartResupplyQueue = new ArrayList<>();
+    private MapUnit currentResupplyUnit = null;
+    private int resupplyTargetHp = 0;
+    private int resupplyDurabilityLeft = 0;
+    private int resupplySupplierLeft = 0;
+    private int resupplyAnimTimer = 0;
+    private double animatedDisplayGold = -1;
+
     public class EventInfo {
         public int x, y, owner; public String type;
         // Capture state
@@ -525,6 +554,14 @@ public class VersusGameplayScreen extends BaseScreen {
         deployOverlay = buildDeployOverlay();
         deployOverlay.setVisible(false);
         gameLayer.add(deployOverlay, JLayeredPane.MODAL_LAYER);
+        
+        statusOverlay = buildStatusOverlay();
+        statusOverlay.setVisible(false);
+        gameLayer.add(statusOverlay, JLayeredPane.MODAL_LAYER);
+        
+        mapStatusOverlay = buildMapStatusOverlay();
+        mapStatusOverlay.setVisible(false);
+        gameLayer.add(mapStatusOverlay, JLayeredPane.MODAL_LAYER);
 
         addComponentListener(new ComponentAdapter() {
             @Override public void componentResized(ComponentEvent e) {
@@ -708,6 +745,8 @@ public class VersusGameplayScreen extends BaseScreen {
             enemyPanel.setBounds(w - eSize.width - 10, ey, eSize.width, eSize.height);
         }
         if (deployOverlay != null) deployOverlay.setBounds(0, 0, w, h);
+        if (statusOverlay != null) statusOverlay.setBounds(0, 0, w, h);
+        if (mapStatusOverlay != null) mapStatusOverlay.setBounds(0, 0, w, h);
     }
 
     private JPanel buildMenuOverlay() {
@@ -872,6 +911,8 @@ public class VersusGameplayScreen extends BaseScreen {
             ud.y = pos.y;
             ud.currentHp = u.currentHp;
             ud.maxHp = (u.stats != null ? u.stats.maxHp : u.currentHp);
+            ud.ration = (u.stats != null ? u.stats.ration : 40);
+            ud.status = (u.stats != null ? u.stats.status : "--");
             ud.hasActed = u.hasActed;
             ud.hasMoved = u.hasMoved;
             ud.isDead = u.isDead;
@@ -890,6 +931,8 @@ public class VersusGameplayScreen extends BaseScreen {
                     lud.ownerIndex = lu.ownerIndex;
                     lud.currentHp = lu.currentHp;
                     lud.maxHp = (lu.stats != null ? lu.stats.maxHp : lu.currentHp);
+                    lud.ration = (lu.stats != null ? lu.stats.ration : 40);
+                    lud.status = (lu.stats != null ? lu.stats.status : "--");
                     lud.equippedSlot = lu.equippedSlot;
                     if (lu.inventory != null) {
                         for (game.core.unit.WeaponItem item : lu.inventory) {
@@ -942,7 +985,11 @@ public class VersusGameplayScreen extends BaseScreen {
             u.position = new Point(ud.x, ud.y);
             u.renderPos = new java.awt.geom.Point2D.Double(ud.x, ud.y);
             u.currentHp = ud.currentHp;
-            u.stats.maxHp = ud.maxHp;
+            if (u.stats != null) {
+                u.stats.maxHp = ud.maxHp;
+                u.stats.ration = ud.ration;
+                u.stats.status = ud.status;
+            }
             u.hasActed = ud.hasActed;
             u.hasMoved = ud.hasMoved;
             u.isDead = ud.isDead;
@@ -961,7 +1008,11 @@ public class VersusGameplayScreen extends BaseScreen {
                     MapUnit lu = new MapUnit(lud.category, lud.unitName, MapUnit.Faction.PLAYER, new Point(-1, -1));
                     lu.ownerIndex = lud.ownerIndex;
                     lu.currentHp = lud.currentHp;
-                    lu.stats.maxHp = lud.maxHp;
+                    if (lu.stats != null) {
+                        lu.stats.maxHp = lud.maxHp;
+                        lu.stats.ration = lud.ration;
+                        lu.stats.status = lud.status;
+                    }
                     lu.equippedSlot = lud.equippedSlot;
                     if (lud.inventoryNames != null) {
                         for (int k = 0; k < lud.inventoryNames.size(); k++) {
@@ -1137,10 +1188,34 @@ public class VersusGameplayScreen extends BaseScreen {
                 if ("HQ".equals(ev.type)) income += 200; else if ("ARMORY".equals(ev.type)) income += 100; else if ("HOUSE".equals(ev.type)) income += 50; else if ("FORT".equals(ev.type)) income += 100; else if ("AERIE".equals(ev.type)) income += 100;
             }
         }
-        p.gold += income;
-        dayLabel.setText("DAY " + currentDay + " - PLAYER " + (currentPlayerIdx + 1));
-        dayLabel.setForeground(p.color);
-        goldLabel.setText("🪙 " + p.gold);
+        // ── Starvation Damage ──
+        for (MapUnit u : units) {
+            if (u.ownerIndex == currentPlayerIdx && u.stats != null && game.core.unit.UnitStatus.HUNGER.equals(u.stats.status)) {
+                u.currentHp -= 5;
+                if (u.currentHp <= 0) {
+                    u.isDead = true;
+                }
+            }
+        }
+        
+        turnStartTargetGold = p.gold + income;
+        
+        turnStartResupplyQueue.clear();
+        for (MapUnit u : units) {
+            if (u.ownerIndex == currentPlayerIdx && !u.isDead && u.stats != null) {
+                EventInfo ev = eventMap.get(u.position);
+                if (ev != null && ev.owner == currentPlayerIdx && 
+                    ("HQ".equals(ev.type) || "ARMORY".equals(ev.type) || "HOUSE".equals(ev.type) || "FORT".equals(ev.type) || "AERIE".equals(ev.type))) {
+                    turnStartResupplyQueue.add(u);
+                }
+            }
+        }
+        
+        isTurnStartAnimActive = true;
+        turnStartAnimPhase = 0;
+        // Don't show phase banner yet, we'll show it after animation finishes.
+        phaseBannerTimer = 0;
+        
         layoutGameLayer();
         
         // ── Weather Logic ──
@@ -1473,6 +1548,11 @@ public class VersusGameplayScreen extends BaseScreen {
                     mirror = false;
                 } else if (action.equals("Standing") || action.equals("Selected")) {
                     mirror = u.renderMirrorX;
+                }
+                
+                if (("Cavalier".equalsIgnoreCase(u.unitName) || "Pegasus".equalsIgnoreCase(u.unitName) || "Pegasus Knight".equalsIgnoreCase(u.unitName)) 
+                    && !action.equals("Walk_Up") && !action.equals("Walk_Down")) {
+                    mirror = !mirror;
                 }
                 
                 Composite oldComp = g.getComposite();
@@ -2322,7 +2402,11 @@ public class VersusGameplayScreen extends BaseScreen {
     private void cancelMove() {
         if (selectedUnit != null && oldUnitPos != null) {
             selectedUnit.position = new Point(oldUnitPos); selectedUnit.renderPos.x = oldUnitPos.x; selectedUnit.renderPos.y = oldUnitPos.y;
-            selectedUnit.hasMoved = false; selectedUnit.movePath.clear(); selectedUnit = null; oldUnitPos = null; 
+            if (oldUnitRation != -1 && selectedUnit.stats != null) {
+                selectedUnit.stats.ration = oldUnitRation;
+                selectedUnit.stats.status = oldUnitStatus;
+            }
+            selectedUnit.hasMoved = false; selectedUnit.movePath.clear(); selectedUnit = null; oldUnitPos = null; oldUnitRation = -1; oldUnitStatus = null;
             previewPath.clear();
             fogDirty = true; unitOrderDirty = true; needsRepaint = true;
             canvasPanel.repaint();
@@ -2338,7 +2422,19 @@ public class VersusGameplayScreen extends BaseScreen {
         Point p = new Point(tx, ty);
         if (selectedUnit != null && selectedUnit.hasMoved && !selectedUnit.hasActed) { cancelMove(); return; }
         if (moveRange.contains(p) && selectedUnit != null && !selectedUnit.hasMoved) { 
-            oldUnitPos = new Point(selectedUnit.position); reconstructPath(p, selectedUnit);
+            oldUnitPos = new Point(selectedUnit.position); 
+            if (selectedUnit.stats != null) {
+                oldUnitRation = selectedUnit.stats.ration;
+                oldUnitStatus = selectedUnit.stats.status;
+            }
+            reconstructPath(p, selectedUnit);
+            if (selectedUnit.stats != null) {
+                int distance = Math.max(0, selectedUnit.movePath.size() - 1);
+                selectedUnit.stats.ration = Math.max(0, selectedUnit.stats.ration - distance);
+                if (selectedUnit.stats.ration == 0) {
+                    selectedUnit.stats.status = game.core.unit.UnitStatus.HUNGER;
+                }
+            }
             selectedUnit.hasMoved = true; moveRange.clear(); attackRange.clear();
             previewPath.clear(); hoveredTile = new Point(tx, ty);
             if (selectedUnit.movePath.isEmpty()) showActionMenu(selectedUnit);
@@ -2349,6 +2445,7 @@ public class VersusGameplayScreen extends BaseScreen {
             if (clickedUnit != null && clickedUnit.ownerIndex != currentPlayerIdx) {
                 selectedEnemy = clickedUnit;
                 updateEnemyPanel();
+                showActionMenu(clickedUnit);
             } else {
                 selectedEnemy = null;
                 updateEnemyPanel();
@@ -2364,7 +2461,10 @@ public class VersusGameplayScreen extends BaseScreen {
                     showGlobalMenu(mouseX, mouseY);
                 }
             } else {
-                // Do nothing if clicking a unit that has already acted, or an enemy unit
+                // Already-moved or acted friendly unit: show only Info in the Action Menu
+                if (clickedUnit != null && clickedUnit.ownerIndex == currentPlayerIdx) {
+                    showActionMenu(clickedUnit);
+                }
             }
         }
         canvasPanel.repaint();
@@ -2405,6 +2505,31 @@ public class VersusGameplayScreen extends BaseScreen {
             }
             return;
         }
+        
+        if (statusOverlay != null && statusOverlay.isVisible()) {
+            if (input.consumeEsc()) {
+                hideStatusScreen();
+            }
+            return;
+        }
+
+        if (mapStatusOverlay != null && mapStatusOverlay.isVisible()) {
+            if (input.consumeEsc()) {
+                hideMapStatusScreen();
+            } else if (keyCooldown > 0) {
+                keyCooldown--;
+            } else {
+                if (input.leftPressed) {
+                    cycleMapStatusPlayer(-1);
+                    keyCooldown = 8;
+                } else if (input.rightPressed) {
+                    cycleMapStatusPlayer(1);
+                    keyCooldown = 8;
+                }
+            }
+            return;
+        }
+        
         if (players == null || players.isEmpty()) return;
         if (isBattleTransitioning) return;
         if (isPaused) {
@@ -2712,11 +2837,16 @@ public class VersusGameplayScreen extends BaseScreen {
     private void showMainActionMenu(MapUnit u, int x, int y) {
         JPopupMenu menu = createStyledMenu();
         
+        boolean isEnemy = (u.ownerIndex != currentPlayerIdx);
+        boolean canAct = (!isEnemy && !u.hasActed);
+        
+        if (canAct) {
         // --- 1. Attack Option ---
         boolean hasAttackOptions = false;
-        if (!"Supplier".equalsIgnoreCase(u.unitName)) {
+        boolean isSupplier = "Supplier".equalsIgnoreCase(u.unitName) || (u.stats != null && "Supplier".equalsIgnoreCase(u.stats.unitName));
+        if (!isSupplier) {
             for (WeaponItem wi : u.inventory) {
-            if (wi.isWeapon() && !wi.isBroken()) {
+            if (wi.isWeapon() && !wi.isBroken() && UnitWeapon.canUseWeapon(u, wi)) {
                 // Find all target enemies within this weapon's specific range
                 for (MapUnit other : units) {
                     if (other.ownerIndex != u.ownerIndex && !other.isDead) {
@@ -2739,6 +2869,23 @@ public class VersusGameplayScreen extends BaseScreen {
                 showWeaponSelectionMenu(u, x, y);
             });
             menu.add(attackOpt);
+        }
+        
+        // --- 1.5 Supply Option (Supplier Only) ---
+        if (isSupplier && u.supplyUses > 0) {
+            java.util.List<MapUnit> supplyTargets = game.core.unit.UnitFunctions.getSupplyTargets(u, units);
+            if (!supplyTargets.isEmpty()) {
+                JMenuItem supplyOpt = createStyledMenuItem("Supply (" + u.supplyUses + ")");
+                supplyOpt.addActionListener(e -> {
+                    menu.setVisible(false);
+                    game.core.unit.UnitFunctions.performSupply(u, units);
+                    game.core.util.SoundManager.playLevelUp();
+                    u.hasActed = true;
+                    selectedUnit = null;
+                    canvasPanel.repaint();
+                });
+                menu.add(supplyOpt);
+            }
         }
 
         // --- 2. Capture Option ---
@@ -2772,17 +2919,8 @@ public class VersusGameplayScreen extends BaseScreen {
         }
         
         // --- 4. Load Option ---
-        if (!"Fleet".equalsIgnoreCase(u.unitName) && !"Air Unit".equalsIgnoreCase(u.stats.unitType) && u.category != null && !u.category.equalsIgnoreCase("Champion")) {
-            List<MapUnit> adjacentFleets = new ArrayList<>();
-            for (MapUnit other : units) {
-                if (other.ownerIndex == u.ownerIndex && "Fleet".equalsIgnoreCase(other.unitName) && !other.isDead) {
-                    int d = Math.abs(other.position.x - u.position.x) + Math.abs(other.position.y - u.position.y);
-                    if (d <= 1 && (other.loadedUnits == null || other.loadedUnits.size() < 3)) {
-                        adjacentFleets.add(other);
-                    }
-                }
-            }
-            if (!adjacentFleets.isEmpty()) {
+        List<MapUnit> adjacentFleets = game.core.unit.UnitFunctions.getAdjacentTransports(u, units);
+        if (!adjacentFleets.isEmpty()) {
                 JMenuItem loadOpt = createStyledMenuItem("Load");
                 loadOpt.addActionListener(e -> {
                     menu.setVisible(false);
@@ -2806,36 +2944,17 @@ public class VersusGameplayScreen extends BaseScreen {
                 });
                 menu.add(loadOpt);
             }
-        }
         
         // --- 5. Drop Option ---
-        if ("Fleet".equalsIgnoreCase(u.unitName) && u.loadedUnits != null && !u.loadedUnits.isEmpty()) {
-            List<Point> validDropPoints = new ArrayList<>();
+        List<Point> validDropPoints = game.core.unit.UnitFunctions.getValidDropPoints(u, units, mapData, mapTSData, loadedTilesets, mapW, mapH);
+        if (!validDropPoints.isEmpty() && u.loadedUnits != null && !u.loadedUnits.isEmpty()) {
             MapUnit toDrop = u.loadedUnits.get(0);
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    if (Math.abs(dx) + Math.abs(dy) == 1) {
-                        int nx = u.position.x + dx;
-                        int ny = u.position.y + dy;
-                        if (nx >= 0 && nx < mapW && ny >= 0 && ny < mapH) {
-                            int cost = game.core.engine.MovementEngine.getTerrainCost(nx, ny, toDrop.stats.unitType, mapData, mapTSData, loadedTilesets, mapW, mapH);
-                            if (cost != -1) {
-                                boolean occ = false;
-                                for (MapUnit occU : units) if (!occU.isDead && occU.position.x == nx && occU.position.y == ny) { occ = true; break; }
-                                if (!occ) validDropPoints.add(new Point(nx, ny));
-                            }
-                        }
-                    }
-                }
-            }
-            if (!validDropPoints.isEmpty()) {
-                JMenuItem dropOpt = createStyledMenuItem("Drop");
-                dropOpt.addActionListener(e -> {
-                    menu.setVisible(false);
-                    showDropSelectionMenu(u, toDrop, validDropPoints, x, y);
-                });
-                menu.add(dropOpt);
-            }
+            JMenuItem dropOpt = createStyledMenuItem("Drop");
+            dropOpt.addActionListener(e -> {
+                menu.setVisible(false);
+                showDropSelectionMenu(u, toDrop, validDropPoints, x, y);
+            });
+            menu.add(dropOpt);
         }
         
         // --- 6. Wait Option ---
@@ -2856,6 +2975,15 @@ public class VersusGameplayScreen extends BaseScreen {
             });
             menu.add(waitOpt);
         }
+        } // End of canAct check
+        
+        // --- Info Option ---
+        JMenuItem infoOpt = createStyledMenuItem("Info");
+        infoOpt.addActionListener(e -> {
+            menu.setVisible(false);
+            showStatusScreen(u);
+        });
+        menu.add(infoOpt);
         
         menu.show(canvasPanel, x, y);
     }
@@ -3024,7 +3152,7 @@ public class VersusGameplayScreen extends BaseScreen {
         JPopupMenu menu = createStyledMenu();
         
         for (WeaponItem wi : u.inventory) {
-            if (wi.isWeapon() && !wi.isBroken()) {
+            if (wi.isWeapon() && !wi.isBroken() && UnitWeapon.canUseWeapon(u, wi)) {
                 List<MapUnit> targets = new ArrayList<>();
                 for (MapUnit other : units) {
                     if (other.ownerIndex != u.ownerIndex && !other.isDead) {
@@ -3628,13 +3756,548 @@ public class VersusGameplayScreen extends BaseScreen {
         overlay.add(footer, BorderLayout.SOUTH);
 
         // Click outside list to close
-        overlay.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) {
+        overlay.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (e.getSource() == overlay) hideDeployOverlay();
             }
         });
 
         return overlay;
+    }
+
+    // ── Custom Drawing Helper ──
+    private void drawCardBackground(Graphics2D g2d, int width, int height) {
+        g2d.setColor(new Color(20, 25, 35, 200));
+        g2d.fillRoundRect(5, 25, width - 10, height - 35, 15, 15);
+        g2d.setColor(new Color(255, 255, 255, 30));
+        g2d.setStroke(new java.awt.BasicStroke(1f));
+        g2d.drawRoundRect(5, 25, width - 10, height - 35, 15, 15);
+    }
+
+    private void drawSectionTitle(Graphics2D g2d, String title, int width) {
+        g2d.setFont(Theme.getPixelFont(20f));
+        int textW = g2d.getFontMetrics().stringWidth(title);
+        
+        int titleW = Math.max(160, textW + 40);
+        int titleH = 34;
+        int titleX = (width - titleW) / 2;
+        int titleY = 10;
+        
+        g2d.setColor(new Color(30, 40, 50, 240));
+        g2d.fillRoundRect(titleX, titleY, titleW, titleH, 10, 10);
+        g2d.setColor(Theme.GOLD);
+        g2d.setStroke(new java.awt.BasicStroke(2f));
+        g2d.drawRoundRect(titleX, titleY, titleW, titleH, 10, 10);
+        
+        int textX = titleX + (titleW - textW) / 2;
+        int textY = titleY + 24;
+        
+        g2d.setColor(Color.BLACK);
+        g2d.drawString(title, textX + 1, textY + 1);
+        g2d.drawString(title, textX + 2, textY + 2);
+        g2d.setColor(Color.WHITE);
+        g2d.drawString(title, textX, textY);
+    }
+
+    // ── Status Overlay Implementation ──
+    private JPanel buildStatusOverlay() {
+        JPanel overlay = new JPanel(new BorderLayout()) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(15, 15, 25, 230));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.setColor(new Color(255, 255, 255, 10));
+                for(int i = 0; i < getWidth(); i += 40) g2d.drawLine(i, 0, i, getHeight());
+                for(int i = 0; i < getHeight(); i += 40) g2d.drawLine(0, i, getWidth(), i);
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+        overlay.setOpaque(false);
+
+        JPanel titleBar = new JPanel(new BorderLayout());
+        titleBar.setOpaque(false);
+        titleBar.setBorder(BorderFactory.createEmptyBorder(20, 50, 0, 50));
+        
+        JButton closeBtn = new JButton("✕ CLOSE");
+        closeBtn.setFont(Theme.getPixelFont(18f));
+        closeBtn.setForeground(new Color(255, 120, 120));
+        closeBtn.setBackground(new Color(60, 30, 30));
+        closeBtn.setFocusPainted(false);
+        closeBtn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 100, 100, 150)),
+            BorderFactory.createEmptyBorder(8, 20, 8, 20)));
+        closeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        closeBtn.addActionListener(e -> hideStatusScreen());
+        titleBar.add(closeBtn, BorderLayout.EAST);
+        overlay.add(titleBar, BorderLayout.NORTH);
+
+        JPanel contentPanel = new JPanel(new GridLayout(1, 3, 20, 0));
+        contentPanel.setOpaque(false);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 80, 50, 80));
+
+        JPanel col1 = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                drawCardBackground(g2d, getWidth(), getHeight());
+                drawSectionTitle(g2d, "PERSONAL DATA", getWidth());
+                g2d.dispose();
+            }
+        };
+        col1.setLayout(new BoxLayout(col1, BoxLayout.Y_AXIS));
+        col1.setOpaque(false);
+        col1.setBorder(BorderFactory.createEmptyBorder(40, 10, 10, 10));
+
+        statusNameLbl = createStatusLabel("Name", 28f, Color.WHITE);
+        statusClassLbl = createStatusLabel("Class", 20f, Color.LIGHT_GRAY);
+        statusLvlLbl = createStatusLabel("LV 1", 20f, Theme.GOLD);
+        statusExpLbl = createStatusLabel("E 00", 20f, Theme.GOLD);
+        statusHpLbl = createStatusLabel("HP 20 / 20", 22f, new Color(100, 255, 100));
+        
+        statusSpritePanel = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                int pw = 100, ph = 30;
+                int px = (getWidth() - pw) / 2;
+                int py = getHeight() - ph - 10;
+                g2d.setColor(new Color(0, 0, 0, 180));
+                g2d.fillOval(px, py, pw, ph);
+                g2d.setStroke(new java.awt.BasicStroke(2f));
+                g2d.setColor(new Color(255, 230, 100, 120));
+                g2d.drawOval(px, py, pw, ph);
+
+                if (statusCurrentUnit != null) {
+                    List<BufferedImage> frames = loadDeployPreviewFrames(statusCurrentUnit.category, statusCurrentUnit.unitName);
+                    if (!frames.isEmpty()) {
+                        long t = System.currentTimeMillis();
+                        int fIdx = (int)((t / 250) % frames.size());
+                        BufferedImage img = frames.get(fIdx);
+                        if (img != null) {
+                            Color teamCol = players != null && statusCurrentUnit.ownerIndex < players.size() ? players.get(statusCurrentUnit.ownerIndex).color : statusCurrentUnit.teamColor;
+                            BufferedImage recolored = game.core.util.SpriteColorer.recolor(img, teamCol);
+                            g2d.drawImage(recolored, (getWidth() - 96)/2, py + 15 - 96, 96, 96, null);
+                        }
+                    }
+                }
+                g2d.dispose();
+            }
+        };
+        statusSpritePanel.setOpaque(false);
+        statusSpritePanel.setPreferredSize(new Dimension(150, 120));
+        statusSpritePanel.setMaximumSize(new Dimension(150, 120));
+
+        JPanel hpPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        hpPanel.setOpaque(false);
+        
+        JLabel hpTag = new JLabel(" HP ");
+        hpTag.setOpaque(true);
+        hpTag.setBackground(new Color(180, 40, 40));
+        hpTag.setForeground(Color.WHITE);
+        hpTag.setFont(Theme.getPixelFont(16f));
+        hpTag.setBorder(BorderFactory.createLineBorder(new Color(80, 20, 20), 2));
+        
+        hpPanel.add(hpTag);
+        hpPanel.add(statusHpLbl);
+
+        col1.add(Box.createVerticalStrut(20));
+        col1.add(statusNameLbl);
+        col1.add(Box.createVerticalStrut(10));
+        col1.add(statusClassLbl);
+        col1.add(Box.createVerticalStrut(10));
+        col1.add(statusSpritePanel);
+        col1.add(Box.createVerticalStrut(10));
+        
+        JPanel lvlExpPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 0));
+        lvlExpPanel.setOpaque(false);
+        lvlExpPanel.add(statusLvlLbl);
+        lvlExpPanel.add(statusExpLbl);
+        col1.add(lvlExpPanel);
+        col1.add(Box.createVerticalStrut(15));
+        col1.add(hpPanel);
+
+        // Column 2: Stats
+        JPanel col2 = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                drawCardBackground(g2d, getWidth(), getHeight());
+                drawSectionTitle(g2d, "STATUS", getWidth());
+                g2d.dispose();
+            }
+        };
+        col2.setLayout(new GridLayout(8, 1, 0, 10));
+        col2.setOpaque(false);
+        col2.setBorder(BorderFactory.createEmptyBorder(60, 30, 20, 30));
+
+        statusStrLbl = new JLabel("0"); statusMagLbl = new JLabel("0");
+        statusSklLbl = new JLabel("0"); statusSpdLbl = new JLabel("0");
+        statusLckLbl = new JLabel("0"); statusDefLbl = new JLabel("0");
+        statusResLbl = new JLabel("0"); statusMovLbl = new JLabel("0");
+        
+        col2.add(createStatusStatRow("STR", statusStrLbl, () -> statusCurrentUnit != null ? statusCurrentUnit.stats.strength : 0));
+        col2.add(createStatusStatRow("MAG", statusMagLbl, () -> statusCurrentUnit != null ? statusCurrentUnit.stats.magic : 0));
+        col2.add(createStatusStatRow("SKL", statusSklLbl, () -> statusCurrentUnit != null ? statusCurrentUnit.stats.skill : 0));
+        col2.add(createStatusStatRow("SPD", statusSpdLbl, () -> statusCurrentUnit != null ? statusCurrentUnit.stats.speed : 0));
+        col2.add(createStatusStatRow("LCK", statusLckLbl, () -> statusCurrentUnit != null ? statusCurrentUnit.stats.luck : 0));
+        col2.add(createStatusStatRow("DEF", statusDefLbl, () -> statusCurrentUnit != null ? statusCurrentUnit.stats.defense : 0));
+        col2.add(createStatusStatRow("RES", statusResLbl, () -> statusCurrentUnit != null ? statusCurrentUnit.stats.resistance : 0));
+        col2.add(createStatusStatRow("MOV", statusMovLbl, () -> statusCurrentUnit != null ? statusCurrentUnit.stats.move : 0));
+
+        // Column 3: Equipment & Condition
+        JPanel col3 = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                drawCardBackground(g2d, getWidth(), getHeight());
+                drawSectionTitle(g2d, "EQUIPMENT", getWidth());
+                g2d.dispose();
+            }
+        };
+        col3.setLayout(new BoxLayout(col3, BoxLayout.Y_AXIS));
+        col3.setOpaque(false);
+        col3.setBorder(BorderFactory.createEmptyBorder(60, 30, 20, 30));
+
+        statusEquipLbls = new JLabel[6];
+        col3.add(Box.createVerticalStrut(20));
+        for (int i = 0; i < 6; i++) {
+            statusEquipLbls[i] = createStatusLabel("", 18f, Color.WHITE);
+            col3.add(statusEquipLbls[i]);
+            col3.add(Box.createVerticalStrut(10));
+        }
+        
+        JLabel condHeader = createStatusLabel("CONDITION", 20f, Theme.GOLD);
+        statusConditionLbl = createStatusLabel("Normal", 18f, Color.WHITE);
+        JLabel rationHeader = createStatusLabel("RATIONS", 20f, Theme.GOLD);
+        statusRationLbl = createStatusLabel("40/40", 18f, Color.WHITE);
+
+        col3.add(Box.createVerticalStrut(20));
+        col3.add(condHeader); col3.add(Box.createVerticalStrut(15)); col3.add(statusConditionLbl);
+        col3.add(Box.createVerticalStrut(40));
+        col3.add(rationHeader); col3.add(Box.createVerticalStrut(15)); col3.add(statusRationLbl);
+        
+        contentPanel.add(col1);
+        contentPanel.add(col2);
+        contentPanel.add(col3);
+
+        overlay.add(contentPanel, BorderLayout.CENTER);
+
+        overlay.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                if (e.getSource() == overlay) hideStatusScreen();
+            }
+        });
+        
+        new javax.swing.Timer(250, e -> { if(overlay.isVisible()) statusSpritePanel.repaint(); }).start();
+
+        return overlay;
+    }
+
+    private JLabel createStatusLabel(String text, float size, Color c) {
+        JLabel l = new JLabel(text);
+        l.setFont(Theme.getPixelFont(size));
+        l.setForeground(c);
+        l.setAlignmentX(Component.CENTER_ALIGNMENT);
+        return l;
+    }
+
+    private JPanel createStatusStatRow(String statName, JLabel valLbl, java.util.function.Supplier<Integer> valSupplier) {
+        JPanel p = new JPanel(new BorderLayout()) {
+            @Override protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                
+                int val = valSupplier.get();
+                int maxVal = 30; // FE standard max cap
+                int barW = 100, barH = 8;
+                int barX = getWidth() - barW - 30;
+                int barY = (getHeight() - barH) / 2 + 2;
+                
+                // Groove back
+                g2d.setColor(new Color(15, 18, 22));
+                g2d.fillRoundRect(barX, barY, barW, barH, 4, 4);
+                g2d.setColor(new Color(80, 80, 80));
+                g2d.setStroke(new java.awt.BasicStroke(1f));
+                g2d.drawRoundRect(barX, barY, barW, barH, 4, 4);
+                
+                // Groove fill
+                int fillW = (int)((Math.min(val, maxVal) / (float)maxVal) * barW);
+                if (fillW > 0) {
+                    java.awt.GradientPaint gp = new java.awt.GradientPaint(barX, barY, new Color(255, 240, 100), barX, barY + barH, new Color(200, 150, 10));
+                    g2d.setPaint(gp);
+                    g2d.fillRoundRect(barX + 1, barY + 1, fillW - 1, barH - 1, 3, 3);
+                }
+                
+                g2d.dispose();
+            }
+        };
+        p.setOpaque(false);
+        JLabel nameLbl = new JLabel(statName);
+        nameLbl.setFont(Theme.getPixelFont(20f));
+        nameLbl.setForeground(Theme.GOLD);
+        
+        valLbl.setFont(Theme.getPixelFont(20f));
+        valLbl.setForeground(Color.WHITE);
+        valLbl.setHorizontalAlignment(SwingConstants.RIGHT);
+        
+        p.add(nameLbl, BorderLayout.WEST);
+        p.add(valLbl, BorderLayout.EAST);
+        return p;
+    }
+
+    private void hideStatusScreen() {
+        if (statusOverlay != null) {
+            statusOverlay.setVisible(false);
+            game.core.util.SoundManager.playCancel();
+        }
+    }
+
+    private void showStatusScreen(MapUnit u) {
+        statusCurrentUnit = u;
+        if (u.stats == null) return;
+        
+        statusNameLbl.setText(u.unitName);
+        statusClassLbl.setText(u.stats.subUnitType != null ? u.stats.subUnitType : u.stats.unitType);
+        statusLvlLbl.setText("LV " + u.stats.level);
+        statusExpLbl.setText("E " + u.stats.exp);
+        statusHpLbl.setText(u.currentHp + " / " + u.stats.maxHp);
+        
+        statusStrLbl.setText(String.valueOf(u.stats.strength));
+        statusMagLbl.setText(String.valueOf(u.stats.magic));
+        statusSklLbl.setText(String.valueOf(u.stats.skill));
+        statusSpdLbl.setText(String.valueOf(u.stats.speed));
+        statusLckLbl.setText(String.valueOf(u.stats.luck));
+        statusDefLbl.setText(String.valueOf(u.stats.defense));
+        statusResLbl.setText(String.valueOf(u.stats.resistance));
+        statusMovLbl.setText(String.valueOf(u.stats.move));
+        
+        WeaponItem eq = u.getEquipped();
+        for (int i = 0; i < 6; i++) {
+            if (i < u.inventory.size()) {
+                WeaponItem wi = u.inventory.get(i);
+                statusEquipLbls[i].setText(wi.name + " (" + wi.currentUses + "/" + wi.maxUses + ")");
+                if (wi == eq) {
+                    statusEquipLbls[i].setForeground(Theme.GOLD);
+                } else {
+                    statusEquipLbls[i].setForeground(Color.WHITE);
+                }
+            } else {
+                if (i == 0 && u.inventory.isEmpty()) {
+                    statusEquipLbls[i].setText("- None -");
+                    statusEquipLbls[i].setForeground(Color.GRAY);
+                } else {
+                    statusEquipLbls[i].setText("");
+                }
+            }
+        }
+        
+        statusConditionLbl.setText(u.stats.status != null ? u.stats.status : "Normal");
+        statusRationLbl.setText(u.stats.ration + " / 40");
+        
+        statusSpritePanel.repaint();
+        statusOverlay.setVisible(true);
+        game.core.util.SoundManager.playDecide();
+    }
+
+    // ── Map Status Overlay Implementation ──
+    private JPanel buildMapStatusOverlay() {
+        JPanel overlay = new JPanel(new BorderLayout()) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(15, 15, 25, 230));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.setColor(new Color(255, 255, 255, 10));
+                for(int i = 0; i < getWidth(); i += 40) g2d.drawLine(i, 0, i, getHeight());
+                for(int i = 0; i < getHeight(); i += 40) g2d.drawLine(0, i, getWidth(), i);
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+        overlay.setOpaque(false);
+
+        // Header Title
+        JPanel titleBar = new JPanel(new BorderLayout());
+        titleBar.setOpaque(false);
+        titleBar.setBorder(BorderFactory.createEmptyBorder(30, 50, 10, 50));
+        
+        JLabel titleLbl = new JLabel("MAP STATUS");
+        titleLbl.setFont(Theme.getTitleFont());
+        titleLbl.setForeground(Theme.GOLD);
+        titleLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        titleBar.add(titleLbl, BorderLayout.CENTER);
+        
+        JButton closeBtn = new JButton("✕ CLOSE");
+        closeBtn.setFont(Theme.getPixelFont(18f));
+        closeBtn.setForeground(new Color(255, 120, 120));
+        closeBtn.setBackground(new Color(60, 30, 30));
+        closeBtn.setFocusPainted(false);
+        closeBtn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 100, 100, 150)),
+            BorderFactory.createEmptyBorder(8, 20, 8, 20)));
+        closeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        closeBtn.addActionListener(e -> hideMapStatusScreen());
+        titleBar.add(closeBtn, BorderLayout.EAST);
+        
+        overlay.add(titleBar, BorderLayout.NORTH);
+
+        // Main Content
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 20));
+        contentPanel.setOpaque(false);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 80, 50, 80));
+
+        // Top Row: Match Info
+        JPanel matchInfoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 10));
+        matchInfoPanel.setOpaque(false);
+        matchInfoPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Theme.GOLD_TRANS, 2),
+            BorderFactory.createEmptyBorder(15, 30, 15, 30)));
+
+        mapStatusTurnLbl = createStatusLabel("DAY: 1", 24f, Color.WHITE);
+        mapStatusWeatherLbl = createStatusLabel("WEATHER: Clear", 24f, Color.WHITE);
+        matchInfoPanel.add(mapStatusTurnLbl);
+        matchInfoPanel.add(mapStatusWeatherLbl);
+        
+        contentPanel.add(matchInfoPanel, BorderLayout.NORTH);
+
+        // Center Panel: Player Info
+        JPanel playerPanel = new JPanel(new BorderLayout());
+        playerPanel.setOpaque(false);
+        playerPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Theme.GOLD_TRANS, 2),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)));
+
+        // Player Header with Arrows
+        JPanel playerHeaderPanel = new JPanel(new BorderLayout());
+        playerHeaderPanel.setOpaque(false);
+
+        JButton leftBtn = new JButton("◄");
+        leftBtn.setFont(Theme.getPixelFont(24f));
+        leftBtn.setForeground(Theme.GOLD);
+        leftBtn.setContentAreaFilled(false);
+        leftBtn.setBorderPainted(false);
+        leftBtn.setFocusPainted(false);
+        leftBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        leftBtn.addActionListener(e -> cycleMapStatusPlayer(-1));
+
+        JButton rightBtn = new JButton("►");
+        rightBtn.setFont(Theme.getPixelFont(24f));
+        rightBtn.setForeground(Theme.GOLD);
+        rightBtn.setContentAreaFilled(false);
+        rightBtn.setBorderPainted(false);
+        rightBtn.setFocusPainted(false);
+        rightBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        rightBtn.addActionListener(e -> cycleMapStatusPlayer(1));
+
+        JPanel namePanel = new JPanel(new GridLayout(2, 1));
+        namePanel.setOpaque(false);
+        mapStatusPlayerNameLbl = createStatusLabel("PLAYER 1", 28f, Color.WHITE);
+        mapStatusGoldLbl = createStatusLabel("GOLD: 0", 20f, Theme.GOLD);
+        namePanel.add(mapStatusPlayerNameLbl);
+        namePanel.add(mapStatusGoldLbl);
+
+        playerHeaderPanel.add(leftBtn, BorderLayout.WEST);
+        playerHeaderPanel.add(namePanel, BorderLayout.CENTER);
+        playerHeaderPanel.add(rightBtn, BorderLayout.EAST);
+
+        playerPanel.add(playerHeaderPanel, BorderLayout.NORTH);
+
+        // Unit List
+        mapStatusUnitsListContainer = new JPanel();
+        mapStatusUnitsListContainer.setLayout(new BoxLayout(mapStatusUnitsListContainer, BoxLayout.Y_AXIS));
+        mapStatusUnitsListContainer.setOpaque(false);
+
+        JScrollPane scrollPane = new JScrollPane(mapStatusUnitsListContainer);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(20, 10, 10, 10));
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
+        playerPanel.add(scrollPane, BorderLayout.CENTER);
+
+        mapStatusUnitsCountLbl = createStatusLabel("UNITS ALIVE: 0", 18f, Color.LIGHT_GRAY);
+        playerPanel.add(mapStatusUnitsCountLbl, BorderLayout.SOUTH);
+
+        contentPanel.add(playerPanel, BorderLayout.CENTER);
+        overlay.add(contentPanel, BorderLayout.CENTER);
+
+        // Click outside to close
+        overlay.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                if (e.getSource() == overlay) hideMapStatusScreen();
+            }
+        });
+        
+        return overlay;
+    }
+
+    private void cycleMapStatusPlayer(int direction) {
+        if (players == null || players.isEmpty()) return;
+        mapStatusViewPlayerIdx = (mapStatusViewPlayerIdx + direction + players.size()) % players.size();
+        updateMapStatusScreen();
+        game.core.util.SoundManager.playCursor();
+    }
+
+    private void showMapStatusScreen() {
+        if (players == null || players.isEmpty()) return;
+        mapStatusViewPlayerIdx = currentPlayerIdx;
+        updateMapStatusScreen();
+        mapStatusOverlay.setVisible(true);
+        game.core.util.SoundManager.playDecide();
+    }
+
+    private void hideMapStatusScreen() {
+        if (mapStatusOverlay != null) {
+            mapStatusOverlay.setVisible(false);
+            game.core.util.SoundManager.playCancel();
+        }
+    }
+
+    private void updateMapStatusScreen() {
+        if (players == null || players.isEmpty()) return;
+        
+        mapStatusTurnLbl.setText("DAY: " + currentDay);
+        String weatherStr = (currentWeather != null && currentWeather != Weather.NONE) ? currentWeather.toString() : "Clear";
+        mapStatusWeatherLbl.setText("WEATHER: " + weatherStr);
+        
+        VersusScreen.PlayerSettings p = players.get(mapStatusViewPlayerIdx);
+        mapStatusPlayerNameLbl.setText("PLAYER " + (mapStatusViewPlayerIdx + 1));
+        mapStatusPlayerNameLbl.setForeground(p.color);
+        mapStatusGoldLbl.setText("GOLD: " + p.gold);
+        
+        mapStatusUnitsListContainer.removeAll();
+        int count = 0;
+        for (MapUnit u : units) {
+            if (!u.isDead && u.ownerIndex == mapStatusViewPlayerIdx) {
+                count++;
+                JPanel row = new JPanel(new BorderLayout());
+                row.setOpaque(false);
+                row.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                row.setMaximumSize(new Dimension(800, 40));
+                
+                JLabel nameLbl = createStatusLabel(u.unitName, 20f, Color.WHITE);
+                nameLbl.setHorizontalAlignment(SwingConstants.LEFT);
+                
+                JLabel hpLbl = createStatusLabel("HP " + u.currentHp + "/" + (u.stats != null ? u.stats.maxHp : "??"), 20f, new Color(100, 255, 100));
+                hpLbl.setHorizontalAlignment(SwingConstants.RIGHT);
+                
+                row.add(nameLbl, BorderLayout.WEST);
+                row.add(hpLbl, BorderLayout.EAST);
+                
+                mapStatusUnitsListContainer.add(row);
+            }
+        }
+        
+        mapStatusUnitsCountLbl.setText("UNITS ALIVE: " + count);
+        mapStatusUnitsListContainer.revalidate();
+        mapStatusUnitsListContainer.repaint();
     }
 
     private List<BufferedImage> loadDeployPreviewFrames(String category, String unitName) {
@@ -3875,7 +4538,7 @@ public class VersusGameplayScreen extends BaseScreen {
     public void deployUnit(String cat, String name, int cost, EventInfo ev) {
         VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
         if (p.gold < cost) { JOptionPane.showMessageDialog(this, "Not enough gold!"); return; }
-        p.gold -= cost; goldLabel.setText("🪙 " + p.gold); layoutGameLayer();
+        p.gold -= cost; layoutGameLayer();
         MapUnit u = new MapUnit(cat, name, MapUnit.Faction.PLAYER, new Point(ev.x, ev.y)); u.ownerIndex = currentPlayerIdx;
         
         List<WeaponItem> defaultWeapons = UnitRegistry.getDefaultWeapons(cat, name);
@@ -3893,6 +4556,10 @@ public class VersusGameplayScreen extends BaseScreen {
         endTurnOpt.addActionListener(e -> nextTurn());
         menu.add(endTurnOpt);
         
+        JMenuItem infoOpt = createStyledMenuItem("Info");
+        infoOpt.addActionListener(e -> showMapStatusScreen());
+        menu.add(infoOpt);
+
         JMenuItem settingsOpt = createStyledMenuItem("Settings (Menu)");
         settingsOpt.addActionListener(e -> toggleMenu());
         menu.add(settingsOpt);
@@ -3935,6 +4602,124 @@ public class VersusGameplayScreen extends BaseScreen {
         
         if (isBattleActive) { updateBattle(); repaint(); return; }
         if (isCaptureAnimActive) { updateCaptureAnim(); canvasPanel.repaint(); repaint(); return; }
+        
+        if (isTurnStartAnimActive) {
+            VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
+            
+            if (turnStartAnimPhase == 0) {
+                if (p.gold < turnStartTargetGold) {
+                    int increment = Math.max(1, (turnStartTargetGold - p.gold) / 30);
+                    p.gold = Math.min(turnStartTargetGold, p.gold + increment);
+                    game.core.util.SoundManager.playGoldCount();
+                    goldLabel.setText("🪙 " + p.gold);
+                } else {
+                    game.core.util.SoundManager.stopGoldCount();
+                    turnStartAnimPhase = 1;
+                }
+            } 
+            else if (turnStartAnimPhase == 1) {
+                if (turnStartResupplyQueue.isEmpty()) {
+                    isTurnStartAnimActive = false;
+                    animatedDisplayGold = p.gold; // Sync generic ticker
+                    phaseBannerTimer = 120; // 2 seconds at 60fps
+                } else {
+                    currentResupplyUnit = turnStartResupplyQueue.remove(0);
+                    
+                    cameraTargetX = currentResupplyUnit.position.x * 64 + 32;
+                    cameraTargetY = currentResupplyUnit.position.y * 64 + 32;
+                    
+                    // Pre-calculate what will be restored so we know exactly how much gold to subtract
+                    int maxHeal = (int)Math.ceil(currentResupplyUnit.stats.maxHp * 0.20);
+                    resupplyTargetHp = currentResupplyUnit.currentHp + Math.min(maxHeal, currentResupplyUnit.stats.maxHp - currentResupplyUnit.currentHp);
+                    
+                    resupplyDurabilityLeft = 0;
+                    for (game.core.unit.WeaponItem w : currentResupplyUnit.inventory) {
+                        resupplyDurabilityLeft += (w.maxUses - w.currentUses);
+                    }
+                    
+                    resupplySupplierLeft = 0;
+                    if ("Supplier".equalsIgnoreCase(currentResupplyUnit.unitName) || "Supplier".equalsIgnoreCase(currentResupplyUnit.stats.unitName)) {
+                        resupplySupplierLeft = Math.max(0, 5 - currentResupplyUnit.supplyUses);
+                    }
+                    
+                    int supplierCost = 0;
+                    int actualSupplierUses = 0;
+                    while (resupplySupplierLeft > 0 && p.gold - supplierCost >= 20) {
+                        actualSupplierUses++;
+                        supplierCost += 20;
+                        resupplySupplierLeft--;
+                    }
+                    resupplySupplierLeft = actualSupplierUses; // We now know exactly how many we can afford
+                    
+                    int hpNeeded = resupplyTargetHp - currentResupplyUnit.currentHp;
+                    int pointsNeeded = hpNeeded + resupplyDurabilityLeft;
+                    int pointsCost = 0;
+                    int actualPoints = pointsNeeded;
+                    
+                    if (pointsNeeded > 0) {
+                        int cost = game.core.unit.UnitFunctions.calculateResupplyCost(pointsNeeded);
+                        if (p.gold - supplierCost < cost) {
+                            if (cost > 0) actualPoints = (int)((double)(p.gold - supplierCost) / cost * pointsNeeded);
+                            pointsCost = p.gold - supplierCost;
+                        } else {
+                            pointsCost = cost;
+                        }
+                    }
+                    
+                    turnStartTargetGold = p.gold - supplierCost - pointsCost;
+                    
+                    // We also recalculate resupplyTargetHp based on actualPoints
+                    resupplyTargetHp = currentResupplyUnit.currentHp + Math.min(hpNeeded, actualPoints);
+                    resupplyDurabilityLeft = actualPoints - (resupplyTargetHp - currentResupplyUnit.currentHp);
+                    
+                    turnStartAnimPhase = 2;
+                }
+            } 
+            else if (turnStartAnimPhase == 2) {
+                // Wait for camera to settle
+                if (Math.abs(cameraTargetX - cameraCurrentX) < 5 && Math.abs(cameraTargetY - cameraCurrentY) < 5) {
+                    if (p.gold > turnStartTargetGold || currentResupplyUnit.currentHp < resupplyTargetHp || resupplySupplierLeft > 0 || resupplyDurabilityLeft > 0) {
+                        
+                        if (p.gold > turnStartTargetGold) {
+                            int decrement = Math.max(1, (p.gold - turnStartTargetGold) / 30);
+                            p.gold = Math.max(turnStartTargetGold, p.gold - decrement);
+                            goldLabel.setText("🪙 " + p.gold);
+                        }
+                        
+                        if (currentResupplyUnit.currentHp < resupplyTargetHp) {
+                            currentResupplyUnit.currentHp++;
+                        } else if (resupplySupplierLeft > 0) {
+                            currentResupplyUnit.supplyUses++;
+                            resupplySupplierLeft--;
+                        } else if (resupplyDurabilityLeft > 0) {
+                            for (game.core.unit.WeaponItem w : currentResupplyUnit.inventory) {
+                                if (w.currentUses < w.maxUses) {
+                                    w.currentUses++;
+                                    resupplyDurabilityLeft--;
+                                    break;
+                                }
+                            }
+                        }
+                        game.core.util.SoundManager.playGoldCount();
+                    } else {
+                        game.core.util.SoundManager.stopGoldCount();
+                        resupplyAnimTimer = 30; // Half a second pause
+                        turnStartAnimPhase = 3;
+                    }
+                }
+            }
+            else if (turnStartAnimPhase == 3) {
+                resupplyAnimTimer--;
+                if (resupplyAnimTimer <= 0) {
+                    turnStartAnimPhase = 1;
+                }
+            }
+            
+            updateSmoothCamera();
+            canvasPanel.repaint();
+            repaint();
+            return;
+        }
         if (phaseBannerTimer > 0) {
             phaseBannerTimer--;
             needsRepaint = true;
@@ -3949,6 +4734,25 @@ public class VersusGameplayScreen extends BaseScreen {
                 return entry.getValue() <= 0;
             });
             needsRepaint = true;
+        }
+
+        // ── Generic Gold Ticker for smooth counting (e.g. Recruiting) ──
+        if (!isTurnStartAnimActive && players != null && currentPlayerIdx < players.size()) {
+            VersusScreen.PlayerSettings p = players.get(currentPlayerIdx);
+            if (animatedDisplayGold < 0) animatedDisplayGold = p.gold;
+            if (Math.abs(animatedDisplayGold - p.gold) > 0.5) {
+                double diff = p.gold - animatedDisplayGold;
+                double step = Math.max(1.0, Math.abs(diff) / 20.0);
+                if (animatedDisplayGold < p.gold) animatedDisplayGold = Math.min(p.gold, animatedDisplayGold + step);
+                else animatedDisplayGold = Math.max(p.gold, animatedDisplayGold - step);
+                
+                goldLabel.setText("🪙 " + (int)animatedDisplayGold);
+                game.core.util.SoundManager.playGoldCount();
+            } else {
+                animatedDisplayGold = p.gold;
+                goldLabel.setText("🪙 " + p.gold);
+                game.core.util.SoundManager.stopGoldCount();
+            }
         }
 
         // ── Animate health bars ──

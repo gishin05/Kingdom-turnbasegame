@@ -26,6 +26,7 @@ public class SoundManager {
     private static Clip sfxCancel;
     private static Clip sfxWindow;
     private static MediaPlayer bgmPlayer;
+    private static MediaPlayer sfxGoldCount;
     private static float sfxVolume = 1.0f;
     private static double masterBgmVolume = 1.0;
 
@@ -89,23 +90,47 @@ public class SoundManager {
     private static void initBgm() {
         try {
             File bgmFile = new File(GamePaths.BUNDLED_ROOT, "audio/BGsounds.mp3");
-            if (bgmFile.exists()) {
-                Platform.runLater(() -> {
-                    try {
+            File goldFile = new File(GamePaths.BUNDLED_ROOT, "audio/goldcount.mp3");
+            Platform.runLater(() -> {
+                try {
+                    if (bgmFile.exists()) {
                         Media media = new Media(bgmFile.toURI().toString());
                         bgmPlayer = new MediaPlayer(media);
                         bgmPlayer.setCycleCount(MediaPlayer.INDEFINITE);
                         bgmPlayer.setVolume(masterBgmVolume);
                         bgmPlayer.play();
-                    } catch (Exception e) {
-                        System.err.println("Error initializing JavaFX MediaPlayer: " + e.getMessage());
                     }
-                });
-            } else {
-                System.err.println("BGM File not found: " + bgmFile.getAbsolutePath());
-            }
+                    if (goldFile.exists()) {
+                        Media mediaGold = new Media(goldFile.toURI().toString());
+                        sfxGoldCount = new MediaPlayer(mediaGold);
+                        sfxGoldCount.setCycleCount(MediaPlayer.INDEFINITE);
+                        sfxGoldCount.setVolume(sfxVolume);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error initializing JavaFX MediaPlayer: " + e.getMessage());
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void playGoldCount() {
+        if (sfxGoldCount != null) {
+            Platform.runLater(() -> {
+                sfxGoldCount.setVolume(sfxVolume);
+                if (sfxGoldCount.getStatus() != MediaPlayer.Status.PLAYING) {
+                    sfxGoldCount.play();
+                }
+            });
+        }
+    }
+
+    public static void stopGoldCount() {
+        if (sfxGoldCount != null) {
+            Platform.runLater(() -> {
+                sfxGoldCount.stop();
+            });
         }
     }
 

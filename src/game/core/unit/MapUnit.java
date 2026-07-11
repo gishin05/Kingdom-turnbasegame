@@ -40,6 +40,7 @@ public class MapUnit {
     public int animFrame = 0;
     public int animTimer = 0;
     public int   currentHp;                   // live HP; starts at stats.maxHp
+    public int   supplyUses = 5;              // remaining supply uses for supplier units
     public boolean hasMoved  = false;         // used move this turn
     public boolean hasActed  = false;         // used action this turn (attacked/waited)
     public boolean isDead    = false;
@@ -61,7 +62,7 @@ public class MapUnit {
     /** Equip the first usable weapon automatically (mirrors FE8's auto-equip) */
     public void autoEquip() {
         for (int i = 0; i < inventory.size(); i++) {
-            if (!inventory.get(i).isBroken() && inventory.get(i).isWeapon()) {
+            if (!inventory.get(i).isBroken() && inventory.get(i).isWeapon() && UnitWeapon.canUseWeapon(this, inventory.get(i))) {
                 equippedSlot = i;
                 return;
             }
@@ -170,8 +171,10 @@ public class MapUnit {
 
     /** Can this unit attack 'target' with its equipped weapon? */
     public boolean canAttack(MapUnit other) {
+        boolean isSupplier = "Supplier".equalsIgnoreCase(unitName) || (stats != null && "Supplier".equalsIgnoreCase(stats.unitName));
+        if (isSupplier) return false;
         WeaponItem w = getEquipped();
-        if (w == null || !w.isWeapon()) return false;
+        if (w == null || !w.isWeapon() || !UnitWeapon.canUseWeapon(this, w)) return false;
         return w.coversRange(distanceTo(other));
     }
 

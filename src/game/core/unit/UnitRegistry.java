@@ -123,7 +123,7 @@ public class UnitRegistry {
 
     public static List<WeaponItem> getDefaultWeapons(String cat, String name) {
         List<WeaponItem> weapons = new ArrayList<>();
-        if ("Fleet".equalsIgnoreCase(name)) return weapons;
+        if ("Fleet".equalsIgnoreCase(name) || "Supplier".equalsIgnoreCase(name)) return weapons;
         
         File battleDir = new File(game.core.util.GamePaths.BATTLE, cat + "/" + name);
         if (!battleDir.exists()) battleDir = new File(game.core.util.GamePaths.BATTLE, name);
