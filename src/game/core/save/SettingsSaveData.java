@@ -14,12 +14,14 @@ public class SettingsSaveData {
     public double bgmVolume = 1.0;
     public float sfxVolume = 1.0f;
     public int resolutionIndex = 3; // Default 1920x1080
+    public int mapSizeIndex = 0;
 
     public void writeTo(File file) {
         Properties p = new Properties();
         p.setProperty("bgmVolume", String.valueOf(bgmVolume));
         p.setProperty("sfxVolume", String.valueOf(sfxVolume));
         p.setProperty("resolutionIndex", String.valueOf(resolutionIndex));
+        p.setProperty("mapSizeIndex", String.valueOf(mapSizeIndex));
         
         file.getParentFile().mkdirs();
         try (OutputStream os = new FileOutputStream(file)) {
@@ -39,6 +41,7 @@ public class SettingsSaveData {
             d.bgmVolume = Double.parseDouble(p.getProperty("bgmVolume", "1.0"));
             d.sfxVolume = Float.parseFloat(p.getProperty("sfxVolume", "1.0"));
             d.resolutionIndex = Integer.parseInt(p.getProperty("resolutionIndex", "3"));
+            d.mapSizeIndex = Integer.parseInt(p.getProperty("mapSizeIndex", "0"));
         } catch (Exception e) {
             e.printStackTrace();
         }

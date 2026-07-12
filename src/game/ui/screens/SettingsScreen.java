@@ -29,6 +29,7 @@ public class SettingsScreen extends BaseScreen {
     private JLabel bgmValueLabel;
     private JLabel sfxValueLabel;
     private JComboBox<String> resolutionBox;
+    private JComboBox<String> mapSizeBox;
     private String backScreen = Main.MENU;
 
     private float selectionGlow = 0f;
@@ -190,6 +191,25 @@ public class SettingsScreen extends BaseScreen {
 
         settingsPanel.add(Box.createVerticalStrut(36));
 
+        // ── GAMEPLAY SECTION ──
+        settingsPanel.add(createSectionHeader("GAMEPLAY"));
+        settingsPanel.add(Box.createVerticalStrut(20));
+
+        settingsPanel.add(createSliderLabel("MAP SIZE (ZOOM TO FIT)"));
+        settingsPanel.add(Box.createVerticalStrut(6));
+
+        String[] mapSizeOptions = {"15x10", "20x15", "25x20", "30x25", "40x30", "50x50"};
+        mapSizeBox = new JComboBox<>(mapSizeOptions);
+        mapSizeBox.setFont(Theme.getPixelFont(16f));
+        mapSizeBox.setForeground(Color.WHITE);
+        mapSizeBox.setBackground(new Color(30, 30, 50));
+        mapSizeBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        mapSizeBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        mapSizeBox.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0, 60)));
+        settingsPanel.add(mapSizeBox);
+
+        settingsPanel.add(Box.createVerticalStrut(36));
+
         // ── APPLY / RESET ──
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 0));
         btnRow.setOpaque(false);
@@ -202,6 +222,7 @@ public class SettingsScreen extends BaseScreen {
             bgmSlider.setValue(100);
             sfxSlider.setValue(100);
             resolutionBox.setSelectedIndex(3); // 1920x1080
+            mapSizeBox.setSelectedIndex(0);
         });
         btnRow.add(resetBtn);
 
@@ -212,6 +233,7 @@ public class SettingsScreen extends BaseScreen {
             data.bgmVolume = bgmSlider.getValue() / 100.0;
             data.sfxVolume = sfxSlider.getValue() / 100.0f;
             data.resolutionIndex = resolutionBox.getSelectedIndex();
+            data.mapSizeIndex = mapSizeBox.getSelectedIndex();
             game.core.save.SaveManager.saveSettings(data);
             main.showScreen(backScreen);
         });
@@ -387,6 +409,11 @@ public class SettingsScreen extends BaseScreen {
         resolutionBox.setSelectedIndex(findCurrentResolutionIndex());
         
         for (ActionListener l : listeners) resolutionBox.addActionListener(l);
+
+        game.core.save.SettingsSaveData data = game.core.save.SaveManager.loadSettings();
+        if (data != null && data.mapSizeIndex >= 0 && data.mapSizeIndex < mapSizeBox.getItemCount()) {
+            mapSizeBox.setSelectedIndex(data.mapSizeIndex);
+        }
 
         revalidate();
         repaint();

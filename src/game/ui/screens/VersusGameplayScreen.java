@@ -534,7 +534,23 @@ public class VersusGameplayScreen extends BaseScreen {
             }
         };
         canvasPanel.setBackground(new Color(20, 20, 25));
-        scrollPane = new JScrollPane(canvasPanel);
+        
+        JPanel canvasWrapper = new JPanel(new GridBagLayout()) {
+            @Override
+            public Dimension getPreferredSize() {
+                Dimension p = super.getPreferredSize();
+                if (scrollPane != null && scrollPane.getViewport() != null) {
+                    Dimension v = scrollPane.getViewport().getSize();
+                    p.width = Math.max(p.width, v.width);
+                    p.height = Math.max(p.height, v.height);
+                }
+                return p;
+            }
+        };
+        canvasWrapper.setBackground(new Color(20, 20, 25));
+        canvasWrapper.add(canvasPanel);
+
+        scrollPane = new JScrollPane(canvasWrapper);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
@@ -722,6 +738,23 @@ public class VersusGameplayScreen extends BaseScreen {
         int w = gameLayer.getWidth();
         int h = gameLayer.getHeight();
         if (w <= 0 || h <= 0) return;
+        
+        game.core.save.SettingsSaveData settings = game.core.save.SaveManager.loadSettings();
+        if (settings != null) {
+            int sizeIdx = settings.mapSizeIndex;
+            int mapTilesW = 15;
+            int mapTilesH = 10;
+            if (sizeIdx == 1) { mapTilesW = 20; mapTilesH = 15; }
+            else if (sizeIdx == 2) { mapTilesW = 25; mapTilesH = 20; }
+            else if (sizeIdx == 3) { mapTilesW = 30; mapTilesH = 25; }
+            else if (sizeIdx == 4) { mapTilesW = 40; mapTilesH = 30; }
+            else if (sizeIdx == 5) { mapTilesW = 50; mapTilesH = 50; }
+            
+            float zoomX = (float) w / (mapTilesW * 16.0f);
+            float zoomY = (float) h / (mapTilesH * 16.0f);
+            this.zoomScale = Math.max(1.0f, Math.min(zoomX, zoomY));
+        }
+
         scrollPane.setBounds(0, 0, w, h);
         if (menuOverlay != null) menuOverlay.setBounds(0, 0, w, h);
         
@@ -1551,7 +1584,7 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
                 
                 if (("Cavalier".equalsIgnoreCase(u.unitName) || "Pegasus".equalsIgnoreCase(u.unitName) || "Pegasus Knight".equalsIgnoreCase(u.unitName)) 
-                    && !action.equals("Walk_Up") && !action.equals("Walk_Down")) {
+                    && (action.equals("Standing") || action.equals("Selected"))) {
                     mirror = !mirror;
                 }
                 
@@ -2685,14 +2718,19 @@ public class VersusGameplayScreen extends BaseScreen {
 
     private void showActionMenu(MapUnit u) {
         int tileX = (int)(u.position.x * 16 * zoomScale);
+        
         int tileY = (int)(u.position.y * 16 * zoomScale);
         
-        int menuX = tileX + (int)(24 * zoomScale);
-        int menuY = tileY - (int)(8 * zoomScale);
-        
         Rectangle viewRect = scrollPane.getViewport().getViewRect();
-        if (menuX + 200 > viewRect.x + viewRect.width) {
-            menuX = tileX - 200; // Place it on the left if too close to right edge
+        int viewCenterX = viewRect.x + viewRect.width / 2;
+        
+        int menuX;
+        int menuY = tileY - (int)(8 * zoomScale); // Display near the unit vertically
+        
+        if (tileX > viewCenterX) {
+            menuX = viewRect.x + 16; // Display on left side
+        } else {
+            menuX = viewRect.x + viewRect.width - 160; // Display on right side (reduced offset for tighter background)
         }
         
         showMainActionMenu(u, menuX, menuY);
@@ -2716,20 +2754,36 @@ public class VersusGameplayScreen extends BaseScreen {
     private JPopupMenu activePopupMenu = null;
 
     private JPopupMenu createStyledMenu() {
+        float menuScale = 2.5f;
         JPopupMenu menu = new JPopupMenu() {
             @Override
             protected void paintComponent(java.awt.Graphics g) {
-                // Draw 9-slice Fire Emblem menu background
-                if (Theme.MENU_BACKGROUND != null) {
-                    Theme.draw9Slice(g, Theme.MENU_BACKGROUND, 0, 0, getWidth(), getHeight());
+                float menuScale = 2.5f;
+                int bgX = (int)(6 * menuScale);
+                int bgY = (int)(12 * menuScale);
+                int bgW = getWidth() - (int)(8 * menuScale);
+                int bgH = getHeight() - (int)(12 * menuScale); // Fixed height to prevent bottom clipping
+
+                // Draw stretched base background using 9-slice to preserve borders
+                if (Theme.MENU_BG_BASE != null) {
+                    Theme.draw9SliceScaled(g, Theme.MENU_BG_BASE, bgX, bgY, bgW, bgH, menuScale);
+                } else if (Theme.MENU_BACKGROUND != null) {
+                    Theme.draw9SliceScaled(g, Theme.MENU_BACKGROUND, bgX, bgY, bgW, bgH, menuScale);
                 } else {
                     super.paintComponent(g);
+                }
+                
+                if (Theme.MENU_GEM_SMALL != null) {
+                    // Align the white highlight pixels of both the gem and the menu border
+                    int gemW = (int)(Theme.MENU_GEM_SMALL.getWidth() * menuScale);
+                    int gemH = (int)(Theme.MENU_GEM_SMALL.getHeight() * menuScale);
+                    g.drawImage(Theme.MENU_GEM_SMALL, (int)(4 * menuScale), (int)(8 * menuScale), gemW, gemH, null);
                 }
             }
         };
         menu.setOpaque(false); // crucial for the custom background to show properly
         menu.setBackground(new Color(0, 0, 0, 0)); // transparent background
-        menu.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6)); // padding inside the borders
+        menu.setBorder(BorderFactory.createEmptyBorder((int)(12 * menuScale), 0, (int)(4 * menuScale), 0)); // 0 horizontal padding to let hand cursor overlay
         
         // Use a MenuKeyListener to properly intercept W, A, S, D within the popup menu
         // [KEYBOARD_CONTROL_MARKER] - Action Menu Keyboard Navigation
@@ -2766,6 +2820,22 @@ public class VersusGameplayScreen extends BaseScreen {
             @Override public void menuKeyTyped(javax.swing.event.MenuKeyEvent e) {}
         });
         
+        menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                if (playerPanel != null) playerPanel.setVisible(false);
+                if (enemyPanel != null) enemyPanel.setVisible(false);
+            }
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+                if (playerPanel != null) playerPanel.setVisible(true);
+            }
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+                if (playerPanel != null) playerPanel.setVisible(true);
+            }
+        });
+
         activePopupMenu = menu;
         return menu;
     }
@@ -2800,30 +2870,96 @@ public class VersusGameplayScreen extends BaseScreen {
         game.core.util.SoundManager.playCursor();
     }
 
+    private void showPopupMenu(JPopupMenu menu, int x, int y) {
+        if (scrollPane == null || scrollPane.getViewport() == null) {
+            menu.show(canvasPanel, x, y);
+            return;
+        }
+        
+        java.awt.Component parent = scrollPane.getViewport();
+        int viewWidth = parent.getWidth();
+        int viewCenterX = viewWidth / 2;
+        
+        // Map the target 'x' from canvasPanel coordinates to viewport coordinates
+        Point viewPos = scrollPane.getViewport().getViewPosition();
+        int viewX = x - viewPos.x;
+        
+        int adjustedX;
+        if (viewX > viewCenterX) {
+            // Right-aligned menu: calculate exact x to have 16px padding on the right edge
+            int menuWidth = menu.getPreferredSize().width;
+            adjustedX = viewWidth - menuWidth - 16;
+        } else {
+            // Left-aligned menu: exactly 16px from left edge
+            adjustedX = 16;
+        }
+        int adjustedY = 16; // Pin strictly to the top of the viewport (16px padding)
+        
+        menu.show(parent, adjustedX, adjustedY);
+    }
+
     private JMenuItem createStyledMenuItem(String text) {
+        float menuScale = 2.5f;
         JMenuItem item = new JMenuItem(text) {
             @Override
             protected void paintComponent(java.awt.Graphics g) {
-                // Do not paint the default UI to avoid LookAndFeel transparency glitches
-                // super.paintComponent(g);
+                float menuScale = 2.5f;
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                
+                // Disable all anti-aliasing and enable nearest neighbor for pixel art rendering
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_OFF);
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                g2.scale(menuScale, menuScale);
+                
+                int unscaledWidth = (int)(getWidth() / menuScale);
+                int unscaledHeight = (int)(getHeight() / menuScale);
                 
                 // Draw hand cursor if selected/armed
                 if (getModel().isArmed() && Theme.MENU_HAND != null) {
-                    int handY = (getHeight() - Theme.MENU_HAND.getHeight()) / 2;
-                    g.drawImage(Theme.MENU_HAND, 4, handY, null);
+                    int handW = Theme.MENU_HAND.getWidth();
+                    int handH = Theme.MENU_HAND.getHeight();
+                    int handY = (unscaledHeight - handH) / 2;
+                    g2.drawImage(Theme.MENU_HAND, 0, handY, handW, handH, null);
                 }
                 
-                // Draw text manually
-                g.setColor(getForeground());
-                g.setFont(getFont());
-                java.awt.FontMetrics fm = g.getFontMetrics();
-                int textY = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-                g.drawString(getText(), 28, textY);
+                // Scale again by 1.0 for text. This keeps the 8f font at its native size,
+                // making it significantly smaller on screen while preserving the perfect 1-pixel strokes.
+                float textScaleFactor = 1.0f;
+                g2.scale(textScaleFactor, textScaleFactor);
+                // Draw text manually using a standard logical font at a small size (10px).
+                // Without anti-aliasing, this guarantees a perfect 1-logical-pixel stroke thickness.
+                g2.setFont(new java.awt.Font("Dialog", java.awt.Font.PLAIN, 10)); 
+                java.awt.FontMetrics fm = g2.getFontMetrics();
+                
+                // Calculate positions in the scaled coordinate system
+                float scaledHeight = unscaledHeight / textScaleFactor;
+                int textY = (int)((scaledHeight - fm.getHeight()) / 2) + fm.getAscent();
+                int textX = (int)(24 / textScaleFactor);
+                
+                // Draw dark border/outline (1 logical pixel thick in the new scaled coordinates, matching the 1-pixel text stroke)
+                g2.setColor(new Color(20, 20, 25));
+                int offset = 1;
+                g2.drawString(getText(), textX - offset, textY);
+                g2.drawString(getText(), textX + offset, textY);
+                g2.drawString(getText(), textX, textY - offset);
+                g2.drawString(getText(), textX, textY + offset);
+                
+                // Draw main text
+                if (!isEnabled()) {
+                    g2.setColor(Color.GRAY);
+                } else {
+                    g2.setColor(getForeground());
+                }
+                g2.drawString(getText(), textX, textY);
+                g2.dispose();
             }
         };
-        item.setFont(Theme.getPixelFont(16f));
+        // The component's bounds are still determined by its preferred size.
+        // We set the font and borders to the SCALED size so the LayoutManager allocates the correct space.
+        item.setFont(new java.awt.Font("Dialog", java.awt.Font.PLAIN, (int)(10 * menuScale)));
         item.setForeground(Color.WHITE);
-        item.setBorder(BorderFactory.createEmptyBorder(6, 28, 6, 12));
+        item.setBorder(BorderFactory.createEmptyBorder((int)(4 * menuScale), (int)(24 * menuScale), (int)(4 * menuScale), (int)(16 * menuScale))); // Adjusted padding for a tighter fit
         item.setOpaque(false);
         item.setBackground(new Color(0, 0, 0, 0));
         
@@ -2985,7 +3121,7 @@ public class VersusGameplayScreen extends BaseScreen {
         });
         menu.add(infoOpt);
         
-        menu.show(canvasPanel, x, y);
+        showPopupMenu(menu, x, y);
     }
 
     /**
@@ -3182,7 +3318,7 @@ public class VersusGameplayScreen extends BaseScreen {
         });
         menu.add(backOpt);
         
-        menu.show(canvasPanel, x, y);
+        showPopupMenu(menu, x, y);
     }
 
     private void showTargetSelectionMenu(MapUnit u, WeaponItem wi, List<MapUnit> targets, int x, int y) {
@@ -3231,7 +3367,7 @@ public class VersusGameplayScreen extends BaseScreen {
         });
         menu.add(backOpt);
         
-        menu.show(canvasPanel, x, y);
+        showPopupMenu(menu, x, y);
     }
 
     private void showItemSelectionMenu(MapUnit u, int x, int y) {
@@ -3256,7 +3392,7 @@ public class VersusGameplayScreen extends BaseScreen {
         });
         menu.add(backOpt);
         
-        menu.show(canvasPanel, x, y);
+        showPopupMenu(menu, x, y);
     }
 
     private void showLoadSelectionMenu(MapUnit u, List<MapUnit> targets, int x, int y) {
@@ -3301,7 +3437,7 @@ public class VersusGameplayScreen extends BaseScreen {
             showMainActionMenu(u, x, y);
         });
         menu.add(backOpt);
-        menu.show(canvasPanel, x, y);
+        showPopupMenu(menu, x, y);
     }
 
     private void showDropSelectionMenu(MapUnit u, MapUnit droppedUnit, List<Point> tiles, int x, int y) {
@@ -3347,7 +3483,7 @@ public class VersusGameplayScreen extends BaseScreen {
             showMainActionMenu(u, x, y);
         });
         menu.add(backOpt);
-        menu.show(canvasPanel, x, y);
+        showPopupMenu(menu, x, y);
     }
 
     private void showItemActionMenu(MapUnit u, WeaponItem wi, int x, int y) {
@@ -3388,7 +3524,7 @@ public class VersusGameplayScreen extends BaseScreen {
         });
         menu.add(backOpt);
         
-        menu.show(canvasPanel, x, y);
+        showPopupMenu(menu, x, y);
     }
 
     private int getBattleMode(boolean isCrit, int distance) {
@@ -4560,11 +4696,23 @@ public class VersusGameplayScreen extends BaseScreen {
         infoOpt.addActionListener(e -> showMapStatusScreen());
         menu.add(infoOpt);
 
-        JMenuItem settingsOpt = createStyledMenuItem("Settings (Menu)");
+        JMenuItem settingsOpt = createStyledMenuItem("Settings");
         settingsOpt.addActionListener(e -> toggleMenu());
         menu.add(settingsOpt);
         
-        menu.show(canvasPanel, x, y);
+        Rectangle viewRect = scrollPane.getViewport().getViewRect();
+        int viewCenterX = viewRect.x + viewRect.width / 2;
+        
+        int menuX;
+        int menuY = y - (int)(8 * zoomScale); // Display near the cursor vertically
+        
+        if (x > viewCenterX) {
+            menuX = viewRect.x + 16; // Display on left side
+        } else {
+            menuX = viewRect.x + viewRect.width - 160; // Display on right side (reduced offset for tighter background)
+        }
+        
+        showPopupMenu(menu, menuX, menuY);
     }
 
     @Override public void update() {
@@ -5093,6 +5241,16 @@ public class VersusGameplayScreen extends BaseScreen {
                     updateEnemyPanel();
                 }
             }
+        }
+    }
+    
+    @Override
+    public void refresh() {
+        super.refresh();
+        layoutGameLayer();
+        if (canvasPanel != null) {
+            canvasPanel.revalidate();
+            canvasPanel.repaint();
         }
     }
 }

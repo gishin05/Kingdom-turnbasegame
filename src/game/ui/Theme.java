@@ -30,8 +30,8 @@ public class Theme {
     public static final Color HIGHLIGHT = new Color(255, 230, 100);
     
     // --- Fonts ---
-    private static final String MAIN_FONT_PATH = GamePaths.bundledFile("fonts/pixel_font.ttf").getPath();
-    private static final String ACCENT_FONT_PATH = GamePaths.bundledFile("fonts/pixel_font.ttf").getPath();
+    private static final String MAIN_FONT_PATH = GamePaths.bundledFile("fonts/PressStart2P.ttf").getPath();
+    private static final String ACCENT_FONT_PATH = GamePaths.bundledFile("fonts/PressStart2P.ttf").getPath();
     
     // --- UI Sprites ---
     public static java.awt.image.BufferedImage MENU_BACKGROUND;
@@ -40,10 +40,14 @@ public class Theme {
     public static java.awt.image.BufferedImage HEALTH_BAR;
     public static java.awt.image.BufferedImage HEALTH_BAR_BG;
     public static java.awt.image.BufferedImage MAP_CURSOR;
+    public static java.awt.image.BufferedImage MENU_BG_BASE;
+    public static java.awt.image.BufferedImage MENU_GEM_SMALL;
     
     static {
         try {
             MENU_BACKGROUND = javax.imageio.ImageIO.read(GamePaths.uiFile("BaseMenuBackground.png"));
+            MENU_BG_BASE = javax.imageio.ImageIO.read(GamePaths.bundledFile("graphics/ui/menu_bg_base.png"));
+            MENU_GEM_SMALL = javax.imageio.ImageIO.read(GamePaths.bundledFile("graphics/ui/menu_gem_small.png"));
             MENU_HAND = javax.imageio.ImageIO.read(GamePaths.uiFile("menuHand.png"));
             BATTLE_INFO_BG = javax.imageio.ImageIO.read(GamePaths.uiFile("BattleInfo.png"));
             HEALTH_BAR = javax.imageio.ImageIO.read(GamePaths.uiFile("HealthBar.png"));
@@ -96,5 +100,28 @@ public class Theme {
         
         // Draw center
         g.drawImage(img, x+cw, y+ch, x+width-cw, y+height-ch, cw, ch, w-cw, h-ch, null);
+    }
+
+    public static void draw9SliceScaled(java.awt.Graphics g, java.awt.image.BufferedImage img, int x, int y, int width, int height, float scale) {
+        if (img == null) return;
+        int w = img.getWidth();
+        int h = img.getHeight();
+        int cw = (int)((w / 3) * scale);
+        int ch = (int)((h / 3) * scale);
+        
+        // Draw corners
+        g.drawImage(img, x, y, x+cw, y+ch, 0, 0, w/3, h/3, null); // top-left
+        g.drawImage(img, x+width-cw, y, x+width, y+ch, w - w/3, 0, w, h/3, null); // top-right
+        g.drawImage(img, x, y+height-ch, x+cw, y+height, 0, h - h/3, w/3, h, null); // bottom-left
+        g.drawImage(img, x+width-cw, y+height-ch, x+width, y+height, w - w/3, h - h/3, w, h, null); // bottom-right
+        
+        // Draw edges
+        g.drawImage(img, x+cw, y, x+width-cw, y+ch, w/3, 0, w - w/3, h/3, null); // top
+        g.drawImage(img, x+cw, y+height-ch, x+width-cw, y+height, w/3, h - h/3, w - w/3, h, null); // bottom
+        g.drawImage(img, x, y+ch, x+cw, y+height-ch, 0, h/3, w/3, h - h/3, null); // left
+        g.drawImage(img, x+width-cw, y+ch, x+width, y+height-ch, w - w/3, h/3, w, h - h/3, null); // right
+        
+        // Draw center
+        g.drawImage(img, x+cw, y+ch, x+width-cw, y+height-ch, w/3, h/3, w - w/3, h - h/3, null);
     }
 }
