@@ -4,6 +4,7 @@ import game.ui.screens.VersusGameplayScreen;
 import game.ui.screens.VersusScreen;
 import game.core.unit.MapUnit;
 import game.core.unit.WeaponItem;
+import java.io.File;
 import java.awt.Point;
 import java.util.*;
 
@@ -582,8 +583,8 @@ public class AiLogic {
                             WeaponItem wi = currentAiUnit.inventory.get(sIdx);
                             if (wi.isWeapon() && !wi.isBroken() && game.core.unit.UnitWeapon.canUseWeapon(currentAiUnit, wi)) {
                                 if (dist >= wi.minRange && dist <= wi.maxRange) {
-                                    if (wi.power > bestDmg) {
-                                        bestDmg = wi.power;
+                                    if (wi.might > bestDmg) {
+                                        bestDmg = wi.might;
                                         matchingSlot = sIdx;
                                     }
                                 }
