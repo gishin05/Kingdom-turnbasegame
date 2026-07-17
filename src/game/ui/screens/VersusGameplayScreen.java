@@ -1555,7 +1555,10 @@ public class VersusGameplayScreen extends BaseScreen {
             int uy = (int) Math.round(u.renderPos.y);
             if (ux < startX - 2 || ux > endX + 1 || uy < startY - 2 || uy > endY + 1) continue;
             
-            String action = "Standing"; if (u == selectedUnit) action = "Selected";
+            String action = "Standing";
+            if (!u.hasActed && (u == selectedUnit || u == selectedEnemy || (hoveredTile != null && u.position.equals(hoveredTile)))) {
+                action = "Selected";
+            }
             if (!u.movePath.isEmpty()) {
                 Point next = u.movePath.get(0);
                 if (next.x > u.renderPos.x) { action = "Walk_Side"; u.renderMirrorX = true; }
@@ -1571,11 +1574,13 @@ public class VersusGameplayScreen extends BaseScreen {
                 final Color finalColor = u.hasActed ? Color.GRAY : baseColor;
                 String cacheKey = u.unitName + "_" + action + "_" + u.animFrame % frames.size() + "_" + finalColor.getRGB();
                 BufferedImage colored = recolorCache.computeIfAbsent(cacheKey, k -> SpriteColorer.recolor(img, finalColor));
-                // Align 32x32 unit sprite so its "feet" sit on the tile center/bottom.
+                int imgW = colored.getWidth();
+                int imgH = colored.getHeight();
+                // Align unit sprite so its "feet" sit on the tile center/bottom.
                 int px = (int) Math.round(u.renderPos.x * 16.0);
                 int py = (int) Math.round(u.renderPos.y * 16.0);
-                int dx = px - 8;
-                int dy = py - 16;
+                int dx = px - (imgW - 16) / 2;
+                int dy = py - (imgH - 16);
                 boolean mirror = u.renderMirrorX;
                 if (action.equals("Walk_Up") || action.equals("Walk_Down")) {
                     mirror = false;
@@ -1595,9 +1600,9 @@ public class VersusGameplayScreen extends BaseScreen {
                 }
 
                 if (mirror) {
-                    g.drawImage(colored, dx + 32, dy, dx, dy + 32, 0, 0, 32, 32, null);
+                    g.drawImage(colored, dx + imgW, dy, dx, dy + imgH, 0, 0, imgW, imgH, null);
                 } else {
-                    g.drawImage(colored, dx, dy, 32, 32, null);
+                    g.drawImage(colored, dx, dy, imgW, imgH, null);
                 }
                 
                 if (alpha < 1.0f) {

@@ -45,15 +45,37 @@ public class AiLogic {
                         String cat = "Unit";
                         List<String> aiUnitChoices = new ArrayList<>();
                         
-                        if ("AERIE".equalsIgnoreCase(ev.type)) {
-                            cat = "Unit";
-                            aiUnitChoices.add("Pegasus Knight");
-                        } else if ("FORT".equalsIgnoreCase(ev.type)) {
-                            cat = "Unit";
-                            aiUnitChoices.add("Fleet");
-                        } else {
-                            cat = "Unit";
-                            aiUnitChoices.addAll(Arrays.asList("Soldier", "Assassin", "Cavalier", "Knight", "Sentinel"));
+                        // Dynamically scan available units just like the deploy menu does
+                        File battleDirFile = new File(game.core.util.GamePaths.BATTLE, cat);
+                        File unitsDirFile = new File(game.core.util.GamePaths.UNITS, cat);
+                        if (battleDirFile.exists() && battleDirFile.isDirectory() && unitsDirFile.exists() && unitsDirFile.isDirectory()) {
+                            File[] battleSubs = battleDirFile.listFiles(File::isDirectory);
+                            if (battleSubs != null) {
+                                for (File bs : battleSubs) {
+                                    String name = bs.getName();
+                                    File us = new File(unitsDirFile, name);
+                                    if (us.exists() && us.isDirectory()) {
+                                        game.core.unit.UnitStats stats = game.core.unit.UnitRegistry.get(name);
+                                        if ("ARMORY".equalsIgnoreCase(ev.type) && !"Land Unit".equalsIgnoreCase(stats.unitType)) continue;
+                                        if ("AERIE".equalsIgnoreCase(ev.type) && !"Air Unit".equalsIgnoreCase(stats.unitType)) continue;
+                                        if ("FORT".equalsIgnoreCase(ev.type) && !"Ocean Unit".equalsIgnoreCase(stats.unitType)) continue;
+                                        if ("BASE".equalsIgnoreCase(ev.type) && !"Land Unit".equalsIgnoreCase(stats.unitType)) continue;
+                                        
+                                        aiUnitChoices.add(name);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Fallback in case directory scanning is empty
+                        if (aiUnitChoices.isEmpty()) {
+                            if ("AERIE".equalsIgnoreCase(ev.type)) {
+                                aiUnitChoices.add("Pegasus Knight");
+                            } else if ("FORT".equalsIgnoreCase(ev.type)) {
+                                aiUnitChoices.add("Fleet");
+                            } else {
+                                aiUnitChoices.addAll(Arrays.asList("Soldier", "Assassin", "Cavalier", "Knight", "Sentinel"));
+                            }
                         }
                         
                         java.util.Collections.shuffle(aiUnitChoices);
@@ -102,9 +124,7 @@ public class AiLogic {
         }
         else if (aiState == 2) { // Decide Move & Attack
             screen.calculateMoveRange(currentAiUnit);
-            WeaponItem equipped = currentAiUnit.getEquipped();
-            int minR = equipped != null ? equipped.minRange : 1;
-            int maxR = equipped != null ? equipped.maxRange : 1;
+            // minR and maxR calculations removed, as AI now checks all inventory weapons during move scoring
             
             boolean unitCanCapture = screen.canCapture(currentAiUnit);
             boolean isFleet = "Fleet".equalsIgnoreCase(currentAiUnit.unitName);
@@ -406,7 +426,16 @@ public class AiLogic {
                         if (e.ownerIndex != screen.currentPlayerIdx && !e.isDead) {
                             int mDist = Math.abs(e.position.x - p.x) + Math.abs(e.position.y - p.y);
                             // If we can attack from here, huge score!
-                            if (mDist >= minR && mDist <= maxR) {
+                            boolean canAttackAtDist = false;
+                            for (WeaponItem wi : currentAiUnit.inventory) {
+                                if (wi.isWeapon() && !wi.isBroken() && game.core.unit.UnitWeapon.canUseWeapon(currentAiUnit, wi)) {
+                                    if (mDist >= wi.minRange && mDist <= wi.maxRange) {
+                                        canAttackAtDist = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (canAttackAtDist) {
                                 score += 1000 - e.currentHp; // prefer low HP targets
                             }
                         }
@@ -540,23 +569,39 @@ public class AiLogic {
             if (!actionTaken && !"Fleet".equalsIgnoreCase(currentAiUnit.unitName)) {
                 MapUnit target = null;
                 int bestHp = 9999;
-                WeaponItem equipped = currentAiUnit.getEquipped();
-                int minR = equipped != null ? equipped.minRange : 1;
-                int maxR = equipped != null ? equipped.maxRange : 1;
+                int bestWeaponSlot = -1;
                 
                 for (MapUnit e : screen.units) {
                     if (e.ownerIndex != screen.currentPlayerIdx && !e.isDead) {
                         int dist = Math.abs(e.position.x - currentAiUnit.position.x) + Math.abs(e.position.y - currentAiUnit.position.y);
-                        if (dist >= minR && dist <= maxR) {
+                        
+                        // Find a weapon in inventory that can hit at this distance
+                        int matchingSlot = -1;
+                        int bestDmg = -1;
+                        for (int sIdx = 0; sIdx < currentAiUnit.inventory.size(); sIdx++) {
+                            WeaponItem wi = currentAiUnit.inventory.get(sIdx);
+                            if (wi.isWeapon() && !wi.isBroken() && game.core.unit.UnitWeapon.canUseWeapon(currentAiUnit, wi)) {
+                                if (dist >= wi.minRange && dist <= wi.maxRange) {
+                                    if (wi.power > bestDmg) {
+                                        bestDmg = wi.power;
+                                        matchingSlot = sIdx;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (matchingSlot != -1) {
                             if (e.currentHp < bestHp) {
                                 bestHp = (int)e.currentHp;
                                 target = e;
+                                bestWeaponSlot = matchingSlot;
                             }
                         }
                     }
                 }
                 
-                if (target != null) {
+                if (target != null && bestWeaponSlot != -1) {
+                    currentAiUnit.equippedSlot = bestWeaponSlot;
                     screen.beginBattleTransition(currentAiUnit, target);
                     actionTaken = true;
                 }

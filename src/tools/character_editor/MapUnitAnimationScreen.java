@@ -36,6 +36,7 @@ public class MapUnitAnimationScreen extends JPanel  {
     private JTextField txtName;
     private JComboBox<String> comboCategory;
     private JComboBox<String> comboAction;
+    private JComboBox<String> sizeBox;
     private static final String[] ACTIONS = {"Standing", "Walk_Down", "Walk_Up", "Walk_Side", "Selected"};
     private enum Tool { PENCIL, BUCKET, ERASER, ERASER_ALL }
     private Tool currentTool = Tool.PENCIL;
@@ -98,11 +99,12 @@ public class MapUnitAnimationScreen extends JPanel  {
         // Size Selector
         JLabel lblSize = new JLabel(" Canvas Size: ");
         lblSize.setForeground(Color.WHITE);
-        String[] sizes = {"32x32", "32x64", "64x64"};
-        JComboBox<String> sizeBox = new JComboBox<>(sizes);
+        String[] sizes = {"16x16", "32x32", "32x64", "64x64"};
+        sizeBox = new JComboBox<>(sizes);
         sizeBox.addActionListener(e -> {
             String s = (String) sizeBox.getSelectedItem();
-            if (s.equals("32x32")) pixelEditor.setCanvasSize(32, 32);
+            if (s.equals("16x16")) pixelEditor.setCanvasSize(16, 16);
+            else if (s.equals("32x32")) pixelEditor.setCanvasSize(32, 32);
             else if (s.equals("32x64")) pixelEditor.setCanvasSize(32, 64);
             else if (s.equals("64x64")) pixelEditor.setCanvasSize(64, 64);
         });
@@ -361,6 +363,15 @@ public class MapUnitAnimationScreen extends JPanel  {
             String category = (String) comboCategory.getSelectedItem();
             String name = txtName.getText().trim();
             String action = (String) comboAction.getSelectedItem();
+            
+            if ("Standing".equals(action)) {
+                if (sizeBox != null) sizeBox.setSelectedItem("16x16");
+                pixelEditor.setCanvasSize(16, 16);
+            } else if (action != null) {
+                if (sizeBox != null) sizeBox.setSelectedItem("32x32");
+                pixelEditor.setCanvasSize(32, 32);
+            }
+
             if (category != null && !name.isEmpty() && action != null) {
                 String path = GamePaths.unitActionDir(category, name, action).getPath();
                 File dir = new File(path);
@@ -647,6 +658,13 @@ public class MapUnitAnimationScreen extends JPanel  {
                     comboCategory.setSelectedItem("Unit"); // default fallback
                 }
                 comboAction.setSelectedItem(action);
+                if ("Standing".equals(action)) {
+                    if (sizeBox != null) sizeBox.setSelectedItem("16x16");
+                    pixelEditor.setCanvasSize(16, 16);
+                } else if (action != null) {
+                    if (sizeBox != null) sizeBox.setSelectedItem("32x32");
+                    pixelEditor.setCanvasSize(32, 32);
+                }
             } catch (Exception e) {
                 // Path might not follow standard structure, ignore
             }
@@ -685,7 +703,7 @@ public class MapUnitAnimationScreen extends JPanel  {
             ScriptItem item = scriptItems.get(i);
             if (item.isCommand) continue;
             BufferedImage frame = imageCache.get(item.text);
-            if (frame == null) frame = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+            if (frame == null) frame = new BufferedImage(pixelEditor.canvasWidth, pixelEditor.canvasHeight, BufferedImage.TYPE_INT_ARGB);
             JPanel itemPanel = new JPanel(new BorderLayout());
             itemPanel.setBackground(index == selectedFrameIndex ? new Color(50, 70, 100) : new Color(30, 30, 40));
             JLabel lblThumb = new JLabel(new ImageIcon(frame.getScaledInstance(64, 64, Image.SCALE_SMOOTH)));
