@@ -2,6 +2,7 @@ package game.core.input;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import game.core.save.SettingsSaveData;
 
 /**
  * KeyboardController manages global keyboard input for the game.
@@ -17,6 +18,31 @@ public class KeyboardController implements KeyListener {
 
     private boolean enterConsumed = false;
     private boolean escConsumed = false;
+
+    // Custom Key Bindings (defaults to standard layouts)
+    public int upKey1 = KeyEvent.VK_UP;
+    public int upKey2 = KeyEvent.VK_W;
+    public int downKey1 = KeyEvent.VK_DOWN;
+    public int downKey2 = KeyEvent.VK_S;
+    public int leftKey1 = KeyEvent.VK_LEFT;
+    public int leftKey2 = KeyEvent.VK_A;
+    public int rightKey1 = KeyEvent.VK_RIGHT;
+    public int rightKey2 = KeyEvent.VK_D;
+    public int enterKey = KeyEvent.VK_ENTER;
+    public int escKey = KeyEvent.VK_ESCAPE;
+
+    public void loadFromSettings(SettingsSaveData settings) {
+        this.upKey1 = settings.upKey1;
+        this.upKey2 = settings.upKey2;
+        this.downKey1 = settings.downKey1;
+        this.downKey2 = settings.downKey2;
+        this.leftKey1 = settings.leftKey1;
+        this.leftKey2 = settings.leftKey2;
+        this.rightKey1 = settings.rightKey1;
+        this.rightKey2 = settings.rightKey2;
+        this.enterKey = settings.enterKey;
+        this.escKey = settings.escKey;
+    }
 
     /**
      * Resets the state of all tracked keys to unpressed.
@@ -67,24 +93,24 @@ public class KeyboardController implements KeyListener {
         int code = e.getKeyCode();
 
         // ── Movement Keys ──
-        if (code == KeyEvent.VK_UP || code == KeyEvent.VK_W) {
+        if (code == upKey1 || code == upKey2) {
             upPressed = true;
         }
-        if (code == KeyEvent.VK_DOWN || code == KeyEvent.VK_S) {
+        if (code == downKey1 || code == downKey2) {
             downPressed = true;
         }
-        if (code == KeyEvent.VK_LEFT || code == KeyEvent.VK_A) {
+        if (code == leftKey1 || code == leftKey2) {
             leftPressed = true;
         }
-        if (code == KeyEvent.VK_RIGHT || code == KeyEvent.VK_D) {
+        if (code == rightKey1 || code == rightKey2) {
             rightPressed = true;
         }
         
         // ── Action Keys ──
-        if (code == KeyEvent.VK_ENTER) {
+        if (code == enterKey) {
             enterPressed = true;
         }
-        if (code == KeyEvent.VK_ESCAPE) {
+        if (code == escKey) {
             escPressed = true;
         }
     }
@@ -93,27 +119,27 @@ public class KeyboardController implements KeyListener {
     public void keyReleased(KeyEvent e) {
         int code = e.getKeyCode();
 
-        if (code == KeyEvent.VK_UP || code == KeyEvent.VK_W) {
+        if (code == upKey1 || code == upKey2) {
             upPressed = false;
         }
-        if (code == KeyEvent.VK_DOWN || code == KeyEvent.VK_S) {
+        if (code == downKey1 || code == downKey2) {
             downPressed = false;
         }
-        if (code == KeyEvent.VK_LEFT || code == KeyEvent.VK_A) {
+        if (code == leftKey1 || code == leftKey2) {
             leftPressed = false;
         }
-        if (code == KeyEvent.VK_RIGHT || code == KeyEvent.VK_D) {
+        if (code == rightKey1 || code == rightKey2) {
             rightPressed = false;
         }
         
         // When action keys are released, we reset their "consumed" state.
         // This ensures that holding down the key doesn't trigger the action repeatedly,
         // but pressing it a second time (after releasing) will trigger it again.
-        if (code == KeyEvent.VK_ENTER) {
+        if (code == enterKey) {
             enterPressed = false;
             enterConsumed = false;
         }
-        if (code == KeyEvent.VK_ESCAPE) {
+        if (code == escKey) {
             escPressed = false;
             escConsumed = false;
         }

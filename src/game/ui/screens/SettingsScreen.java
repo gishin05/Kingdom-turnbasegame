@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 import game.Main;
+import game.core.input.KeyboardController;
 import game.core.util.SoundManager;
 import game.ui.BaseScreen;
 import game.ui.Theme;
@@ -30,7 +31,24 @@ public class SettingsScreen extends BaseScreen {
     private JLabel sfxValueLabel;
     private JComboBox<String> resolutionBox;
     private JComboBox<String> mapSizeBox;
+    private JCheckBox touchControlsCheck;
     private String backScreen = Main.MENU;
+
+    // Controls UI
+    private JButton btnUp1, btnUp2;
+    private JButton btnDown1, btnDown2;
+    private JButton btnLeft1, btnLeft2;
+    private JButton btnRight1, btnRight2;
+    private JButton btnEnter;
+    private JButton btnEsc;
+
+    // Temporary variables for key bindings
+    private int tempUpKey1, tempUpKey2;
+    private int tempDownKey1, tempDownKey2;
+    private int tempLeftKey1, tempLeftKey2;
+    private int tempRightKey1, tempRightKey2;
+    private int tempEnterKey;
+    private int tempEscKey;
 
     private float selectionGlow = 0f;
     private boolean glowUp = true;
@@ -117,8 +135,46 @@ public class SettingsScreen extends BaseScreen {
         JPanel settingsPanel = new JPanel();
         settingsPanel.setLayout(new BoxLayout(settingsPanel, BoxLayout.Y_AXIS));
         settingsPanel.setOpaque(false);
-        settingsPanel.setMaximumSize(new Dimension(520, 600));
-        settingsPanel.setPreferredSize(new Dimension(520, 500));
+        settingsPanel.setBorder(new EmptyBorder(0, 0, 0, 16));
+
+        JScrollPane scrollPane = new JScrollPane(settingsPanel);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(null);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setPreferredSize(new Dimension(550, 420));
+
+        // Custom Styled ScrollBar to match gold theme
+        scrollPane.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(255, 215, 0, 150));
+                g2.fillRoundRect(thumbBounds.x + 2, thumbBounds.y + 2, thumbBounds.width - 4, thumbBounds.height - 4, 6, 6);
+                g2.dispose();
+            }
+            @Override
+            protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(new Color(20, 20, 35, 100));
+                g2.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
+                g2.dispose();
+            }
+            @Override
+            protected JButton createDecreaseButton(int orientation) { return createZeroButton(); }
+            @Override
+            protected JButton createIncreaseButton(int orientation) { return createZeroButton(); }
+            private JButton createZeroButton() {
+                JButton jb = new JButton();
+                jb.setPreferredSize(new Dimension(0, 0));
+                jb.setMinimumSize(new Dimension(0, 0));
+                jb.setMaximumSize(new Dimension(0, 0));
+                return jb;
+            }
+        });
 
         // ── AUDIO SECTION ──
         settingsPanel.add(createSectionHeader("AUDIO"));
@@ -208,6 +264,84 @@ public class SettingsScreen extends BaseScreen {
         mapSizeBox.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0, 60)));
         settingsPanel.add(mapSizeBox);
 
+        settingsPanel.add(Box.createVerticalStrut(20));
+
+        touchControlsCheck = new JCheckBox("ENABLE TOUCH OVERLAY (ANDROID)");
+        touchControlsCheck.setFont(Theme.getPixelFont(14f));
+        touchControlsCheck.setForeground(new Color(180, 180, 210));
+        touchControlsCheck.setOpaque(false);
+        touchControlsCheck.setFocusPainted(false);
+        touchControlsCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
+        touchControlsCheck.setIcon(new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(new Color(30, 30, 50));
+                g2.fillRect(x, y, 16, 16);
+                g2.setColor(new Color(255, 215, 0, 80));
+                g2.drawRect(x, y, 16, 16);
+                g2.dispose();
+            }
+            @Override public int getIconWidth() { return 16; }
+            @Override public int getIconHeight() { return 16; }
+        });
+        touchControlsCheck.setSelectedIcon(new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(new Color(30, 30, 50));
+                g2.fillRect(x, y, 16, 16);
+                g2.setColor(Theme.GOLD);
+                g2.drawRect(x, y, 16, 16);
+                g2.fillRect(x + 4, y + 4, 8, 8);
+                g2.dispose();
+            }
+            @Override public int getIconWidth() { return 16; }
+            @Override public int getIconHeight() { return 16; }
+        });
+        settingsPanel.add(touchControlsCheck);
+
+        settingsPanel.add(Box.createVerticalStrut(36));
+
+        // ── CONTROLS SECTION ──
+        settingsPanel.add(createSectionHeader("CONTROLS"));
+        settingsPanel.add(Box.createVerticalStrut(20));
+
+        settingsPanel.add(createControlRow("MOVE UP", 
+            btnUp1 = createKeyRebindButton(() -> tempUpKey1, val -> tempUpKey1 = val),
+            btnUp2 = createKeyRebindButton(() -> tempUpKey2, val -> tempUpKey2 = val)
+        ));
+        settingsPanel.add(Box.createVerticalStrut(12));
+        
+        settingsPanel.add(createControlRow("MOVE DOWN", 
+            btnDown1 = createKeyRebindButton(() -> tempDownKey1, val -> tempDownKey1 = val),
+            btnDown2 = createKeyRebindButton(() -> tempDownKey2, val -> tempDownKey2 = val)
+        ));
+        settingsPanel.add(Box.createVerticalStrut(12));
+
+        settingsPanel.add(createControlRow("MOVE LEFT", 
+            btnLeft1 = createKeyRebindButton(() -> tempLeftKey1, val -> tempLeftKey1 = val),
+            btnLeft2 = createKeyRebindButton(() -> tempLeftKey2, val -> tempLeftKey2 = val)
+        ));
+        settingsPanel.add(Box.createVerticalStrut(12));
+
+        settingsPanel.add(createControlRow("MOVE RIGHT", 
+            btnRight1 = createKeyRebindButton(() -> tempRightKey1, val -> tempRightKey1 = val),
+            btnRight2 = createKeyRebindButton(() -> tempRightKey2, val -> tempRightKey2 = val)
+        ));
+        settingsPanel.add(Box.createVerticalStrut(12));
+
+        settingsPanel.add(createControlRow("CONFIRM / SELECT", 
+            btnEnter = createKeyRebindButton(() -> tempEnterKey, val -> tempEnterKey = val),
+            null
+        ));
+        settingsPanel.add(Box.createVerticalStrut(12));
+
+        settingsPanel.add(createControlRow("CANCEL / MENU", 
+            btnEsc = createKeyRebindButton(() -> tempEscKey, val -> tempEscKey = val),
+            null
+        ));
+
         settingsPanel.add(Box.createVerticalStrut(36));
 
         // ── APPLY / RESET ──
@@ -223,6 +357,31 @@ public class SettingsScreen extends BaseScreen {
             sfxSlider.setValue(100);
             resolutionBox.setSelectedIndex(3); // 1920x1080
             mapSizeBox.setSelectedIndex(0);
+            touchControlsCheck.setSelected(false);
+            
+            // Reset control bindings
+            tempUpKey1 = KeyEvent.VK_UP;
+            tempUpKey2 = KeyEvent.VK_W;
+            tempDownKey1 = KeyEvent.VK_DOWN;
+            tempDownKey2 = KeyEvent.VK_S;
+            tempLeftKey1 = KeyEvent.VK_LEFT;
+            tempLeftKey2 = KeyEvent.VK_A;
+            tempRightKey1 = KeyEvent.VK_RIGHT;
+            tempRightKey2 = KeyEvent.VK_D;
+            tempEnterKey = KeyEvent.VK_ENTER;
+            tempEscKey = KeyEvent.VK_ESCAPE;
+            
+            // Update button texts
+            btnUp1.setText(KeyEvent.getKeyText(tempUpKey1).toUpperCase());
+            btnUp2.setText(KeyEvent.getKeyText(tempUpKey2).toUpperCase());
+            btnDown1.setText(KeyEvent.getKeyText(tempDownKey1).toUpperCase());
+            btnDown2.setText(KeyEvent.getKeyText(tempDownKey2).toUpperCase());
+            btnLeft1.setText(KeyEvent.getKeyText(tempLeftKey1).toUpperCase());
+            btnLeft2.setText(KeyEvent.getKeyText(tempLeftKey2).toUpperCase());
+            btnRight1.setText(KeyEvent.getKeyText(tempRightKey1).toUpperCase());
+            btnRight2.setText(KeyEvent.getKeyText(tempRightKey2).toUpperCase());
+            btnEnter.setText(KeyEvent.getKeyText(tempEnterKey).toUpperCase());
+            btnEsc.setText(KeyEvent.getKeyText(tempEscKey).toUpperCase());
         });
         btnRow.add(resetBtn);
 
@@ -234,14 +393,33 @@ public class SettingsScreen extends BaseScreen {
             data.sfxVolume = sfxSlider.getValue() / 100.0f;
             data.resolutionIndex = resolutionBox.getSelectedIndex();
             data.mapSizeIndex = mapSizeBox.getSelectedIndex();
+            data.touchOverlayEnabled = touchControlsCheck.isSelected();
+            
+            // Save control bindings
+            data.upKey1 = tempUpKey1;
+            data.upKey2 = tempUpKey2;
+            data.downKey1 = tempDownKey1;
+            data.downKey2 = tempDownKey2;
+            data.leftKey1 = tempLeftKey1;
+            data.leftKey2 = tempLeftKey2;
+            data.rightKey1 = tempRightKey1;
+            data.rightKey2 = tempRightKey2;
+            data.enterKey = tempEnterKey;
+            data.escKey = tempEscKey;
+            
             game.core.save.SaveManager.saveSettings(data);
+            
+            // Apply control bindings immediately
+            main.getKeyboardController().loadFromSettings(data);
+            main.updateTouchOverlayVisibility(data.touchOverlayEnabled);
+            
             main.showScreen(backScreen);
         });
         btnRow.add(saveBtn);
 
         settingsPanel.add(btnRow);
 
-        centerWrapper.add(settingsPanel);
+        centerWrapper.add(scrollPane);
         mainUI.add(centerWrapper, BorderLayout.CENTER);
 
         // ── FOOTER ──
@@ -394,6 +572,75 @@ public class SettingsScreen extends BaseScreen {
         main.applyResolution(idx, RESOLUTIONS[idx][0], RESOLUTIONS[idx][1], RESOLUTIONS[idx][2]);
     }
 
+    private JPanel createControlRow(String actionName, JButton btn1, JButton btn2) {
+        JPanel row = new JPanel(new BorderLayout());
+        row.setOpaque(false);
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        JLabel label = new JLabel(actionName);
+        label.setFont(Theme.getPixelFont(14f));
+        label.setForeground(new Color(180, 180, 210));
+        row.add(label, BorderLayout.WEST);
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        btnPanel.setOpaque(false);
+        if (btn1 != null) {
+            btnPanel.add(btn1);
+        }
+        if (btn2 != null) {
+            btnPanel.add(btn2);
+        }
+        row.add(btnPanel, BorderLayout.EAST);
+
+        return row;
+    }
+
+    private JButton createKeyRebindButton(java.util.function.Supplier<Integer> getter, java.util.function.Consumer<Integer> setter) {
+        JButton b = new JButton("");
+        b.setFont(Theme.getPixelFont(12f));
+        b.setForeground(new Color(255, 230, 100));
+        b.setBackground(new Color(30, 30, 50));
+        b.setFocusPainted(false);
+        b.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0, 60)));
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(140, 32));
+        b.setMaximumSize(new Dimension(140, 32));
+        
+        b.addActionListener(e -> {
+            SoundManager.playButtonSound();
+            b.setText("PRESS KEY...");
+            b.setBackground(new Color(60, 20, 20));
+            b.requestFocusInWindow();
+            
+            KeyListener kl = new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent ke) {
+                    int code = ke.getKeyCode();
+                    if (code != KeyEvent.VK_UNDEFINED) {
+                        setter.accept(code);
+                        b.setText(KeyEvent.getKeyText(code).toUpperCase());
+                        b.setBackground(new Color(30, 30, 50));
+                        b.removeKeyListener(this);
+                    }
+                }
+            };
+            b.addKeyListener(kl);
+        });
+        
+        b.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent fe) {
+                b.setBackground(new Color(30, 30, 50));
+                b.setText(KeyEvent.getKeyText(getter.get()).toUpperCase());
+                for (KeyListener kl : b.getKeyListeners()) {
+                    b.removeKeyListener(kl);
+                }
+            }
+        });
+        return b;
+    }
+
     @Override
     public void refresh() {
         // Sync slider positions with current SoundManager state
@@ -413,6 +660,36 @@ public class SettingsScreen extends BaseScreen {
         game.core.save.SettingsSaveData data = game.core.save.SaveManager.loadSettings();
         if (data != null && data.mapSizeIndex >= 0 && data.mapSizeIndex < mapSizeBox.getItemCount()) {
             mapSizeBox.setSelectedIndex(data.mapSizeIndex);
+        }
+        if (data != null) {
+            touchControlsCheck.setSelected(data.touchOverlayEnabled);
+        }
+
+        // Sync temp control fields from KeyboardController
+        KeyboardController kc = main.getKeyboardController();
+        tempUpKey1 = kc.upKey1;
+        tempUpKey2 = kc.upKey2;
+        tempDownKey1 = kc.downKey1;
+        tempDownKey2 = kc.downKey2;
+        tempLeftKey1 = kc.leftKey1;
+        tempLeftKey2 = kc.leftKey2;
+        tempRightKey1 = kc.rightKey1;
+        tempRightKey2 = kc.rightKey2;
+        tempEnterKey = kc.enterKey;
+        tempEscKey = kc.escKey;
+
+        // Set button texts
+        if (btnUp1 != null) {
+            btnUp1.setText(KeyEvent.getKeyText(tempUpKey1).toUpperCase());
+            btnUp2.setText(KeyEvent.getKeyText(tempUpKey2).toUpperCase());
+            btnDown1.setText(KeyEvent.getKeyText(tempDownKey1).toUpperCase());
+            btnDown2.setText(KeyEvent.getKeyText(tempDownKey2).toUpperCase());
+            btnLeft1.setText(KeyEvent.getKeyText(tempLeftKey1).toUpperCase());
+            btnLeft2.setText(KeyEvent.getKeyText(tempLeftKey2).toUpperCase());
+            btnRight1.setText(KeyEvent.getKeyText(tempRightKey1).toUpperCase());
+            btnRight2.setText(KeyEvent.getKeyText(tempRightKey2).toUpperCase());
+            btnEnter.setText(KeyEvent.getKeyText(tempEnterKey).toUpperCase());
+            btnEsc.setText(KeyEvent.getKeyText(tempEscKey).toUpperCase());
         }
 
         revalidate();

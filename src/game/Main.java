@@ -3,6 +3,7 @@ package game;
 import java.awt.CardLayout;
 import java.awt.EventQueue;
 import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
@@ -27,6 +28,7 @@ public class Main extends JFrame {
 	private CardLayout cardLayout;
 	private SettingsScreen settingsScreen;
 	private KeyboardController keyboardController;
+	private game.ui.components.TouchOverlayPanel touchOverlayPanel;
 
 	public static final String STARTUP = "STARTUP";
 	public static final String TITLE = "TITLE";
@@ -114,11 +116,30 @@ public class Main extends JFrame {
 		game.core.util.SoundManager.setBgmVolume(settings.bgmVolume);
 		game.core.util.SoundManager.setSfxVolume(settings.sfxVolume);
 		
+		// Apply controls settings
+		keyboardController.loadFromSettings(settings);
+		
 		// Adjust window dimensions based on user's saved resolution preference
 		if (settings.resolutionIndex >= 0 && settings.resolutionIndex < SettingsScreen.RESOLUTIONS.length) {
 			String[] res = SettingsScreen.RESOLUTIONS[settings.resolutionIndex];
 			applyResolution(settings.resolutionIndex, res[0], res[1], res[2]);
 		}
+
+		// Initialize Touch Overlay Panel
+		touchOverlayPanel = new game.ui.components.TouchOverlayPanel(this);
+		touchOverlayPanel.setBounds(0, 0, getWidth(), getHeight());
+		touchOverlayPanel.setVisible(settings.touchOverlayEnabled);
+		getLayeredPane().add(touchOverlayPanel, JLayeredPane.DRAG_LAYER);
+
+		// Component listener to handle resizing touch controls
+		addComponentListener(new java.awt.event.ComponentAdapter() {
+			@Override
+			public void componentResized(java.awt.event.ComponentEvent e) {
+				if (touchOverlayPanel != null) {
+					touchOverlayPanel.setBounds(0, 0, getWidth(), getHeight());
+				}
+			}
+		});
 		
 		// Show initial screen
 		showScreen(STARTUP);
@@ -215,5 +236,11 @@ public class Main extends JFrame {
 
 	public KeyboardController getKeyboardController() {
 		return keyboardController;
+	}
+
+	public void updateTouchOverlayVisibility(boolean visible) {
+		if (touchOverlayPanel != null) {
+			touchOverlayPanel.setVisible(visible);
+		}
 	}
 }
